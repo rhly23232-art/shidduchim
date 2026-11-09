@@ -42,7 +42,7 @@ export default {
         popover: { DEFAULT: token('surface'), foreground: token('ink') },
       },
       fontFamily: {
-        heading: ['"Frank Ruhl Libre"', 'Georgia', 'serif'],
+        heading: ['Rubik', 'Heebo', 'system-ui', 'Arial', 'sans-serif'],
         sans: ['Heebo', 'system-ui', 'Arial', 'sans-serif'],
       },
       boxShadow: {
