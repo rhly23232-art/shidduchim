@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { TINTS, type TintName } from '@/lib/palette'
 import { cn } from '@/lib/utils'
 
 /** Explains why an area is empty and what to do next (one clear action). */
@@ -10,7 +11,10 @@ export function EmptyState({
   tone = 'neutral',
   className,
   headingLevel = 2,
+  tint,
 }: {
+  /** Identity color of the area the empty state belongs to. */
+  tint?: TintName
   icon?: ReactNode
   title: string
   description?: ReactNode
@@ -31,7 +35,9 @@ export function EmptyState({
             'grid size-12 place-items-center rounded-full [&_svg]:size-6',
             tone === 'destructive'
               ? 'bg-destructive-soft text-destructive'
-              : 'bg-secondary text-muted-foreground',
+              : tint
+                ? cn(TINTS[tint].bg, TINTS[tint].fg)
+                : 'bg-secondary text-muted-foreground',
           )}
           aria-hidden
         >

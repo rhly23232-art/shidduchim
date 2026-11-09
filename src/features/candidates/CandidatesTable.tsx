@@ -17,6 +17,7 @@ import {
   UserPlus,
 } from 'lucide-react'
 import { useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -27,6 +28,7 @@ import { useIsMobile } from '@/hooks/useMediaQuery'
 import type { SortKey, SortState } from '@/lib/api'
 import { he, institutionLabel } from '@/lib/strings.he'
 import type { CandidateRow, TabKey } from '@/lib/types'
+import { AREA_TINT } from '@/lib/palette'
 import { cn, fullName } from '@/lib/utils'
 import { allColumns } from './columns.all'
 import { femaleColumns } from './columns.female'
@@ -113,6 +115,7 @@ export function CandidatesTable(props: Props) {
       <Card role="status">
         <EmptyState
           icon={<UserPlus />}
+          tint={AREA_TINT[props.gender]}
           title={he.table.emptyTitle(props.gender)}
           description={he.table.emptyText}
           action={
@@ -379,7 +382,8 @@ function CandidateCard({
       aria-label={name}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <Avatar name={name} colorKey={r.id} size="lg" />
+        <div className="min-w-0 flex-1">
           <h3 className="truncate text-h4 text-foreground">{name}</h3>
           <p className="mt-1 text-body-sm text-muted-foreground">
             {[r.age !== null ? `${he.table.age} ${r.age}` : null, r.city]
@@ -388,7 +392,9 @@ function CandidateCard({
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-1">
-          {gender === 'all' && <Badge tone="neutral">{he.gender[r.gender]}</Badge>}
+          {gender === 'all' && (
+            <Badge tone={r.gender === 'male' ? 'blue' : 'violet'}>{he.gender[r.gender]}</Badge>
+          )}
           <StatusBadge status={r.status} />
         </div>
       </div>

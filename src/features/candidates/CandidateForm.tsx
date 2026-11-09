@@ -1,5 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarDays, ChevronLeft, Plus, Trash2 } from 'lucide-react'
+import {
+  BookOpen,
+  CalendarDays,
+  ChevronLeft,
+  NotebookPen,
+  Plus,
+  Trash2,
+  UserRound,
+  Users,
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useForm, useWatch, type FieldPath } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -13,6 +22,7 @@ import { Switch } from '@/components/ui/switch'
 import { EdaPicker } from './EdaFilter'
 import { useSaveCandidate } from '@/hooks/useCandidates'
 import { gregorianToHebrew } from '@/lib/hebrewDate'
+import { TINTS, type TintName } from '@/lib/palette'
 import { he } from '@/lib/strings.he'
 import { CANDIDATE_STATUSES, type CandidateFull, type Gender } from '@/lib/types'
 import { cn, errorMessage, fullName } from '@/lib/utils'
@@ -64,11 +74,35 @@ function FormSection({
       aria-labelledby={`form-${id}-h`}
       className="scroll-mt-4 space-y-4 border-t border-border pt-8 first:border-t-0 first:pt-0"
     >
-      <h3 id={`form-${id}-h`} className="text-h3 text-foreground">
+      <h3 id={`form-${id}-h`} className="flex items-center gap-3 text-h3 text-foreground">
+        <SectionIcon id={id} />
         {title}
       </h3>
       {children}
     </section>
+  )
+}
+
+const SECTION_LOOK: Record<SectionId, { tint: TintName; icon: ReactNode }> = {
+  personal: { tint: 'blue', icon: <UserRound /> },
+  education: { tint: 'teal', icon: <BookOpen /> },
+  extra: { tint: 'violet', icon: <Users /> },
+  notes: { tint: 'amber', icon: <NotebookPen /> },
+}
+
+function SectionIcon({ id }: { id: SectionId }) {
+  const look = SECTION_LOOK[id]
+  return (
+    <span
+      className={cn(
+        'grid size-8 shrink-0 place-items-center rounded-md [&_svg]:size-4',
+        TINTS[look.tint].bg,
+        TINTS[look.tint].fg,
+      )}
+      aria-hidden
+    >
+      {look.icon}
+    </span>
   )
 }
 
@@ -523,10 +557,14 @@ export function CandidateForm({
               >
                 <div className="flex items-center justify-between gap-4 rounded-md border border-border px-4 py-3">
                   <div>
-                    <h3 id="form-extra-h" className="text-h3 text-foreground">
+                    <h3
+                      id="form-extra-h"
+                      className="flex items-center gap-3 text-h3 text-foreground"
+                    >
+                      <SectionIcon id="extra" />
                       {t.extraInfo}
                     </h3>
-                    <p className="text-body-sm text-muted-foreground">{t.extraInfoHint}</p>
+                    <p className="ms-11 text-body-sm text-muted-foreground">{t.extraInfoHint}</p>
                   </div>
                   <Switch checked={extraOn} onChange={setExtraOn} label={t.extraInfo} />
                 </div>

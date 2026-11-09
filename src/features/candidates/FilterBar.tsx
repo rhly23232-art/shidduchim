@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
 import { useMeasureVar } from '@/hooks/useMeasureVar'
 import type { FiltersApi, ListKey } from '@/hooks/useFilters'
 import type { SortState } from '@/lib/api'
+import { AREA_TINT } from '@/lib/palette'
 import { he, institutionLabel } from '@/lib/strings.he'
 import type { CandidateRow, TabKey } from '@/lib/types'
 import { AgeFilter, AgeRangeControl, ageLabel } from './AgeFilter'
@@ -127,6 +128,7 @@ function GenderTabs({ gender, onChange }: { gender: TabKey; onChange: (g: TabKey
         label: he.tabs[g],
         id: tabId(g),
         controls: CANDIDATES_PANEL_ID,
+        tint: AREA_TINT[g],
       }))}
     />
   )

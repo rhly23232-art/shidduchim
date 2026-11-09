@@ -46,6 +46,30 @@
     --info-soft: 218 70% 96%;
     --overlay: 225 10% 10%;
 
+    /* Categorical palette — soft tints that give each area and each person an identity.
+       bg = surface tint · strong = dots, borders, bars · fg = text/icon on bg (AA). */
+    --tint-blue: 221 85% 95%;
+    --tint-blue-strong: 222 72% 66%;
+    --tint-blue-fg: 224 56% 38%;
+    --tint-violet: 255 72% 96%;
+    --tint-violet-strong: 256 58% 70%;
+    --tint-violet-fg: 258 42% 42%;
+    --tint-teal: 171 46% 92%;
+    --tint-teal-strong: 172 45% 48%;
+    --tint-teal-fg: 176 62% 23%;
+    --tint-amber: 40 92% 92%;
+    --tint-amber-strong: 37 88% 58%;
+    --tint-amber-fg: 27 78% 29%;
+    --tint-rose: 350 78% 95%;
+    --tint-rose-strong: 350 65% 70%;
+    --tint-rose-fg: 348 52% 38%;
+    --tint-green: 140 46% 93%;
+    --tint-green-strong: 142 42% 52%;
+    --tint-green-fg: 146 52% 24%;
+    --tint-sky: 199 88% 94%;
+    --tint-sky-strong: 199 75% 56%;
+    --tint-sky-fg: 203 70% 28%;
+
     /* Radius */
     --radius-sm: 6px;
     --radius-md: 8px;

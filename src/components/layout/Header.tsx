@@ -3,17 +3,20 @@ import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useMeasureVar } from '@/hooks/useMeasureVar'
 import { he } from '@/lib/strings.he'
+import { TINTS } from '@/lib/palette'
+import { cn } from '@/lib/utils'
+import type { Area } from './areas'
 import { UserMenu } from './UserMenu'
 
 interface Props {
-  title: string
+  area: Area
   onMenu: () => void
   menuOpen: boolean
   onSearch: () => void
   onAdd: () => void
 }
 
-export function Header({ title, onMenu, menuOpen, onSearch, onAdd }: Props) {
+export function Header({ area, onMenu, menuOpen, onSearch, onAdd }: Props) {
   const ref = useRef<HTMLElement>(null)
   useMeasureVar(ref, '--header-h')
   return (
@@ -30,7 +33,19 @@ export function Header({ title, onMenu, menuOpen, onSearch, onAdd }: Props) {
         >
           <Menu className="size-5" />
         </Button>
-        <h1 className="min-w-0 truncate text-h2 text-foreground">{title}</h1>
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            className={cn(
+              'hidden size-9 shrink-0 place-items-center rounded-md sm:grid [&_svg]:size-5',
+              TINTS[area.tint].bg,
+              TINTS[area.tint].fg,
+            )}
+            aria-hidden
+          >
+            {area.icon}
+          </span>
+          <h1 className="min-w-0 truncate text-h2 text-foreground">{area.title}</h1>
+        </div>
         <button
           type="button"
           onClick={onSearch}
