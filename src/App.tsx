@@ -15,6 +15,7 @@ import LoginPage from '@/pages/Login'
 const AppShell = lazy(() =>
   import('@/components/layout/AppShell').then((m) => ({ default: m.AppShell })),
 )
+const HomePage = lazy(() => import('@/pages/Home'))
 const CandidatesPage = lazy(() => import('@/pages/Candidates'))
 const IdeasPage = lazy(() => import('@/pages/Ideas'))
 
@@ -92,7 +93,7 @@ export default function App() {
                           </Protected>
                         }
                       >
-                        <Route index element={<Navigate to="/candidates" replace />} />
+                        <Route index element={<HomePage />} />
                         <Route path="candidates" element={<CandidatesPage />} />
                         <Route path="ideas" element={<IdeasPage />} />
                       </Route>

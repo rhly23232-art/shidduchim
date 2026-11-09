@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Lightbulb, Search, UserRound, Users, UsersRound } from 'lucide-react'
+import { House, Lightbulb, Search, UserRound, Users, UsersRound } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom'
 import { useAppActions } from '@/features/workspace/appActions'
@@ -116,7 +116,6 @@ export function Sidebar({
   const [params] = useSearchParams()
   const [q, setQ] = useState('')
 
-
   const list = useMemo(() => {
     const terms = normalizeSearch(q).split(' ').filter(Boolean)
     return rows
@@ -149,6 +148,14 @@ export function Sidebar({
         )}
       </div>
       <div className={cn('space-y-5', collapsed ? 'px-2' : 'px-3')}>
+        <NavItem
+          to="/"
+          end
+          icon={<House />}
+          label={he.nav.home}
+          onNavigate={onNavigate}
+          collapsed={collapsed}
+        />
         <div>
           {collapsed ? (
             <div className="mx-2 mb-2 h-px bg-surface/10" aria-hidden />

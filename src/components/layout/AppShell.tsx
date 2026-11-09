@@ -27,6 +27,7 @@ const uniqSorted = (values: (string | null)[]) =>
 
 function usePageTitle(): string {
   const { pathname, search } = useLocation()
+  if (pathname === '/' || pathname === '') return he.home.title
   if (pathname.startsWith('/ideas')) return he.nav.ideas
   const tab = new URLSearchParams(search).get('tab')
   return tab === 'female' ? he.tabs.female : tab === 'all' ? he.tabs.allTitle : he.tabs.male
