@@ -77,15 +77,17 @@ export async function sendViaGmail(input: {
     const { blob, filename, mime } = input.attachment
     const listing = await mcp.listTools().catch(() => ({ fileArgs: false }))
     const ext = filename.split('.').pop()?.toLowerCase() || 'pdf'
-    if (listing.fileArgs) {
+    // Inline base64 is the format verified against Gmail; larger files use the platform's file route.
+    if (blob.size <= INLINE_LIMIT) {
+      attachments.push({ filename, mimeType: mime, content: toBase64(await blob.arrayBuffer()) })
+    } else if (listing.fileArgs) {
       attachments.push({
         filename,
         mimeType: mime,
         content: { $file: { data: blob, name: `resume.${ext}`, type: mime } },
       })
     } else {
-      if (blob.size > INLINE_LIMIT) throw { code: 'too_large' } satisfies HostError
-      attachments.push({ filename, mimeType: mime, content: toBase64(await blob.arrayBuffer()) })
+      throw { code: 'too_large' } satisfies HostError
     }
   }
   await mcp.callTool(GMAIL_SERVER, GMAIL_SEND_TOOL, {
