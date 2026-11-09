@@ -119,7 +119,7 @@ export async function readCsv(file: Blob): Promise<Sheet> {
   const bytes = new Uint8Array(await file.arrayBuffer())
   let text = new TextDecoder('utf-8').decode(bytes)
   // Old Hebrew Excel saves CSV as Windows-1255: invalid UTF-8 shows replacement chars.
-  if (text.includes('�')) text = new TextDecoder('windows-1255').decode(bytes)
+  if (/\uFFFD/.test(text)) text = new TextDecoder('windows-1255').decode(bytes)
   text = text.replace(/^\uFEFF/, '')
   const firstLine = text.split(/\r?\n/, 1)[0] ?? ''
   const delim = (['\t', ';', ','] as const)
