@@ -17,11 +17,8 @@ export function Header({ title, onMenu, menuOpen, onSearch, onAdd }: Props) {
   const ref = useRef<HTMLElement>(null)
   useMeasureVar(ref, '--header-h')
   return (
-    <header
-      ref={ref}
-      className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85"
-    >
-      <div className="flex h-16 items-center gap-3 px-4 md:px-6">
+    <header ref={ref} className="sticky top-0 z-30 border-b border-border bg-card">
+      <div className="flex h-16 items-center gap-3 px-4 md:px-8">
         <Button
           variant="ghost"
           size="icon-sm"
@@ -31,13 +28,13 @@ export function Header({ title, onMenu, menuOpen, onSearch, onAdd }: Props) {
           aria-controls="app-sidebar"
           className="shrink-0"
         >
-          <Menu className="!size-5" />
+          <Menu className="size-5" />
         </Button>
-        <h1 className="min-w-0 truncate text-xl font-bold text-navy-900 md:text-2xl">{title}</h1>
+        <h1 className="min-w-0 truncate text-h2 text-foreground">{title}</h1>
         <button
           type="button"
           onClick={onSearch}
-          className="ms-auto flex h-10 items-center gap-2 rounded-full border border-line bg-cream-50 px-3 text-sm text-ink-muted transition-colors hover:border-navy-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 md:w-72"
+          className="ms-auto flex h-10 items-center gap-2 rounded-md border border-input bg-card px-3 text-body text-muted-foreground transition-colors duration-fast hover:border-input-hover hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:size-10 max-md:justify-center max-md:px-0 md:w-72"
           aria-label={he.palette.title}
         >
           <Search className="size-4" aria-hidden />

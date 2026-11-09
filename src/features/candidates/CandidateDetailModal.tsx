@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { BookOpen, Heart, Pencil, Trash2, UserRound, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
@@ -45,11 +44,9 @@ const has = (v: Value) => v !== null && v !== undefined && v !== '' && v !== fal
 function Item({ label, value, wide }: { label: string; value: Value; wide?: boolean }) {
   if (!has(value)) return null
   return (
-    <div className={wide ? 'col-span-2' : 'min-w-0'}>
-      <dt className="text-[12px] font-medium text-ink-muted">{label}</dt>
-      <dd className="mt-0.5 whitespace-pre-line break-words text-[14.5px] leading-relaxed text-ink">
-        {value}
-      </dd>
+    <div className={wide ? 'min-w-0 min-[420px]:col-span-2' : 'min-w-0'}>
+      <dt className="text-caption font-medium text-muted-foreground">{label}</dt>
+      <dd className="mt-1 whitespace-pre-line break-words text-body text-foreground">{value}</dd>
     </div>
   )
 }
@@ -68,27 +65,21 @@ function Section({
   // Hidden entirely when every item inside is empty.
   if (!children.some(Boolean)) return null
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay: index * 0.04, ease: 'easeOut' }}
+    <section
       aria-labelledby={`sec-${index}`}
-      className="border-t border-line pt-5 first:border-t-0 first:pt-0"
+      className="border-t border-border pt-5 first:border-t-0 first:pt-0"
     >
-      <h3
-        id={`sec-${index}`}
-        className="mb-3 flex items-center gap-2 text-[17px] font-bold text-navy-900"
-      >
+      <h3 id={`sec-${index}`} className="mb-4 flex items-center gap-2 text-h4 text-foreground">
         <span
-          className="grid size-7 place-items-center rounded-lg bg-gold-100 text-gold-700"
+          className="grid size-7 place-items-center rounded-md bg-secondary text-muted-foreground"
           aria-hidden
         >
           {icon}
         </span>
         {title}
       </h3>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3.5 sm:gap-x-6">{children}</dl>
-    </motion.section>
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-4 min-[420px]:grid-cols-2">{children}</dl>
+    </section>
   )
 }
 
@@ -144,19 +135,21 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
       >
         {[
           c.education_history.length > 0 ? (
-            <div key="hist" className="col-span-2">
-              <dt className="text-[12px] font-medium text-ink-muted">{f.educationHistory}</dt>
+            <div key="hist" className="min-[420px]:col-span-2">
+              <dt className="text-caption font-medium text-muted-foreground">
+                {f.educationHistory}
+              </dt>
               <dd className="mt-2">
-                <ol className="relative space-y-3 border-s-2 border-navy-100 ps-5">
+                <ol className="relative space-y-3 border-s-2 border-border ps-5">
                   {c.education_history.map((e, i) => (
                     <li key={i} className="relative">
                       <span
-                        className="absolute -start-[27px] top-1.5 size-3 rounded-full border-2 border-surface bg-gold-500 ring-2 ring-navy-100"
+                        className="absolute -start-[27px] top-1.5 size-3 rounded-full border-2 border-card bg-brand ring-2 ring-border"
                         aria-hidden
                       />
-                      <p className="text-[14.5px] font-medium text-ink">{e.name}</p>
+                      <p className="text-body font-medium text-foreground">{e.name}</p>
                       {(e.type || e.years) && (
-                        <p className="text-[13px] text-ink-muted">
+                        <p className="text-body-sm text-muted-foreground">
                           {[e.type, e.years].filter(Boolean).join(' · ')}
                         </p>
                       )}
@@ -203,19 +196,19 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
               <Item key="lin" label={f.lineage} value={fam?.lineage} wide />
             ) : null,
             inLaws.length > 0 ? (
-              <div key="inlaws" className="col-span-2">
-                <dt className="text-[12px] font-medium text-ink-muted">{f.inLaws}</dt>
+              <div key="inlaws" className="min-[420px]:col-span-2">
+                <dt className="text-caption font-medium text-muted-foreground">{f.inLaws}</dt>
                 <dd className="mt-2">
-                  <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+                  <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
                     {inLaws.map((l) => (
                       <li
                         key={l.id}
-                        className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 px-3 py-2.5"
+                        className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-3"
                       >
-                        <Badge tone="navy">{l.relation}</Badge>
-                        <span className="text-[14.5px] font-medium">{l.full_name}</span>
+                        <Badge tone="neutral">{l.relation}</Badge>
+                        <span className="text-body font-medium">{l.full_name}</span>
                         {l.details && (
-                          <span className="text-[13px] text-ink-muted">{l.details}</span>
+                          <span className="text-body-sm text-muted-foreground">{l.details}</span>
                         )}
                       </li>
                     ))}
@@ -227,7 +220,7 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
         </Section>
       ) : (
         <div
-          className="space-y-3 border-t border-line pt-5"
+          className="space-y-3 border-t border-border pt-5"
           aria-busy
           aria-label={he.detail.loading}
         >
@@ -273,9 +266,9 @@ export function CandidateDetailModal({ id, preview, onClose, onEdit, onDelete }:
       <DialogContent className="max-w-3xl">
         {c ? (
           <>
-            <DialogHeader className="gap-1.5 bg-gradient-to-b from-cream-50 to-surface">
+            <DialogHeader className="gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <DialogTitle className="text-2xl">{fullName(c)}</DialogTitle>
+                <DialogTitle className="text-h1">{fullName(c)}</DialogTitle>
                 <StatusBadge status={c.status} hideActive={false} />
               </div>
               <DialogDescription>
@@ -291,8 +284,8 @@ export function CandidateDetailModal({ id, preview, onClose, onEdit, onDelete }:
             </DialogHeader>
             <DialogBody>
               <DetailSections c={c} full={full} />
-              <div className="mt-6 border-t border-line pt-5">
-                <h3 className="mb-3 text-[17px] font-bold text-navy-900">{he.resume.label}</h3>
+              <div className="mt-6 border-t border-border pt-5">
+                <h3 className="mb-3 text-h4 text-foreground">{he.resume.label}</h3>
                 <ResumeActions candidate={c} variant="full" />
               </div>
             </DialogBody>
@@ -306,14 +299,14 @@ export function CandidateDetailModal({ id, preview, onClose, onEdit, onDelete }:
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-danger hover:bg-danger-soft"
+                    className="text-destructive hover:bg-destructive-soft hover:text-destructive"
                     onClick={() => onDelete(c)}
                     aria-label={he.form.deleteTitle(fullName(c))}
                   >
                     <Trash2 />
                   </Button>
                 </Tooltip>
-                <Button variant="secondary" onClick={onClose}>
+                <Button variant="outline" onClick={onClose}>
                   {he.common.close}
                 </Button>
                 <Button variant="primary" disabled={!full} onClick={() => full && onEdit(full)}>

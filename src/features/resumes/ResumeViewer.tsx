@@ -8,6 +8,7 @@ import {
   ZoomOut,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -99,7 +100,7 @@ function PdfCanvas({ doc, page, scale }: { doc: PdfDoc; page: number; scale: num
       task?.cancel()
     }
   }, [doc, page, scale])
-  return <canvas ref={ref} className="mx-auto block max-w-full rounded-md bg-surface shadow-card" />
+  return <canvas ref={ref} className="mx-auto block max-w-full rounded-md bg-card shadow-sm" />
 }
 
 export function ResumeViewer() {
@@ -166,15 +167,20 @@ export function ResumeViewer() {
             )}
           </DialogDescription>
         </DialogHeader>
-        <DialogBody className="bg-cream-100/60">
+        <DialogBody className="bg-secondary">
           {error ? (
-            <div role="alert" className="flex flex-col items-center gap-2 py-16 text-center">
-              <AlertTriangle className="size-6 text-danger" aria-hidden />
-              <p className="font-medium text-ink">{he.viewer.failed}</p>
-              <p className="text-sm text-ink-muted">{error}</p>
-            </div>
+            <EmptyState
+              tone="destructive"
+              icon={<AlertTriangle />}
+              title={he.viewer.failed}
+              description={error}
+              headingLevel={3}
+            />
           ) : !loaded ? (
-            <div className="flex flex-col items-center gap-2 py-24 text-ink-muted" role="status">
+            <div
+              className="flex flex-col items-center gap-2 py-24 text-muted-foreground"
+              role="status"
+            >
               <Loader2 className="size-6 animate-spin" aria-hidden />
               {he.viewer.loading}
             </div>
@@ -182,7 +188,7 @@ export function ResumeViewer() {
             <img
               src={loaded.url}
               alt={state?.title ?? ''}
-              className="mx-auto max-w-full rounded-md shadow-card"
+              className="mx-auto max-w-full rounded-md shadow-sm"
               style={{ width: `${scale * 62}%` }}
             />
           ) : loaded.kind === 'pdf' ? (
@@ -191,12 +197,12 @@ export function ResumeViewer() {
             </div>
           ) : (
             <div className="mx-auto max-w-2xl space-y-3">
-              <p className="rounded-lg bg-gold-100/60 px-3 py-2 text-xs text-gold-700">
+              <p className="rounded-md bg-info-soft px-3 py-2 text-caption text-info">
                 {he.viewer.docxNote}
               </p>
               <article
                 dir="auto"
-                className="rounded-md bg-surface p-8 text-[15px] leading-relaxed shadow-card [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_li]:ms-5 [&_li]:list-disc [&_p]:my-2 [&_table]:w-full [&_td]:border [&_td]:border-line [&_td]:p-1.5"
+                className="rounded-md bg-card p-8 text-body-lg shadow-sm [&_h1]:text-h1 [&_h2]:text-h2 [&_li]:ms-5 [&_li]:list-disc [&_p]:my-2 [&_table]:w-full [&_td]:border [&_td]:border-border [&_td]:p-2"
                 dangerouslySetInnerHTML={{ __html: loaded.html }}
               />
             </div>
@@ -215,7 +221,7 @@ export function ResumeViewer() {
                 <ZoomOut />
               </Button>
             </Tooltip>
-            <span className="tabular w-12 text-center text-xs text-ink-muted" dir="ltr">
+            <span className="tabular w-12 text-center text-caption text-muted-foreground" dir="ltr">
               {Math.round(scale * 80)}%
             </span>
             <Tooltip content={he.viewer.zoomIn}>
@@ -240,7 +246,7 @@ export function ResumeViewer() {
                 >
                   <ChevronRight />
                 </Button>
-                <span className="tabular text-xs text-ink-muted">
+                <span className="tabular text-caption text-muted-foreground">
                   {he.viewer.page(page, pages)}
                 </span>
                 <Button

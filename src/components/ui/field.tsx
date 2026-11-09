@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react'
+import { he } from '@/lib/strings.he'
 import { cn } from '@/lib/utils'
 import { Label } from './label'
 
@@ -17,7 +18,7 @@ interface FieldProps {
   children: (id: string, aria: FieldAria) => ReactNode
 }
 
-/** Label + control + hint/error, wired for screen readers. */
+/** Label + control + helper/error text, wired for screen readers. */
 export function Field({ label, error, hint, required, className, children }: FieldProps) {
   const id = useId()
   const hintId = `${id}-hint`
@@ -25,13 +26,16 @@ export function Field({ label, error, hint, required, className, children }: Fie
   const describedBy =
     [hint ? hintId : null, error ? errId : null].filter(Boolean).join(' ') || undefined
   return (
-    <div className={cn('flex min-w-0 flex-col gap-1.5', className)}>
+    <div className={cn('flex min-w-0 flex-col gap-2', className)}>
       <Label htmlFor={id}>
         {label}
         {required && (
-          <span className="ms-0.5 text-danger" aria-hidden>
-            *
-          </span>
+          <>
+            <span className="ms-1 text-destructive" aria-hidden>
+              *
+            </span>
+            <span className="sr-only"> ({he.common.required})</span>
+          </>
         )}
       </Label>
       {children(id, {
@@ -40,12 +44,12 @@ export function Field({ label, error, hint, required, className, children }: Fie
         'aria-required': required || undefined,
       })}
       {hint && !error && (
-        <p id={hintId} className="text-xs text-ink-muted">
+        <p id={hintId} className="text-caption text-muted-foreground">
           {hint}
         </p>
       )}
       {error && (
-        <p id={errId} role="alert" className="text-xs font-medium text-danger">
+        <p id={errId} role="alert" className="text-caption font-medium text-destructive">
           {error}
         </p>
       )}

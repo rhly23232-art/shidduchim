@@ -25,6 +25,7 @@ export const he = {
     search: 'חיפוש',
     yes: 'כן',
     no: 'לא',
+    required: 'שדה חובה',
     years: 'שנים',
     cm: 'ס״מ',
     optional: 'רשות',
@@ -99,7 +100,7 @@ export const he = {
   filters: {
     title: 'סינון',
     criteria: 'מקום, מוסד ועדה',
-    openFilters: 'פתיחת מסנים',
+    openFilters: 'פתיחת מסננים',
     age: 'גיל',
     ageFrom: 'מגיל',
     ageTo: 'עד גיל',
@@ -115,7 +116,7 @@ export const he = {
     institutionAll: 'ישיבה / סמינר',
     community: 'עדה',
     reset: 'איפוס',
-    resetAll: 'איפוס כל המסנים',
+    resetAll: 'איפוס כל המסננים',
     removeChip: (label: string) => `הסרת המסנן ${label}`,
     searchOption: 'חיפוש…',
     noOptions: 'לא נמצאו ערכים',
@@ -172,7 +173,7 @@ export const he = {
           : 'עדיין אין מועמדים במאגר',
     emptyText: 'הוסיפו מועמד/ת ראשון/ה כדי להתחיל.',
     noResultsTitle: 'לא נמצאו מועמדים התואמים את הסינון',
-    noResultsText: 'נסו להרחיב את טווח הגיל או להסיר חלק מהמסנים.',
+    noResultsText: 'נסו להרחיב את טווח הגיל או להסיר חלק מהמסננים.',
     errorTitle: 'לא הצלחנו לטעון את הנתונים',
     errorText: 'בדקו את החיבור ונסו שוב.',
     tableCaption: (g: TabKey) =>
@@ -401,6 +402,10 @@ export const he = {
     femalesText: 'טבלת הבחורות, סינון וכרטיסי מועמדת',
     ideasText: 'פנקס הרעיונות והמחשבות שלכם',
   },
+  ds: {
+    title: 'מערכת העיצוב',
+    menu: 'מערכת העיצוב (Design System)',
+  },
   nav: {
     home: 'מסך ראשי',
     main: 'ניווט ראשי',
@@ -450,6 +455,7 @@ export const he = {
     emptyText: 'רשמו כאן כל כיוון שעולה בדעתכם.',
     showDone: 'הצגת רעיונות שטופלו',
     pinned: 'מוצמד',
+    doneBadge: 'טופל',
   },
   viewer: {
     title: (name: string) => `רזומה — ${name}`,

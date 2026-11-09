@@ -14,10 +14,13 @@ export function Progress({
     <ProgressPrimitive.Root
       value={value}
       aria-label={label}
-      className={cn('relative h-1.5 w-full overflow-hidden rounded-full bg-navy-100', className)}
+      className={cn(
+        'relative h-1.5 w-full overflow-hidden rounded-full bg-secondary-hover',
+        className,
+      )}
     >
       <ProgressPrimitive.Indicator
-        className="h-full bg-gold-500 transition-[width] duration-200 ease-out"
+        className="h-full bg-primary transition-[width] duration-base ease-out"
         style={{ width: `${value}%`, marginInlineStart: 0 }}
       />
     </ProgressPrimitive.Root>

@@ -26,7 +26,7 @@ export default function CandidatesPage() {
         capped={data.capped}
         rows={data.rows}
       />
-      <main id="main" className="px-4 pb-16 pt-4 md:px-6 md:pt-5">
+      <main id="main" className="px-4 pb-16 pt-4 md:px-8 md:pt-6">
         <SampleDataBanner />
         <div id={CANDIDATES_PANEL_ID} role="tabpanel" aria-labelledby={tabId(gender)}>
           <CandidatesTable

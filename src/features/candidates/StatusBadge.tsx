@@ -2,7 +2,12 @@ import { Badge } from '@/components/ui/badge'
 import { he } from '@/lib/strings.he'
 import type { CandidateStatus } from '@/lib/types'
 
-const TONE = { active: 'success', in_process: 'gold', engaged: 'navy', paused: 'neutral' } as const
+const TONE = {
+  active: 'success',
+  in_process: 'warning',
+  engaged: 'info',
+  paused: 'neutral',
+} as const
 
 export function StatusBadge({
   status,

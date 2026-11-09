@@ -2,6 +2,7 @@ import { Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounced } from '@/hooks/useDebounced'
 import { he } from '@/lib/strings.he'
+import { fieldBase } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -55,7 +56,7 @@ export function SearchBox({ value, onChange, className }: Props) {
   return (
     <div role="search" className={cn('relative', className)}>
       <Search
-        className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
+        className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
         aria-hidden
       />
       <input
@@ -71,7 +72,7 @@ export function SearchBox({ value, onChange, className }: Props) {
         }}
         placeholder={he.header.searchPlaceholder}
         aria-label={he.header.searchLabel}
-        className="h-10 w-full rounded-full border border-line bg-cream-50 pe-9 ps-9 text-sm text-ink transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-ink-muted/75 hover:border-navy-200 focus-visible:border-gold-500 focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/35 [&::-webkit-search-cancel-button]:hidden"
+        className={cn(fieldBase, 'h-9 pe-9 ps-9')}
       />
       {text && (
         <button
@@ -81,7 +82,7 @@ export function SearchBox({ value, onChange, className }: Props) {
             inputRef.current?.focus()
           }}
           aria-label={he.header.clearSearch}
-          className="absolute end-1.5 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-muted hover:bg-navy-50 hover:text-navy-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+          className="absolute end-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-sm text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="size-3.5" />
         </button>

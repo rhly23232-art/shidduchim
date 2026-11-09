@@ -17,7 +17,7 @@ export const DropdownMenuContent = forwardRef<
       align={align}
       collisionPadding={12}
       className={cn(
-        'z-50 min-w-[11rem] overflow-hidden rounded-xl border border-line bg-surface p-1 text-ink shadow-pop data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]',
+        'z-50 min-w-[11rem] overflow-hidden rounded-lg border border-border bg-card p-1 text-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]',
         className,
       )}
       {...props}
@@ -33,8 +33,9 @@ export const DropdownMenuItem = forwardRef<
   <DropdownPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-navy-50 data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-ink-muted',
-      destructive && 'text-danger data-[highlighted]:bg-danger-soft [&_svg]:text-danger',
+      'relative flex cursor-pointer select-none items-center gap-3 rounded-md px-3 py-2 text-body outline-none transition-colors duration-fast data-[disabled]:pointer-events-none data-[highlighted]:bg-secondary data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
+      destructive &&
+        'text-destructive data-[highlighted]:bg-destructive-soft [&_svg]:text-destructive',
       className,
     )}
     {...props}
@@ -48,7 +49,7 @@ export const DropdownMenuSeparator = forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownPrimitive.Separator
     ref={ref}
-    className={cn('my-1 h-px bg-line', className)}
+    className={cn('my-1 h-px bg-border', className)}
     {...props}
   />
 ))
@@ -60,7 +61,7 @@ export const DropdownMenuLabel = forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownPrimitive.Label
     ref={ref}
-    className={cn('px-2.5 py-2 text-xs text-ink-muted', className)}
+    className={cn('px-3 py-2 text-caption text-muted-foreground', className)}
     {...props}
   />
 ))

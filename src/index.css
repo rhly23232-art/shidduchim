@@ -2,44 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design tokens — "Calm Productivity". HSL channels so Tailwind can apply alpha.
+ * Documented in docs/DESIGN_SYSTEM.md. Never use raw colors in components.
+ */
 @layer base {
   :root {
-    /* Brand */
-    --navy-900: 222 48% 17%;
-    --navy-800: 222 40% 24%;
-    --navy-700: 221 30% 34%;
-    --navy-200: 220 30% 84%;
-    --navy-100: 220 36% 92%;
-    --navy-50: 220 40% 96.5%;
-    --gold-700: 37 42% 32%;
-    --gold-500: 37 36% 54%;
-    --gold-300: 38 42% 74%;
-    --gold-100: 40 52% 93%;
-    --cream-50: 40 33% 97%;
-    --cream-100: 40 28% 93%;
-    --surface: 0 0% 100%;
-    /* Text & lines */
-    --ink: 222 30% 14%;
-    --ink-muted: 220 12% 38%;
-    --line: 36 20% 87%;
-    /* Feedback */
-    --danger: 0 62% 42%;
-    --danger-soft: 0 70% 96%;
-    --success: 152 48% 28%;
-    --success-soft: 150 40% 94%;
-    --warning: 32 80% 32%;
-    --warning-soft: 40 85% 93%;
-    /* Elevation */
-    --shadow-card: 0 1px 2px hsl(222 40% 15% / 0.05), 0 2px 8px -2px hsl(222 40% 15% / 0.07);
-    --shadow-card-hover: 0 2px 4px hsl(222 40% 15% / 0.06), 0 10px 24px -6px hsl(222 40% 15% / 0.14);
-    --shadow-pop: 0 4px 12px hsl(222 40% 15% / 0.08), 0 24px 48px -12px hsl(222 40% 15% / 0.22);
+    /* Surfaces */
+    --background: 60 9% 98%; /* #FAFAF9 — app canvas */
+    --card: 0 0% 100%; /* #FFFFFF — work surfaces, popovers, dialogs */
+    --secondary: 210 9% 96%; /* #F4F5F6 — secondary background */
+    --secondary-hover: 220 8% 92%;
+    --muted: 210 9% 96%;
+
+    /* Text */
+    --foreground: 225 6% 13.3%; /* #202124 */
+    --muted-foreground: 218 5% 44%; /* #6B6F76 — #777B83 darkened to pass WCAG AA on white */
+
+    /* Brand / interaction */
+    --brand: 223 60% 58%; /* #5478D4 — accent: indicators, focus, icons */
+    --primary: 224 53% 53%; /* #486AC7 — filled buttons & links (AA with white text) */
+    --primary-hover: 224 49% 46%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 223 75% 96%; /* selected / active tint */
+    --accent-foreground: 224 49% 42%;
+    --ring: 223 60% 58%;
+
+    /* Lines */
+    --border: 225 10% 91.8%; /* #E8E9EC — dividers, cards */
+    --input: 225 8% 85%; /* form control borders */
+    --input-hover: 225 7% 74%;
+
+    /* Semantic */
+    --destructive: 0 61% 48%;
+    --destructive-hover: 0 61% 42%;
+    --destructive-soft: 0 70% 96%;
+    --success: 145 44% 31%;
+    --success-soft: 145 35% 94%;
+    --warning: 30 85% 31%;
+    --warning-soft: 36 90% 94%;
+    --warning-dot: 30 80% 55%;
+    --info: 217 55% 43%;
+    --info-soft: 218 70% 96%;
+    --overlay: 225 10% 10%;
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Elevation — minimal */
+    --shadow-sm: 0 1px 2px 0 hsl(225 6% 13% / 0.05);
+    --shadow-md: 0 1px 3px hsl(225 6% 13% / 0.05), 0 6px 16px -4px hsl(225 6% 13% / 0.1);
+    --shadow-lg: 0 2px 6px hsl(225 6% 13% / 0.05), 0 20px 44px -12px hsl(225 6% 13% / 0.2);
+
     /* Layout (set at runtime) */
     --header-h: 4rem;
     --filterbar-h: 0px;
   }
 
   * {
-    @apply border-line;
+    @apply border-border;
   }
 
   html {
@@ -48,22 +71,20 @@
   }
 
   body {
-    @apply bg-cream-50 font-sans text-ink antialiased;
+    @apply bg-background font-sans text-body text-foreground antialiased;
     font-feature-settings: 'kern';
   }
 
-  h1,
-  h2,
-  h3 {
-    @apply font-heading;
-  }
-
   :focus-visible {
-    @apply outline-none ring-2 ring-gold-500 ring-offset-2 ring-offset-surface;
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
   ::selection {
-    @apply bg-gold-100 text-navy-900;
+    @apply bg-accent text-accent-foreground;
+  }
+
+  ::placeholder {
+    @apply text-muted-foreground opacity-100;
   }
 
   input[type='number']::-webkit-inner-spin-button,
@@ -74,26 +95,36 @@
   input[type='number'] {
     -moz-appearance: textfield;
   }
+  input[type='search']::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
 
 @layer components {
   .skeleton {
-    @apply relative overflow-hidden rounded-md bg-cream-100;
+    @apply relative overflow-hidden rounded-md bg-secondary;
   }
   .skeleton::after {
     content: '';
     @apply absolute inset-0 animate-shimmer;
     transform: translateX(100%);
-    background: linear-gradient(90deg, transparent, hsl(var(--surface) / 0.7), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--card) / 0.7), transparent);
+  }
+  /* Thin, calm scrollbars inside panels */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--input)) transparent;
   }
 }
 

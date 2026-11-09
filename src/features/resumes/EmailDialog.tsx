@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, Copy, Download, ExternalLink, Loader2, Mail, Paperclip, Send } from 'lucide-react'
+import { Check, Copy, Download, ExternalLink, Mail, Paperclip, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -174,7 +174,7 @@ export function EmailDialog({ open, onOpenChange, candidate, defaultTo = '' }: P
                   inputMode="email"
                   autoComplete="email"
                   placeholder={he.email.toPlaceholder}
-                  className="text-left"
+                  className="text-start"
                   autoFocus
                   {...form.register('to')}
                 />
@@ -187,30 +187,30 @@ export function EmailDialog({ open, onOpenChange, candidate, defaultTo = '' }: P
               {(id, aria) => <Textarea id={id} {...aria} rows={8} {...form.register('body')} />}
             </Field>
 
-            <div className="flex items-center gap-2.5 rounded-lg bg-navy-50 px-3 py-2.5 text-sm">
-              <Paperclip className="size-4 shrink-0 text-navy-700" aria-hidden />
+            <div className="flex items-center gap-3 rounded-md bg-secondary px-4 py-3 text-body">
+              <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
               {resume ? (
                 <span className="min-w-0 truncate">
-                  <span className="text-ink-muted">{he.email.attachment}: </span>
+                  <span className="text-muted-foreground">{he.email.attachment}: </span>
                   <span dir="auto" className="font-medium">
                     {resume.file_name}
                   </span>
-                  <span className="tabular text-ink-muted">
+                  <span className="tabular text-muted-foreground">
                     {' · '}
                     <span dir="ltr">{formatBytes(resume.size_bytes)}</span>
                   </span>
                 </span>
               ) : (
-                <span className="text-ink-muted">{he.email.noResume}</span>
+                <span className="text-muted-foreground">{he.email.noResume}</span>
               )}
             </div>
 
-            <section className="rounded-xl border border-line p-3" aria-labelledby="manual-send">
-              <h3 id="manual-send" className="font-sans text-sm font-semibold text-navy-900">
+            <section className="rounded-md border border-border p-4" aria-labelledby="manual-send">
+              <h3 id="manual-send" className="text-h4 text-foreground">
                 {he.email.manualTitle}
               </h3>
-              <p className="mt-0.5 text-[13px] text-ink-muted">{he.email.manualText}</p>
-              <div className="mt-2 flex flex-wrap gap-1">
+              <p className="mt-1 text-body-sm text-muted-foreground">{he.email.manualText}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
                 <CopyButton text={`${subject}\n\n${body}`} label={he.email.copyAll} />
                 {resume && (
                   <Button size="sm" variant="ghost" onClick={() => void download(resume)}>
@@ -228,19 +228,13 @@ export function EmailDialog({ open, onOpenChange, candidate, defaultTo = '' }: P
             </section>
           </DialogBody>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={sending}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
               {he.common.cancel}
             </Button>
             <Tooltip content={canSend ? null : he.email.serverUnavailableDemo}>
               <span tabIndex={canSend ? undefined : 0} className="inline-flex">
-                <Button type="submit" variant="primary" disabled={!canSend || sending}>
-                  {sending ? (
-                    <Loader2 className="animate-spin" />
-                  ) : route === 'gmail' ? (
-                    <Mail />
-                  ) : (
-                    <Send />
-                  )}
+                <Button type="submit" variant="primary" disabled={!canSend} loading={sending}>
+                  {sending ? null : route === 'gmail' ? <Mail /> : <Send />}
                   {sending
                     ? route === 'gmail'
                       ? he.email.gmailSending

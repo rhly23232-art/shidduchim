@@ -16,8 +16,10 @@ import {
   SearchX,
   UserPlus,
 } from 'lucide-react'
-import { useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ResumeActions } from '@/features/resumes/ResumeActions'
@@ -33,7 +35,7 @@ import { LoadSamplesButton } from './SampleData'
 import { StatusBadge } from './StatusBadge'
 
 const VIRTUALIZE_AFTER = 100
-const ROW_H = 68
+const ROW_H = 60
 
 interface Props {
   gender: TabKey
@@ -82,41 +84,47 @@ export function CandidatesTable(props: Props) {
 
   if (error) {
     return (
-      <StateBox
-        icon={<AlertTriangle className="size-6 text-danger" />}
-        title={he.table.errorTitle}
-        text={he.table.errorText}
-        action={
-          <Button variant="primary" onClick={props.onRetry}>
-            {he.common.retry}
-          </Button>
-        }
-        tone="danger"
-      />
+      <Card>
+        <EmptyState
+          tone="destructive"
+          icon={<AlertTriangle />}
+          title={he.table.errorTitle}
+          description={he.table.errorText}
+          action={
+            <Button variant="primary" onClick={props.onRetry}>
+              {he.common.retry}
+            </Button>
+          }
+        />
+      </Card>
     )
   }
   if (!loading && rows.length === 0) {
     return hasFilters && genderTotal > 0 ? (
-      <StateBox
-        icon={<SearchX className="size-6 text-navy-700" />}
-        title={he.table.noResultsTitle}
-        text={he.table.noResultsText}
-        action={<Button onClick={props.onResetFilters}>{he.filters.resetAll}</Button>}
-      />
+      <Card role="status">
+        <EmptyState
+          icon={<SearchX />}
+          title={he.table.noResultsTitle}
+          description={he.table.noResultsText}
+          action={<Button onClick={props.onResetFilters}>{he.filters.resetAll}</Button>}
+        />
+      </Card>
     ) : (
-      <StateBox
-        icon={<UserPlus className="size-6 text-navy-700" />}
-        title={he.table.emptyTitle(props.gender)}
-        text={he.table.emptyText}
-        action={
-          <div className="flex flex-col items-center gap-4">
-            <Button variant="primary" onClick={props.onAdd}>
-              {he.header.addCandidate}
-            </Button>
-            <LoadSamplesButton />
-          </div>
-        }
-      />
+      <Card role="status">
+        <EmptyState
+          icon={<UserPlus />}
+          title={he.table.emptyTitle(props.gender)}
+          description={he.table.emptyText}
+          action={
+            <div className="flex flex-col items-center gap-4">
+              <Button variant="primary" onClick={props.onAdd}>
+                {he.header.addCandidate}
+              </Button>
+              <LoadSamplesButton />
+            </div>
+          }
+        />
+      </Card>
     )
   }
   return isMobile ? <CardList {...props} /> : <DesktopTable {...props} />
@@ -177,8 +185,8 @@ function DesktopTable({
 
   return (
     // 768–1023px: horizontal scroll keeps every specified column readable; ≥1024px: sticky header.
-    <div className="relative overflow-x-auto rounded-xl border border-line bg-surface shadow-card lg:overflow-visible">
-      <table className="w-full min-w-[960px] table-fixed border-separate border-spacing-0 text-sm lg:min-w-0">
+    <div className="relative overflow-x-auto rounded-lg border border-border bg-card lg:overflow-visible">
+      <table className="w-full min-w-[960px] table-fixed border-separate border-spacing-0 text-body lg:min-w-0">
         <caption className="sr-only">{he.table.tableCaption(gender)}</caption>
         <thead>
           {table.getHeaderGroups().map((hg) => (
@@ -195,9 +203,9 @@ function DesktopTable({
                       active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined
                     }
                     className={cn(
-                      'z-10 h-11 whitespace-nowrap border-b border-line bg-surface/95 px-3 text-start text-[12.5px] font-semibold text-ink-muted backdrop-blur first:ps-4 last:pe-4 lg:sticky lg:px-4',
-                      i === 0 && 'rounded-tr-xl',
-                      i === hg.headers.length - 1 && 'rounded-tl-xl',
+                      'z-10 h-11 whitespace-nowrap border-b border-border bg-card px-3 text-start text-body-sm font-medium text-muted-foreground first:ps-5 last:pe-5 lg:sticky lg:px-4',
+                      i === 0 && 'rounded-ss-lg',
+                      i === hg.headers.length - 1 && 'rounded-se-lg',
                       meta?.className,
                     )}
                     style={{ top: 'calc(var(--header-h) + var(--filterbar-h))' }}
@@ -207,8 +215,8 @@ function DesktopTable({
                         type="button"
                         onClick={() => toggleSort(sk)}
                         className={cn(
-                          '-mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 transition-colors hover:bg-navy-50 hover:text-navy-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500',
-                          active && 'text-navy-900',
+                          '-mx-2 inline-flex items-center gap-1 rounded-sm px-2 py-1 transition-colors duration-fast hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          active && 'text-foreground',
                         )}
                         aria-label={`${flexRender(h.column.columnDef.header, h.getContext())} — ${
                           active
@@ -221,12 +229,12 @@ function DesktopTable({
                         {flexRender(h.column.columnDef.header, h.getContext())}
                         {active ? (
                           sort.dir === 'asc' ? (
-                            <ArrowUp className="size-3.5 text-gold-700" aria-hidden />
+                            <ArrowUp className="size-4 text-brand" aria-hidden />
                           ) : (
-                            <ArrowDown className="size-3.5 text-gold-700" aria-hidden />
+                            <ArrowDown className="size-4 text-brand" aria-hidden />
                           )
                         ) : (
-                          <ChevronsUpDown className="size-3.5 opacity-40" aria-hidden />
+                          <ChevronsUpDown className="size-4 opacity-40" aria-hidden />
                         )}
                       </button>
                     ) : (
@@ -243,7 +251,7 @@ function DesktopTable({
             Array.from({ length: 8 }, (_, i) => (
               <tr key={i} style={{ height: ROW_H }}>
                 {columns.map((c, j) => (
-                  <td key={j} className="border-b border-line px-3 first:ps-4 last:pe-4 lg:px-4">
+                  <td key={j} className="border-b border-border px-3 first:ps-5 last:pe-5 lg:px-4">
                     <Skeleton
                       className={cn(
                         'h-4',
@@ -267,14 +275,14 @@ function DesktopTable({
                   data-index={virtual ? items[i]!.index : undefined}
                   ref={virtual ? virtualizer.measureElement : undefined}
                   onClick={(e) => isRowActivation(e) && onOpen(row.original)}
-                  className="group cursor-pointer transition-colors duration-150 hover:bg-navy-50/55"
+                  className="group cursor-pointer transition-colors duration-fast hover:bg-secondary/60"
                   style={{ height: ROW_H }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
                       className={cn(
-                        'border-b border-line px-3 py-2 align-middle text-ink first:ps-4 last:pe-4 group-last:border-b-0 lg:px-4',
+                        'border-b border-border px-3 py-2 align-middle text-table text-foreground first:ps-5 last:pe-5 group-last:border-b-0 lg:px-4',
                         cell.column.columnDef.meta?.className,
                       )}
                     >
@@ -313,10 +321,7 @@ function CardList({ gender, rows, loading, onOpen }: Props) {
     return (
       <ul className="space-y-3" aria-busy>
         {Array.from({ length: 4 }, (_, i) => (
-          <li
-            key={i}
-            className="h-[178px] rounded-xl border border-line bg-surface p-4 shadow-card"
-          >
+          <li key={i} className="h-44 rounded-lg border border-border bg-card p-4">
             <Skeleton className="h-5 w-36" />
             <Skeleton className="mt-3 h-4 w-52" />
             <Skeleton className="mt-2 h-4 w-40" />
@@ -370,49 +375,43 @@ function CandidateCard({
   return (
     <article
       onClick={(e) => isRowActivation(e) && onOpen(r)}
-      className="cursor-pointer rounded-xl border border-line bg-surface p-4 shadow-card transition-shadow duration-200 hover:shadow-card-hover"
+      className="cursor-pointer rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-base hover:border-input-hover hover:shadow-sm"
       aria-label={name}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-heading text-lg font-bold leading-tight text-navy-900">
-            {name}
-          </h3>
-          <p className="mt-1 text-[13px] text-ink-muted">
+          <h3 className="truncate text-h4 text-foreground">{name}</h3>
+          <p className="mt-1 text-body-sm text-muted-foreground">
             {[r.age !== null ? `${he.table.age} ${r.age}` : null, r.city]
               .filter(Boolean)
               .join(' · ')}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-1">
-          {gender === 'all' && (
-            <Badge tone={r.gender === 'male' ? 'navy' : 'gold'}>{he.gender[r.gender]}</Badge>
-          )}
+          {gender === 'all' && <Badge tone="neutral">{he.gender[r.gender]}</Badge>}
           <StatusBadge status={r.status} />
         </div>
       </div>
-      <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
+      <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body-sm">
         {r.institution && (
           <>
-            <dt className="text-ink-muted">{institutionLabel(gender)}</dt>
-            <dd className="flex min-w-0 items-center gap-1.5">
+            <dt className="text-muted-foreground">{institutionLabel(gender)}</dt>
+            <dd className="flex min-w-0 items-center gap-2">
               <span className="truncate">{r.institution}</span>
             </dd>
           </>
         )}
         {gender === 'female' && r.occupation && (
           <>
-            <dt className="text-ink-muted">{he.table.occupation}</dt>
+            <dt className="text-muted-foreground">{he.table.occupation}</dt>
             <dd className="truncate">{r.occupation}</dd>
           </>
         )}
       </dl>
       {r.general_notes && (
-        <p className="mt-2 line-clamp-2 text-[13px] leading-snug text-ink-muted">
-          {r.general_notes}
-        </p>
+        <p className="mt-2 line-clamp-2 text-body-sm text-muted-foreground">{r.general_notes}</p>
       )}
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
         <ResumeActions candidate={r} variant="compact" />
         <Button size="sm" onClick={() => onOpen(r)} aria-label={he.table.detailsAria(name)}>
           {he.table.details}
@@ -420,38 +419,5 @@ function CandidateCard({
         </Button>
       </div>
     </article>
-  )
-}
-
-function StateBox({
-  icon,
-  title,
-  text,
-  action,
-  tone,
-}: {
-  icon: ReactNode
-  title: string
-  text: string
-  action?: ReactNode
-  tone?: 'danger'
-}) {
-  return (
-    <div
-      role={tone === 'danger' ? 'alert' : 'status'}
-      className="flex flex-col items-center rounded-xl border border-line bg-surface px-6 py-16 text-center shadow-card"
-    >
-      <span
-        className={cn(
-          'grid size-12 place-items-center rounded-full',
-          tone === 'danger' ? 'bg-danger-soft' : 'bg-navy-50',
-        )}
-      >
-        {icon}
-      </span>
-      <h2 className="mt-4 text-xl font-bold text-navy-900">{title}</h2>
-      <p className="mt-1.5 max-w-sm text-sm text-ink-muted">{text}</p>
-      {action && <div className="mt-5">{action}</div>}
-    </div>
   )
 }

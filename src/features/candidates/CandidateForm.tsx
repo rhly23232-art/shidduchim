@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarDays, ChevronLeft, Loader2, Plus, Trash2 } from 'lucide-react'
+import { CalendarDays, ChevronLeft, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useForm, useWatch, type FieldPath } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { Input, NativeSelect, Textarea } from '@/components/ui/input'
+import { Segmented } from '@/components/ui/segmented'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { EdaPicker } from './EdaFilter'
@@ -61,10 +62,9 @@ function FormSection({
       id={`form-${id}`}
       data-section={id}
       aria-labelledby={`form-${id}-h`}
-      className="scroll-mt-4 space-y-4"
+      className="scroll-mt-4 space-y-4 border-t border-border pt-8 first:border-t-0 first:pt-0"
     >
-      <h3 id={`form-${id}-h`} className="flex items-center gap-2 text-lg font-bold text-navy-900">
-        <span className="h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+      <h3 id={`form-${id}-h`} className="text-h3 text-foreground">
         {title}
       </h3>
       {children}
@@ -87,18 +87,18 @@ function Collapsible({
   children: ReactNode
 }) {
   return (
-    <div className="rounded-xl border border-line">
+    <div className="rounded-md border border-border bg-card">
       <h4>
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={open}
           aria-controls={`${id}-panel`}
-          className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-start text-[15px] font-semibold text-navy-900 transition-colors hover:bg-cream-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+          className="flex w-full items-center gap-2 rounded-md px-4 py-3 text-start text-h4 text-foreground transition-colors duration-fast hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ChevronLeft
             className={cn(
-              'size-4 text-navy-700 transition-transform duration-200',
+              'size-4 text-muted-foreground transition-transform duration-base',
               open && '-rotate-90',
             )}
             aria-hidden
@@ -107,7 +107,7 @@ function Collapsible({
         </button>
       </h4>
       {open && (
-        <div id={`${id}-panel`} className="space-y-4 border-t border-line px-4 pb-4 pt-4">
+        <div id={`${id}-panel`} className="space-y-4 border-t border-border px-4 pb-4 pt-4">
           {children}
         </div>
       )}
@@ -289,15 +289,15 @@ export function CandidateForm({
           }}
         >
           <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
-            <div className="border-b border-line px-5 pb-3 pe-14 pt-5 sm:px-7">
-              <SheetTitle className="font-heading text-2xl font-bold text-navy-900">
+            <div className="border-b border-border px-5 pb-3 pe-16 pt-5 sm:px-8">
+              <SheetTitle className="text-h1 text-foreground">
                 {candidate ? t.editTitle(fullName(candidate)) : t.newTitle}
               </SheetTitle>
-              <SheetDescription className="mt-1 text-sm text-ink-muted">
+              <SheetDescription className="mt-1 text-body text-muted-foreground">
                 {t.subtitle}
               </SheetDescription>
               <nav
-                className="relative -mx-1 mt-3 flex gap-1 overflow-x-auto pb-1"
+                className="relative -mx-1 mt-4 flex gap-1 overflow-x-auto pb-1"
                 aria-label={t.newTitle}
               >
                 {sections.map((sec) => (
@@ -307,10 +307,10 @@ export function CandidateForm({
                     onClick={() => goTo(sec.id)}
                     aria-current={active === sec.id ? 'step' : undefined}
                     className={cn(
-                      'whitespace-nowrap rounded-full px-3 py-1.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500',
+                      'whitespace-nowrap rounded-md px-3 py-2 text-body-sm font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       active === sec.id
-                        ? 'bg-navy-100 font-semibold text-navy-900'
-                        : 'font-medium text-navy-800 hover:bg-navy-50',
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                     )}
                   >
                     {sec.label}
@@ -322,41 +322,39 @@ export function CandidateForm({
             <div
               ref={scrollRef}
               onScroll={onScroll}
-              className="min-h-0 flex-1 space-y-9 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7"
+              className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain px-5 py-6 sm:px-8"
             >
               {/* ---------------- 1. personal ---------------- */}
               <FormSection id="personal" title={t.sections.personal}>
-                <fieldset>
-                  <legend className="mb-1.5 text-[13px] font-medium">
+                <div className="flex flex-col gap-2">
+                  <span id="form-gender-label" className="text-label text-foreground">
                     {t.gender}
-                    <span className="ms-0.5 text-danger" aria-hidden>
+                    <span className="ms-1 text-destructive" aria-hidden>
                       *
                     </span>
-                  </legend>
-                  <div className="inline-flex rounded-lg bg-cream-100 p-1" role="radiogroup">
-                    {(['male', 'female'] as const).map((g) => (
-                      <label
-                        key={g}
-                        className={cn(
-                          'relative cursor-pointer rounded-md px-5 py-1.5 text-sm font-semibold transition-colors duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold-500',
-                          gender === g
-                            ? 'bg-navy-900 text-surface shadow-sm'
-                            : 'text-navy-800 hover:text-navy-900',
-                        )}
-                      >
-                        <input type="radio" value={g} className="sr-only" {...register('gender')} />
-                        {he.gender[g]}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+                  </span>
+                  <input type="hidden" {...register('gender')} />
+                  <Segmented
+                    role="radiogroup"
+                    label={t.gender}
+                    value={gender}
+                    onChange={(g) =>
+                      setValue('gender', g, { shouldDirty: true, shouldValidate: true })
+                    }
+                    items={(['male', 'female'] as const).map((g) => ({
+                      value: g,
+                      label: he.gender[g],
+                    }))}
+                    className="w-fit min-w-48"
+                  />
+                </div>
                 {text('full_name', t.fullName, {
                   required: true,
                   placeholder: t.fullNamePlaceholder,
                 })}
-                <div className="grid grid-cols-1 gap-4 rounded-xl bg-cream-50/70 p-3 sm:grid-cols-2">
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-[13px] font-medium" id="heb-date-label">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-label text-foreground" id="heb-date-label">
                       {t.hebrewBirthDate}
                     </span>
                     <HebrewDatePicker
@@ -373,9 +371,9 @@ export function CandidateForm({
                     hint={
                       hebrewDate ? (
                         <span className="inline-flex items-center gap-1">
-                          <CalendarDays className="size-3.5 text-gold-700" aria-hidden />
+                          <CalendarDays className="size-4 text-brand" aria-hidden />
                           {t.convertsTo}{' '}
-                          <span className="font-medium text-navy-900">{hebrewDate}</span>
+                          <span className="font-medium text-foreground">{hebrewDate}</span>
                         </span>
                       ) : (
                         t.hebrewAuto
@@ -452,14 +450,12 @@ export function CandidateForm({
                       {area('future_plans', t.futurePlans, 2)}
                     </Grid>
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-semibold text-navy-900">
-                          {t.educationHistory}
-                        </h4>
+                        <h4 className="text-h4 text-foreground">{t.educationHistory}</h4>
                         <Button
                           size="sm"
-                          variant="subtle"
+                          variant="secondary"
                           onClick={() =>
                             education.append(
                               { name: '', type: '', years: '' },
@@ -472,15 +468,15 @@ export function CandidateForm({
                         </Button>
                       </div>
                       {education.fields.length === 0 && (
-                        <p className="rounded-lg bg-cream-50 px-3 py-3 text-sm text-ink-muted">
+                        <p className="rounded-md bg-secondary px-4 py-3 text-body-sm text-muted-foreground">
                           {t.noEducation}
                         </p>
                       )}
-                      <ol className="space-y-2.5">
+                      <ol className="space-y-3">
                         {education.fields.map((fld, i) => (
                           <li
                             key={fld.id}
-                            className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-cream-50/50 p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-start"
+                            className="grid grid-cols-1 gap-3 rounded-md border border-border p-4 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-start"
                           >
                             {text(`education_history.${i}.name`, t.educationName, {
                               required: true,
@@ -504,7 +500,7 @@ export function CandidateForm({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-danger hover:bg-danger-soft sm:mt-[22px]"
+                              className="text-destructive hover:bg-destructive-soft hover:text-destructive sm:mt-[21px]"
                               onClick={() => education.remove(i)}
                               aria-label={t.removeRow(`${t.educationName} ${i + 1}`)}
                             >
@@ -523,18 +519,14 @@ export function CandidateForm({
                 id="form-extra"
                 data-section="extra"
                 aria-labelledby="form-extra-h"
-                className="scroll-mt-4 space-y-4"
+                className="scroll-mt-4 space-y-4 border-t border-border pt-8"
               >
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-cream-50/70 px-4 py-3">
+                <div className="flex items-center justify-between gap-4 rounded-md border border-border px-4 py-3">
                   <div>
-                    <h3
-                      id="form-extra-h"
-                      className="flex items-center gap-2 text-lg font-bold text-navy-900"
-                    >
-                      <span className="h-5 w-1 rounded-full bg-gold-500" aria-hidden />
+                    <h3 id="form-extra-h" className="text-h3 text-foreground">
                       {t.extraInfo}
                     </h3>
-                    <p className="ms-3 text-[12.5px] text-ink-muted">{t.extraInfoHint}</p>
+                    <p className="text-body-sm text-muted-foreground">{t.extraInfoHint}</p>
                   </div>
                   <Switch checked={extraOn} onChange={setExtraOn} label={t.extraInfo} />
                 </div>
@@ -559,12 +551,12 @@ export function CandidateForm({
                         {area('family.lineage', t.lineage, 2)}
                       </Grid>
 
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold text-navy-900">{t.inLaws}</h4>
+                          <h4 className="text-h4 text-foreground">{t.inLaws}</h4>
                           <Button
                             size="sm"
-                            variant="subtle"
+                            variant="secondary"
                             onClick={() =>
                               inLaws.append(
                                 { relation: 'גיס', full_name: '', details: '' },
@@ -580,15 +572,15 @@ export function CandidateForm({
                           </Button>
                         </div>
                         {inLaws.fields.length === 0 && (
-                          <p className="rounded-lg bg-cream-50 px-3 py-3 text-sm text-ink-muted">
+                          <p className="rounded-md bg-secondary px-4 py-3 text-body-sm text-muted-foreground">
                             {t.noInLaws}
                           </p>
                         )}
-                        <ul className="space-y-2.5">
+                        <ul className="space-y-3">
                           {inLaws.fields.map((fld, i) => (
                             <li
                               key={fld.id}
-                              className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-cream-50/50 p-3 sm:grid-cols-[8rem_1.2fr_1.5fr_auto] sm:items-start"
+                              className="grid grid-cols-1 gap-3 rounded-md border border-border p-4 sm:grid-cols-[8rem_1.2fr_1.5fr_auto] sm:items-start"
                             >
                               <Field
                                 label={t.inLawRelation}
@@ -609,7 +601,7 @@ export function CandidateForm({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-danger hover:bg-danger-soft sm:mt-[22px]"
+                                className="text-destructive hover:bg-destructive-soft hover:text-destructive sm:mt-[21px]"
                                 onClick={() => inLaws.remove(i)}
                                 aria-label={t.removeRow(`${t.inLawName} ${i + 1}`)}
                               >
@@ -687,17 +679,11 @@ export function CandidateForm({
               </datalist>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-line bg-cream-50/70 px-5 py-3.5 sm:px-7">
-              <Button variant="secondary" onClick={requestClose} disabled={save.isPending}>
+            <div className="flex items-center justify-end gap-2 border-t border-border bg-card px-5 py-4 sm:px-8">
+              <Button variant="outline" onClick={requestClose} disabled={save.isPending}>
                 {he.common.cancel}
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={save.isPending}
-                className="min-w-28"
-              >
-                {save.isPending && <Loader2 className="animate-spin" />}
+              <Button type="submit" variant="primary" loading={save.isPending} className="min-w-28">
                 {save.isPending ? he.common.saving : he.common.save}
               </Button>
             </div>

@@ -4,27 +4,28 @@ import { cn } from '@/lib/utils'
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden className={cn('size-9', className)}>
-      <rect width="40" height="40" rx="10" className="fill-navy-900" />
-      <circle cx="16.5" cy="20" r="7.5" fill="none" strokeWidth="2.6" className="stroke-gold-500" />
+      <rect width="40" height="40" rx="10" className="fill-primary" />
       <circle
-        cx="23.5"
+        cx="16.5"
         cy="20"
         r="7.5"
         fill="none"
         strokeWidth="2.6"
-        className="stroke-cream-100"
+        stroke="white"
+        opacity="0.65"
       />
+      <circle cx="23.5" cy="20" r="7.5" fill="none" strokeWidth="2.6" stroke="white" />
     </svg>
   )
 }
 
 export function Logo({ subtitle = true }: { subtitle?: boolean }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-3">
       <LogoMark />
-      <div className="leading-none">
-        <p className="font-heading text-[22px] font-bold text-navy-900">{he.app.name}</p>
-        {subtitle && <p className="mt-1 text-[11.5px] text-ink-muted">{he.app.tagline}</p>}
+      <div>
+        <p className="text-h3 text-foreground">{he.app.name}</p>
+        {subtitle && <p className="text-caption text-muted-foreground">{he.app.tagline}</p>}
       </div>
     </div>
   )

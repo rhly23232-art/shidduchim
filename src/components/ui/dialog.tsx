@@ -22,7 +22,7 @@ export const DialogOverlay = forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'fixed inset-0 z-50 bg-navy-900/45 backdrop-blur-[2px] data-[state=closed]:duration-150 data-[state=open]:duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      'fixed inset-0 z-50 bg-overlay/40 data-[state=closed]:duration-fast data-[state=open]:duration-base data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
       className,
     )}
     {...props}
@@ -46,8 +46,8 @@ export const DialogContent = forwardRef<
         ref={ref}
         {...focus}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-pop outline-none',
-          'data-[state=closed]:duration-150 data-[state=open]:duration-200 data-[state=open]:ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]',
+          'fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-lg outline-none',
+          'data-[state=closed]:duration-fast data-[state=open]:duration-base data-[state=open]:ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]',
           className,
         )}
         {...props}
@@ -55,10 +55,10 @@ export const DialogContent = forwardRef<
         {children}
         {!hideClose && (
           <DialogPrimitive.Close
-            className="absolute end-3 top-3 grid size-9 place-items-center rounded-lg text-ink-muted transition-colors hover:bg-navy-50 hover:text-navy-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+            className="absolute end-4 top-4 grid size-8 place-items-center rounded-md text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label={he.common.close}
           >
-            <X className="size-[18px]" />
+            <X className="size-4" />
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -69,7 +69,7 @@ DialogContent.displayName = 'DialogContent'
 
 export const DialogHeader = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn('flex flex-col gap-1 border-b border-line px-6 pb-4 pe-14 pt-5', className)}
+    className={cn('flex flex-col gap-1 border-b border-border px-6 pb-4 pe-16 pt-5', className)}
     {...props}
   />
 )
@@ -82,7 +82,7 @@ export const DialogBody = ({ className, ...props }: HTMLAttributes<HTMLDivElemen
 export const DialogFooter = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex flex-wrap items-center justify-end gap-2 border-t border-line bg-cream-50/70 px-6 py-3.5',
+      'flex flex-wrap items-center justify-end gap-2 border-t border-border bg-card px-6 py-4',
       className,
     )}
     {...props}
@@ -95,7 +95,7 @@ export const DialogTitle = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn('font-heading text-xl font-bold leading-tight text-navy-900', className)}
+    className={cn('text-h2 text-foreground', className)}
     {...props}
   />
 ))
@@ -107,7 +107,7 @@ export const DialogDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn('text-sm text-ink-muted', className)}
+    className={cn('text-body text-muted-foreground', className)}
     {...props}
   />
 ))

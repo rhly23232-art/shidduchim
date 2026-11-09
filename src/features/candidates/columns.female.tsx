@@ -7,9 +7,8 @@ import {
   nameColumn,
   notesColumn,
   resumeColumn,
+  Empty,
 } from './columns.shared'
-
-const Empty = () => <span className="text-ink-muted/60">—</span>
 
 /** בחורות: שם מלא | גיל | סמינר | עיסוק / מקום עבודה | עיר מגורים | הערות כלליות | רזומה | פעולות */
 export const femaleColumns = [
@@ -27,7 +26,7 @@ export const femaleColumns = [
     meta: { sortKey: 'occupation', className: 'w-[14%]' },
     cell: ({ getValue }) => {
       const v = getValue()
-      return v ? <span className="line-clamp-2 leading-snug">{v}</span> : <Empty />
+      return v ? <span className="line-clamp-2">{v}</span> : <Empty />
     },
   }),
   cityColumn,

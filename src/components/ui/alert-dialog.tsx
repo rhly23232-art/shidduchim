@@ -31,23 +31,23 @@ export function ConfirmDialog({
   return (
     <AlertDialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialogPrimitive.Portal>
-        <AlertDialogPrimitive.Overlay className="fixed inset-0 z-[60] bg-navy-900/45 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <AlertDialogPrimitive.Overlay className="fixed inset-0 z-[60] bg-overlay/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <AlertDialogPrimitive.Content
           {...focus}
-          className="fixed left-1/2 top-1/2 z-[60] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-line bg-surface p-6 shadow-pop data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]"
+          className="fixed left-1/2 top-1/2 z-[60] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg duration-base data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]"
         >
-          <AlertDialogPrimitive.Title className="font-heading text-lg font-bold text-navy-900">
+          <AlertDialogPrimitive.Title className="text-h3 text-foreground">
             {title}
           </AlertDialogPrimitive.Title>
-          <AlertDialogPrimitive.Description className="mt-2 text-sm leading-relaxed text-ink-muted">
+          <AlertDialogPrimitive.Description className="mt-2 text-body text-muted-foreground">
             {description}
           </AlertDialogPrimitive.Description>
           <div className="mt-6 flex flex-wrap justify-end gap-2">
-            <AlertDialogPrimitive.Cancel className={buttonVariants({ variant: 'secondary' })}>
+            <AlertDialogPrimitive.Cancel className={buttonVariants({ variant: 'outline' })}>
               {cancelLabel}
             </AlertDialogPrimitive.Cancel>
             <AlertDialogPrimitive.Action
-              className={cn(buttonVariants({ variant: destructive ? 'danger' : 'primary' }))}
+              className={cn(buttonVariants({ variant: destructive ? 'destructive' : 'primary' }))}
               onClick={onConfirm}
             >
               {confirmLabel}

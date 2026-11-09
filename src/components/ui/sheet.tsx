@@ -27,23 +27,23 @@ export const SheetContent = forwardRef<
         ref={ref}
         {...focus}
         className={cn(
-          'data-[state=open]:duration-250 fixed z-50 flex flex-col bg-surface shadow-pop outline-none data-[state=closed]:duration-200 data-[state=open]:ease-out data-[state=open]:animate-in data-[state=closed]:animate-out',
+          'fixed z-50 flex flex-col bg-card shadow-lg outline-none data-[state=closed]:duration-fast data-[state=open]:duration-slow data-[state=open]:ease-out data-[state=open]:animate-in data-[state=closed]:animate-out',
           side === 'end' &&
-            'inset-y-0 left-0 h-[100dvh] w-full max-w-[760px] border-e border-line data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-left-8 data-[state=open]:slide-in-from-left-8',
+            'inset-y-0 end-0 h-[100dvh] w-full max-w-[760px] border-e border-border data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-left-8 data-[state=open]:slide-in-from-left-8',
           side === 'start' &&
-            'inset-y-0 right-0 h-[100dvh] w-[86vw] max-w-[320px] border-s border-line data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-right-8 data-[state=open]:slide-in-from-right-8',
+            'inset-y-0 start-0 h-[100dvh] w-[86vw] max-w-[320px] border-s border-border data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-right-8 data-[state=open]:slide-in-from-right-8',
           side === 'bottom' &&
-            'inset-x-0 bottom-0 max-h-[88dvh] rounded-t-2xl border-t border-line data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
+            'inset-x-0 bottom-0 max-h-[88dvh] rounded-t-lg border-t border-border data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
           className,
         )}
         {...props}
       >
         {children}
         <DialogPrimitive.Close
-          className="absolute end-3 top-3 grid size-9 place-items-center rounded-lg text-ink-muted transition-colors hover:bg-navy-50 hover:text-navy-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+          className="absolute end-4 top-4 grid size-8 place-items-center rounded-md text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={he.common.close}
         >
-          <X className="size-[18px]" />
+          <X className="size-4" />
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>

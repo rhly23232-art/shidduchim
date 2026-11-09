@@ -5,7 +5,7 @@ import { Component, lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { LogoMark } from '@/components/layout/Logo'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useIsMobile } from '@/hooks/useMediaQuery'
 import { AuthProvider, useAuth } from '@/lib/auth'
@@ -18,6 +18,7 @@ const AppShell = lazy(() =>
 const HomePage = lazy(() => import('@/pages/Home'))
 const CandidatesPage = lazy(() => import('@/pages/Candidates'))
 const IdeasPage = lazy(() => import('@/pages/Ideas'))
+const DesignSystemPage = lazy(() => import('@/pages/DesignSystem'))
 
 /** Hash routing for static hosting without rewrites (VITE_HASH_ROUTER=true); clean URLs otherwise. */
 const Router = import.meta.env.VITE_HASH_ROUTER === 'true' ? HashRouter : BrowserRouter
@@ -61,8 +62,8 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
       <main className="grid min-h-[100dvh] place-items-center px-4 text-center">
         <div>
           <LogoMark className="mx-auto size-12" />
-          <h1 className="mt-4 text-2xl font-bold text-navy-900">{he.errors.boundaryTitle}</h1>
-          <p className="mt-2 text-sm text-ink-muted">{he.errors.boundaryText}</p>
+          <h1 className="mt-4 text-h1 text-foreground">{he.errors.boundaryTitle}</h1>
+          <p className="mt-2 text-body text-muted-foreground">{he.errors.boundaryText}</p>
           <Button variant="primary" className="mt-5" onClick={() => window.location.reload()}>
             {he.errors.reload}
           </Button>
@@ -96,6 +97,7 @@ export default function App() {
                         <Route index element={<HomePage />} />
                         <Route path="candidates" element={<CandidatesPage />} />
                         <Route path="ideas" element={<IdeasPage />} />
+                        <Route path="design-system" element={<DesignSystemPage />} />
                       </Route>
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
@@ -108,12 +110,21 @@ export default function App() {
                 offset={isMobile ? 12 : 20}
                 closeButton
                 toastOptions={{
+                  unstyled: true,
                   classNames: {
-                    toast: '!rounded-xl !border-line !bg-surface !text-ink !shadow-pop !font-sans',
-                    description: '!text-ink-muted',
-                    success: '[&_[data-icon]]:!text-success',
-                    error: '[&_[data-icon]]:!text-danger',
-                    actionButton: '!bg-navy-900 !text-surface',
+                    toast:
+                      'relative flex w-full items-start gap-3 rounded-lg border border-border bg-card p-4 pe-10 font-sans text-body text-foreground shadow-lg',
+                    title: 'font-medium',
+                    description: 'mt-1 text-body-sm text-muted-foreground',
+                    icon: 'mt-0.5 shrink-0 [&_svg]:size-4',
+                    success: '[&_[data-icon]]:text-success',
+                    error: '[&_[data-icon]]:text-destructive',
+                    warning: '[&_[data-icon]]:text-warning',
+                    info: '[&_[data-icon]]:text-info',
+                    actionButton: buttonVariants({ variant: 'primary', size: 'sm' }),
+                    cancelButton: buttonVariants({ variant: 'outline', size: 'sm' }),
+                    closeButton:
+                      'absolute end-2 top-2 grid size-6 place-items-center rounded-sm text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground [&_svg]:size-3.5',
                   },
                 }}
               />

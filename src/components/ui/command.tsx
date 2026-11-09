@@ -19,14 +19,11 @@ export const CommandInput = forwardRef<
   ElementRef<typeof CommandPrimitive.Input>,
   ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="flex items-center gap-2 border-b border-line px-2.5 pb-2">
-    <Search className="size-4 shrink-0 text-ink-muted" aria-hidden />
+  <div className="flex items-center gap-2 border-b border-border px-3 pb-2">
+    <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
     <CommandPrimitive.Input
       ref={ref}
-      className={cn(
-        'h-8 w-full bg-transparent text-sm outline-none placeholder:text-ink-muted/70',
-        className,
-      )}
+      className={cn('h-8 w-full bg-transparent text-body outline-none', className)}
       {...props}
     />
   </div>
@@ -51,7 +48,7 @@ export const CommandEmpty = forwardRef<
 >((props, ref) => (
   <CommandPrimitive.Empty
     ref={ref}
-    className="py-5 text-center text-sm text-ink-muted"
+    className="py-5 text-center text-body text-muted-foreground"
     {...props}
   />
 ))
@@ -64,7 +61,7 @@ export const CommandGroup = forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      '[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-[11.5px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-ink-muted',
+      '[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-caption [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground',
       className,
     )}
     {...props}
@@ -79,7 +76,7 @@ export const CommandItem = forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      'flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2 py-2 text-sm outline-none data-[selected=true]:bg-navy-50',
+      'flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-2 text-body outline-none data-[selected=true]:bg-secondary',
       className,
     )}
     {...props}

@@ -7,6 +7,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import { fieldBase } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { he } from '@/lib/strings.he'
 import type { CandidateRow, Gender } from '@/lib/types'
@@ -62,8 +63,9 @@ export function CandidatePicker({
         id={id}
         aria-invalid={invalid || undefined}
         className={cn(
-          'flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-line bg-surface px-3 text-start text-sm transition-colors hover:border-navy-200 focus-visible:border-gold-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/35 aria-[invalid=true]:border-danger',
-          !selected && 'text-ink-muted',
+          fieldBase,
+          'flex h-10 items-center justify-between gap-2 text-start',
+          !selected && 'text-muted-foreground',
         )}
       >
         <span className="truncate">
@@ -71,7 +73,7 @@ export function CandidatePicker({
             ? `${fullName(selected)}${selected.age !== null ? ` · ${selected.age}` : ''}`
             : placeholder}
         </span>
-        <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       </PopoverTrigger>
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-64 p-2">
         <Command loop>
@@ -86,7 +88,7 @@ export function CandidatePicker({
                   setOpen(false)
                 }}
               >
-                <span className="text-ink-muted">{noneLabel}</span>
+                <span className="text-muted-foreground">{noneLabel}</span>
               </CommandItem>
             )}
             {options.map((c) => (
@@ -105,7 +107,7 @@ export function CandidatePicker({
                 />
                 <span className="flex min-w-0 flex-1 items-baseline justify-between gap-2">
                   <span className="truncate">{fullName(c)}</span>
-                  <span className="tabular shrink-0 text-xs text-ink-muted">
+                  <span className="tabular shrink-0 text-caption text-muted-foreground">
                     {[c.age, c.city].filter((x) => x !== null && x !== '').join(' · ')}
                   </span>
                 </span>
@@ -115,37 +117,5 @@ export function CandidatePicker({
         </Command>
       </PopoverContent>
     </Popover>
-  )
-}
-
-/** Accessible checkbox styled in the design system. */
-export function Checkbox({
-  checked,
-  onChange,
-  label,
-  className,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-  label: string
-  className?: string
-}) {
-  return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={cn(
-        'grid size-5 shrink-0 place-items-center rounded-md border-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-1',
-        checked
-          ? 'border-success bg-success text-surface'
-          : 'border-navy-200 bg-surface hover:border-navy-700',
-        className,
-      )}
-    >
-      {checked && <Check className="size-3.5" strokeWidth={3} aria-hidden />}
-    </button>
   )
 }

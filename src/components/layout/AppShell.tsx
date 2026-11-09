@@ -29,6 +29,7 @@ function usePageTitle(): string {
   const { pathname, search } = useLocation()
   if (pathname === '/' || pathname === '') return he.home.title
   if (pathname.startsWith('/ideas')) return he.nav.ideas
+  if (pathname.startsWith('/design-system')) return he.ds.title
   const tab = new URLSearchParams(search).get('tab')
   return tab === 'female' ? he.tabs.female : tab === 'all' ? he.tabs.allTitle : he.tabs.male
 }
@@ -152,7 +153,7 @@ export function AppShell() {
       <div
         className={cn(
           'min-h-[100dvh] lg:grid',
-          'lg:transition-[grid-template-columns] lg:duration-200 lg:ease-out',
+          'lg:transition-[grid-template-columns] lg:duration-base lg:ease-out',
           sidebarOpen
             ? 'lg:grid-cols-[17.5rem_minmax(0,1fr)]'
             : 'lg:grid-cols-[4.5rem_minmax(0,1fr)]',
@@ -160,7 +161,7 @@ export function AppShell() {
       >
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-[80] focus:rounded-lg focus:bg-navy-900 focus:px-4 focus:py-2 focus:text-surface"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-[80] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
         >
           {he.app.skipToContent}
         </a>
@@ -168,10 +169,7 @@ export function AppShell() {
           <Sidebar collapsed={!sidebarOpen} />
         </aside>
         <Sheet open={navOpen} onOpenChange={setNavOpen}>
-          <SheetContent
-            side="start"
-            className="max-w-[300px] border-0 p-0 [&>button]:text-surface [&>button]:hover:bg-surface/10 [&>button]:hover:text-surface"
-          >
+          <SheetContent side="start" className="max-w-[300px] border-0 p-0">
             <SheetTitle className="sr-only">{he.nav.main}</SheetTitle>
             <SheetDescription className="sr-only">{he.nav.main}</SheetDescription>
             <Sidebar onNavigate={() => setNavOpen(false)} />
@@ -188,7 +186,7 @@ export function AppShell() {
           />
           <Suspense
             fallback={
-              <div className="space-y-3 px-4 pt-6 md:px-6" aria-busy>
+              <div className="space-y-3 px-4 pt-6 md:px-8" aria-busy>
                 <Skeleton className="h-8 w-56" />
                 <Skeleton className="h-64" />
               </div>

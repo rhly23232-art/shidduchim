@@ -116,7 +116,9 @@ export function ResumeActions({ candidate, variant }: Props) {
     if (uploading) {
       return (
         <div className="flex w-24 flex-col gap-1" role="status" aria-live="polite">
-          <span className="tabular text-xs text-ink-muted">{he.resume.uploading(pct)}</span>
+          <span className="tabular text-caption text-muted-foreground">
+            {he.resume.uploading(pct)}
+          </span>
           <Progress value={pct} label={he.resume.progressLabel} />
         </div>
       )
@@ -139,7 +141,7 @@ export function ResumeActions({ candidate, variant }: Props) {
       )
     }
     return (
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-1">
         {fileInput}
         <Tooltip content={`${he.resume.download} · ${resume.file_name}`}>
           <Button
@@ -195,8 +197,8 @@ export function ResumeActions({ candidate, variant }: Props) {
   return (
     <div
       className={cn(
-        'rounded-xl border border-dashed border-line bg-cream-50/60 p-3 transition-colors duration-150',
-        dragOver && 'border-gold-500 bg-gold-100/40',
+        'rounded-lg border border-dashed border-input p-4 transition-colors duration-fast',
+        dragOver && 'border-brand bg-accent',
       )}
       onDragOver={(e) => {
         e.preventDefault()
@@ -208,26 +210,28 @@ export function ResumeActions({ candidate, variant }: Props) {
       {fileInput}
       {uploading ? (
         <div className="flex flex-col gap-2 py-1" role="status" aria-live="polite">
-          <span className="tabular text-sm text-ink-muted">{he.resume.uploading(pct)}</span>
+          <span className="tabular text-body text-muted-foreground">
+            {he.resume.uploading(pct)}
+          </span>
           <Progress value={pct} label={he.resume.progressLabel} />
         </div>
       ) : resume ? (
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-navy-50 text-navy-800">
+            <span className="grid size-10 shrink-0 place-items-center rounded-md bg-accent text-accent-foreground">
               <FileIcon className="size-5" aria-hidden />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-ink" dir="auto">
+              <p className="truncate text-body font-medium text-foreground" dir="auto">
                 {resume.file_name}
               </p>
-              <p className="tabular text-xs text-ink-muted">
+              <p className="tabular text-caption text-muted-foreground">
                 <span dir="ltr">{formatBytes(resume.size_bytes)}</span> ·{' '}
                 {he.resume.uploadedAt(new Date(resume.uploaded_at).toLocaleDateString('he-IL'))}
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" onClick={() => void actions.download(resume)}>
               <Download />
               {he.resume.download}
@@ -246,7 +250,7 @@ export function ResumeActions({ candidate, variant }: Props) {
               <Button
                 size="icon-sm"
                 variant="ghost"
-                className="text-danger hover:bg-danger-soft"
+                className="text-destructive hover:bg-destructive-soft hover:text-destructive"
                 onClick={() => setConfirmDelete(true)}
                 aria-label={he.resume.delete}
               >
@@ -259,11 +263,11 @@ export function ResumeActions({ candidate, variant }: Props) {
         <button
           type="button"
           onClick={pick}
-          className="flex w-full flex-col items-center gap-1 rounded-lg py-3 text-center transition-colors hover:bg-navy-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+          className="flex w-full flex-col items-center gap-1 rounded-md py-3 text-center transition-colors duration-fast hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <FileUp className="size-5 text-navy-700" aria-hidden />
-          <span className="text-sm font-medium text-navy-900">{he.resume.dropHere}</span>
-          <span className="text-xs text-ink-muted">{he.resume.accepted}</span>
+          <FileUp className="size-5 text-muted-foreground" aria-hidden />
+          <span className="text-body font-medium text-foreground">{he.resume.dropHere}</span>
+          <span className="text-caption text-muted-foreground">{he.resume.accepted}</span>
         </button>
       )}
       {dialogs}

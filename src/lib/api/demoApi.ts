@@ -213,7 +213,7 @@ export async function sampleResumeBlob(c: StoredCandidate): Promise<Blob | null>
     ctx.direction = 'rtl'
     ctx.textAlign = 'right'
     ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 72px Rubik, Heebo, Arial, sans-serif'
+    ctx.font = 'bold 72px Heebo, Arial, sans-serif'
     ctx.fillText(`${c.first_name} ${c.last_name}`, 1140, 135)
     ctx.font = '34px Heebo, Arial, sans-serif'
     ctx.fillStyle = '#e9e1cf'

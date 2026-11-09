@@ -13,12 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Card } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Field } from '@/components/ui/field'
 import { Input, Textarea } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useAppActions } from '@/features/workspace/appActions'
-import { CandidatePicker, relativeTime } from '@/features/workspace/bits'
+import { CandidatePicker, relativeTime } from '@/features/workspace/CandidatePicker'
 import { useCandidateIndex, useDeleteIdea, useIdeas, useSaveIdea } from '@/hooks/useWorkspace'
 import { he } from '@/lib/strings.he'
 import type { Idea, IdeaInput } from '@/lib/types'
@@ -72,40 +75,37 @@ function IdeaEditor({
           <DialogDescription>{he.ideas.subtitle}</DialogDescription>
         </DialogHeader>
         <DialogBody className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="idea-title">
-              {he.ideas.titleLabel}
-              <span className="ms-0.5 text-danger" aria-hidden>
-                *
-              </span>
-            </Label>
-            <Input
-              id="idea-title"
-              autoFocus
-              value={v.title}
-              maxLength={200}
-              placeholder={he.ideas.titlePlaceholder}
-              aria-invalid={tried && !v.title.trim() ? true : undefined}
-              onChange={(e) => setV({ ...v, title: e.target.value })}
-            />
-            {tried && !v.title.trim() && (
-              <p role="alert" className="text-xs font-medium text-danger">
-                {he.validation.required}
-              </p>
+          <Field
+            label={he.ideas.titleLabel}
+            required
+            error={tried && !v.title.trim() ? he.validation.required : undefined}
+          >
+            {(id, aria) => (
+              <Input
+                id={id}
+                {...aria}
+                autoFocus
+                value={v.title}
+                maxLength={200}
+                placeholder={he.ideas.titlePlaceholder}
+                onChange={(e) => setV({ ...v, title: e.target.value })}
+              />
             )}
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="idea-body">{he.ideas.body}</Label>
-            <Textarea
-              id="idea-body"
-              rows={4}
-              maxLength={4000}
-              value={v.body ?? ''}
-              onChange={(e) => setV({ ...v, body: e.target.value })}
-            />
-          </div>
+          </Field>
+          <Field label={he.ideas.body}>
+            {(id, aria) => (
+              <Textarea
+                id={id}
+                {...aria}
+                rows={4}
+                maxLength={4000}
+                value={v.body ?? ''}
+                onChange={(e) => setV({ ...v, body: e.target.value })}
+              />
+            )}
+          </Field>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="idea-male">{he.ideas.linkMale}</Label>
               <CandidatePicker
                 id="idea-male"
@@ -118,7 +118,7 @@ function IdeaEditor({
                 noneLabel={he.ideas.none}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="idea-female">{he.ideas.linkFemale}</Label>
               <CandidatePicker
                 id="idea-female"
@@ -134,10 +134,10 @@ function IdeaEditor({
           </div>
         </DialogBody>
         <DialogFooter>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             {he.common.cancel}
           </Button>
-          <Button variant="primary" onClick={() => void submit()} disabled={save.isPending}>
+          <Button variant="primary" onClick={() => void submit()} loading={save.isPending}>
             {he.common.save}
           </Button>
         </DialogFooter>
@@ -165,9 +165,9 @@ export default function IdeasPage() {
     void save.mutateAsync({ id: i.id, input: { ...toInput(i), ...change } })
 
   return (
-    <main id="main" className="space-y-4 px-4 pb-16 pt-5 md:px-6">
+    <main id="main" className="space-y-6 px-4 pb-16 pt-6 md:px-8">
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm text-ink-muted">{he.ideas.subtitle}</p>
+        <p className="text-body text-muted-foreground">{he.ideas.subtitle}</p>
         <div className="ms-auto flex items-center gap-2">
           {doneCount > 0 && (
             <Button
@@ -187,21 +187,27 @@ export default function IdeasPage() {
       </div>
 
       {ideas.isPending ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} className="h-40" />
           ))}
         </div>
       ) : list.length === 0 ? (
-        <div className="flex flex-col items-center rounded-xl border border-line bg-surface px-6 py-16 text-center shadow-card">
-          <span className="grid size-12 place-items-center rounded-full bg-gold-100">
-            <Lightbulb className="size-6 text-gold-700" />
-          </span>
-          <h2 className="mt-4 text-xl font-bold text-navy-900">{he.ideas.empty}</h2>
-          <p className="mt-1.5 text-sm text-ink-muted">{he.ideas.emptyText}</p>
-        </div>
+        <Card role="status">
+          <EmptyState
+            icon={<Lightbulb />}
+            title={he.ideas.empty}
+            description={he.ideas.emptyText}
+            action={
+              <Button variant="primary" onClick={() => setEditing({ open: true, idea: null })}>
+                <Plus />
+                {he.ideas.new}
+              </Button>
+            }
+          />
+        </Card>
       ) : (
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((i) => {
             const m = i.male_id ? byId.get(i.male_id) : undefined
             const f = i.female_id ? byId.get(i.female_id) : undefined
@@ -209,43 +215,44 @@ export default function IdeasPage() {
               <li
                 key={i.id}
                 className={cn(
-                  'flex flex-col rounded-xl border bg-surface p-4 shadow-card transition-opacity',
-                  i.pinned ? 'border-gold-300 bg-gold-100/30' : 'border-line',
-                  i.done && 'opacity-60',
+                  'flex flex-col rounded-lg border p-5 transition-colors duration-base',
+                  i.done ? 'border-border bg-secondary' : 'bg-card',
+                  !i.done && (i.pinned ? 'border-brand/50' : 'border-border'),
                 )}
               >
                 <div className="flex items-start gap-2">
                   <h2
                     className={cn(
-                      'flex-1 font-sans text-[15.5px] font-semibold leading-snug text-navy-900',
-                      i.done && 'line-through',
+                      'flex-1 text-h4',
+                      i.done ? 'text-muted-foreground line-through' : 'text-foreground',
                     )}
                   >
                     {i.title}
                   </h2>
-                  {i.pinned && <Badge tone="gold">{he.ideas.pinned}</Badge>}
+                  {i.pinned && <Badge tone="accent">{he.ideas.pinned}</Badge>}
+                  {i.done && <Badge tone="success">{he.ideas.doneBadge}</Badge>}
                 </div>
                 {i.body && (
-                  <p className="mt-1.5 whitespace-pre-line text-[14px] leading-relaxed text-ink-muted">
+                  <p className="mt-2 whitespace-pre-line text-body text-muted-foreground">
                     {i.body}
                   </p>
                 )}
                 {(m || f) && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {[m, f].filter(Boolean).map((c) => (
                       <button
                         key={c!.id}
                         type="button"
                         onClick={() => actions.openCandidate(c!.id)}
-                        className="rounded-full bg-navy-50 px-2.5 py-0.5 text-[12.5px] font-medium text-navy-800 hover:bg-navy-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
+                        className="rounded-full border border-border bg-card px-3 py-1 text-body-sm font-medium text-primary transition-colors duration-fast hover:border-input-hover hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {fullName(c!)}
                       </button>
                     ))}
                   </div>
                 )}
-                <div className="mt-auto flex items-center gap-0.5 pt-4">
-                  <span className="tabular me-auto text-[12px] text-ink-muted">
+                <div className="mt-auto flex items-center gap-1 pt-4">
+                  <span className="tabular me-auto text-caption text-muted-foreground">
                     {relativeTime(i.updated_at)}
                   </span>
                   <Tooltip content={i.pinned ? he.ideas.unpin : he.ideas.pin}>
@@ -282,7 +289,7 @@ export default function IdeasPage() {
                     <Button
                       size="icon-sm"
                       variant="ghost"
-                      className="text-danger hover:bg-danger-soft"
+                      className="text-destructive hover:bg-destructive-soft hover:text-destructive"
                       aria-label={he.common.delete}
                       onClick={() => setToDelete(i)}
                     >

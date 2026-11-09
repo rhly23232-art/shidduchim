@@ -1,18 +1,20 @@
-import { ChevronDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { ChoiceGroup } from '@/components/ui/choice-group'
+import { FilterChevron, filterTriggerClass } from '@/components/ui/filter-trigger'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useDebounced } from '@/hooks/useDebounced'
 import { EDA_KEYS, type EdaKey } from '@/lib/eda'
 import { he } from '@/lib/strings.he'
-import { cn } from '@/lib/utils'
 
 interface Props {
   eda: EdaKey | null
   text: string
   onChange: (eda: EdaKey | null, text: string) => void
 }
+
+const EDA_OPTIONS = EDA_KEYS.map((k) => ({ value: k, label: he.eda[k] }))
 
 /** Label for chips / the trigger: "עדה: עדות מזרח · מרוקאי". */
 export function edaLabel(eda: EdaKey | null, text: string): string | null {
@@ -35,30 +37,17 @@ export function EdaControl({ eda, text, onChange }: Props) {
   const needsText = eda === 'mizrah' || eda === 'chasidut' || eda === 'other'
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={he.filters.community}>
-        {EDA_KEYS.map((k) => {
-          const on = eda === k
-          return (
-            <button
-              key={k}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              onClick={() => onChange(on ? null : k, '')}
-              className={cn(
-                'h-9 rounded-lg border px-3 text-[13.5px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500',
-                on
-                  ? 'border-navy-900 bg-navy-900 text-surface'
-                  : 'border-line bg-surface text-navy-900 hover:border-navy-200 hover:bg-navy-50',
-              )}
-            >
-              {he.eda[k]}
-            </button>
-          )
-        })}
-      </div>
+      <ChoiceGroup
+        className="grid-cols-2"
+        size="sm"
+        label={he.filters.community}
+        options={EDA_OPTIONS}
+        value={eda}
+        allowDeselect
+        onChange={(k) => onChange(k, '')}
+      />
       {needsText && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label htmlFor="eda-text">{he.eda.inputLabel[eda]}</Label>
           <Input
             id="eda-text"
@@ -79,21 +68,11 @@ export function EdaFilter(props: Props) {
   const active = edaLabel(props.eda, props.text)
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        className={cn(
-          'inline-flex h-9 max-w-[16rem] items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-1',
-          active
-            ? 'border-navy-900 bg-navy-900 text-surface hover:bg-navy-800'
-            : 'border-line bg-surface text-navy-900 hover:border-navy-200 hover:bg-navy-50',
-        )}
-      >
+      <PopoverTrigger className={filterTriggerClass(!!active, 'max-w-64')}>
         <span className="truncate">
           {active ? `${he.filters.community}: ${active}` : he.filters.community}
         </span>
-        <ChevronDown
-          className={cn('size-3.5 shrink-0 opacity-70 transition-transform', open && 'rotate-180')}
-          aria-hidden
-        />
+        <FilterChevron open={open} />
       </PopoverTrigger>
       <PopoverContent className="w-72 p-3">
         <EdaControl {...props} />
@@ -119,35 +98,17 @@ export function EdaPicker({
   const needsText = eda === 'mizrah' || eda === 'chasidut' || eda === 'other'
   return (
     <fieldset className="space-y-2">
-      <legend className="mb-1.5 text-[13px] font-medium">{he.filters.community}</legend>
-      <div
-        className="grid grid-cols-2 gap-1.5 sm:grid-cols-4"
-        role="radiogroup"
-        aria-label={he.filters.community}
-      >
-        {EDA_KEYS.map((k) => {
-          const on = eda === k
-          return (
-            <button
-              key={k}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              onClick={() => onEda(on ? null : k)}
-              className={cn(
-                'h-10 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500',
-                on
-                  ? 'border-navy-900 bg-navy-900 text-surface'
-                  : 'border-line bg-surface text-navy-900 hover:border-navy-200 hover:bg-navy-50',
-              )}
-            >
-              {he.eda[k]}
-            </button>
-          )
-        })}
-      </div>
+      <legend className="mb-2 text-label text-foreground">{he.filters.community}</legend>
+      <ChoiceGroup
+        className="grid-cols-2 sm:grid-cols-4"
+        label={he.filters.community}
+        options={EDA_OPTIONS}
+        value={eda}
+        allowDeselect
+        onChange={onEda}
+      />
       {needsText && (
-        <div className="flex flex-col gap-1.5 pt-1">
+        <div className="flex flex-col gap-2 pt-1">
           <Label htmlFor="form-eda-detail">{he.eda.inputLabel[eda]}</Label>
           <Input
             id="form-eda-detail"

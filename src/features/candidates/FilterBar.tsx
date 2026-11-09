@@ -1,7 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { FileSpreadsheet, Loader2, RotateCcw, SlidersHorizontal, X } from 'lucide-react'
+import { FileSpreadsheet, Loader2, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { FilterCount } from '@/components/ui/filter-trigger'
+import { Chip } from '@/components/ui/chip'
+import { Segmented } from '@/components/ui/segmented'
 import { Tooltip } from '@/components/ui/tooltip'
 import { SearchBox } from '@/components/layout/SearchBox'
 import { exportCandidatesCsv } from './exportCsv'
@@ -13,7 +16,6 @@ import type { FiltersApi, ListKey } from '@/hooks/useFilters'
 import type { SortState } from '@/lib/api'
 import { he, institutionLabel } from '@/lib/strings.he'
 import type { CandidateRow, TabKey } from '@/lib/types'
-import { cn } from '@/lib/utils'
 import { AgeFilter, AgeRangeControl, ageLabel } from './AgeFilter'
 import type { FacetOptions } from './filtering'
 import { EdaFilter, edaLabel } from './EdaFilter'
@@ -111,53 +113,22 @@ const SORT_OPTIONS: { value: string; label: string; sort: SortState }[] = [
 export const CANDIDATES_PANEL_ID = 'candidates-panel'
 export const tabId = (g: TabKey) => `tab-${g}`
 
-/** WAI-ARIA tabs: roving tabindex, arrow keys (RTL-aware), Home/End. */
+const TAB_ORDER = ['male', 'female', 'all'] as const
+
+/** View switch בחורים / בחורות / הכל — WAI-ARIA tabs via the shared Segmented control. */
 function GenderTabs({ gender, onChange }: { gender: TabKey; onChange: (g: TabKey) => void }) {
-  const order = ['male', 'female', 'all'] as const
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    const idx = order.indexOf(gender)
-    let next: number | null = null
-    // RTL: ArrowLeft moves forward, ArrowRight backward
-    if (e.key === 'ArrowLeft') next = (idx + 1) % order.length
-    else if (e.key === 'ArrowRight') next = (idx - 1 + order.length) % order.length
-    else if (e.key === 'Home') next = 0
-    else if (e.key === 'End') next = order.length - 1
-    if (next === null) return
-    e.preventDefault()
-    onChange(order[next]!)
-    requestAnimationFrame(() => document.getElementById(tabId(order[next]!))?.focus())
-  }
   return (
-    <div
-      role="tablist"
-      aria-label={he.tabs.ariaLabel}
-      onKeyDown={onKeyDown}
-      className="flex gap-1 rounded-xl bg-cream-100 p-1"
-    >
-      {order.map((g) => {
-        const active = g === gender
-        return (
-          <button
-            key={g}
-            id={tabId(g)}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            aria-controls={CANDIDATES_PANEL_ID}
-            tabIndex={active ? 0 : -1}
-            onClick={() => onChange(g)}
-            className={cn(
-              'flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 sm:px-4',
-              active
-                ? 'bg-navy-900 text-surface shadow-sm [box-shadow:inset_0_-2px_0_hsl(var(--gold-500))]'
-                : 'text-navy-800 hover:bg-surface/70 hover:text-navy-900',
-            )}
-          >
-            {he.tabs[g]}
-          </button>
-        )
-      })}
-    </div>
+    <Segmented
+      label={he.tabs.ariaLabel}
+      value={gender}
+      onChange={onChange}
+      items={TAB_ORDER.map((g) => ({
+        value: g,
+        label: he.tabs[g],
+        id: tabId(g),
+        controls: CANDIDATES_PANEL_ID,
+      }))}
+    />
   )
 }
 
@@ -191,11 +162,11 @@ export function FilterBar(props: Props) {
   return (
     <div
       ref={ref}
-      className="sticky z-20 border-b border-line bg-cream-50/95 backdrop-blur supports-[backdrop-filter]:bg-cream-50/85"
+      className="sticky z-20 border-b border-border bg-background"
       style={{ top: 'var(--header-h)' }}
     >
-      <div className="space-y-2.5 px-4 py-3 md:px-6">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
+      <div className="space-y-3 px-4 py-3 md:px-8">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
           <GenderTabs gender={api.gender} onChange={api.setGender} />
           <SearchBox
             value={api.filters.q}
@@ -215,21 +186,17 @@ export function FilterBar(props: Props) {
           {/* Mobile: one button opens the filter sheet */}
           <Button
             size="sm"
-            className="h-9 rounded-full md:hidden"
+            className="h-9 md:hidden"
             onClick={() => setSheetOpen(true)}
             aria-label={he.filters.openFilters}
           >
             <SlidersHorizontal />
             {he.filters.title}
-            {api.activeCount > 0 && (
-              <span className="tabular grid min-w-5 place-items-center rounded-full bg-navy-900 px-1 text-[11px] font-bold leading-5 text-surface">
-                {api.activeCount}
-              </span>
-            )}
+            {api.activeCount > 0 && <FilterCount value={api.activeCount} />}
           </Button>
 
           <p
-            className="tabular ms-auto flex items-center gap-1.5 text-[13px] text-ink-muted"
+            className="tabular ms-auto flex items-center gap-2 text-body-sm text-muted-foreground"
             aria-live="polite"
           >
             {fetching && !loading && <Loader2 className="size-3.5 animate-spin" aria-hidden />}
@@ -262,43 +229,33 @@ export function FilterBar(props: Props) {
               transition={{ duration: 0.18, ease: 'easeOut' }}
               className="overflow-hidden"
             >
-              <div className="flex flex-wrap items-center gap-1.5 pb-0.5">
+              <div className="flex flex-wrap items-center gap-2 pb-1">
                 <AnimatePresence initial={false} mode="popLayout">
                   {chips.map((c) => (
                     <motion.span
                       key={c.id}
                       layout
-                      initial={{ opacity: 0, scale: 0.92 }}
+                      initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.92 }}
+                      exit={{ opacity: 0, scale: 0.96 }}
                       transition={{ duration: 0.15 }}
-                      className="inline-flex h-7 items-center gap-1 rounded-full border border-gold-300 bg-gold-100/70 pe-1 ps-2.5 text-[12.5px] font-medium text-navy-900"
                     >
-                      <span className="max-w-[16rem] truncate">{c.label}</span>
-                      <button
-                        type="button"
-                        onClick={c.remove}
-                        aria-label={he.filters.removeChip(c.label)}
-                        className="grid size-5 place-items-center rounded-full text-navy-800 transition-colors hover:bg-gold-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500"
-                      >
-                        <X className="size-3" strokeWidth={2.5} />
-                      </button>
+                      <Chip
+                        label={c.label}
+                        removeLabel={he.filters.removeChip(c.label)}
+                        onRemove={c.remove}
+                      />
                     </motion.span>
                   ))}
                 </AnimatePresence>
                 {chips.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 rounded-full px-2.5"
-                    onClick={api.resetFilters}
-                  >
-                    <RotateCcw className="!size-3.5" />
+                  <Button variant="ghost" size="sm" className="h-7" onClick={api.resetFilters}>
+                    <RotateCcw />
                     {he.filters.reset}
                   </Button>
                 )}
                 {serverMode && (
-                  <span className="text-xs text-ink-muted">
+                  <span className="text-caption text-muted-foreground">
                     {capped ? he.filters.serverCapped(displayed) : he.filters.serverMode}
                   </span>
                 )}
@@ -311,18 +268,16 @@ export function FilterBar(props: Props) {
       {/* Mobile filter sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="bottom" className="pb-[env(safe-area-inset-bottom)]">
-          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-line" aria-hidden />
+          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-border" aria-hidden />
           <div className="px-5 pb-2 pt-3">
-            <SheetTitle className="font-heading text-xl font-bold text-navy-900">
-              {he.filters.title}
-            </SheetTitle>
-            <SheetDescription className="text-sm text-ink-muted">
+            <SheetTitle className="text-h2 text-foreground">{he.filters.title}</SheetTitle>
+            <SheetDescription className="text-body text-muted-foreground">
               {he.filters.results(shown, total)}
             </SheetDescription>
           </div>
           <div className="flex-1 space-y-6 overflow-y-auto px-5 py-3">
             <section className="space-y-3">
-              <h3 className="font-sans text-sm font-semibold text-navy-900">{he.filters.age}</h3>
+              <h3 className="text-h4 text-foreground">{he.filters.age}</h3>
               <AgeRangeControl
                 min={api.filters.ageMin}
                 max={api.filters.ageMax}
@@ -330,9 +285,7 @@ export function FilterBar(props: Props) {
               />
             </section>
             <section className="space-y-2">
-              <h3 className="font-sans text-sm font-semibold text-navy-900">
-                {he.filters.criteria}
-              </h3>
+              <h3 className="text-h4 text-foreground">{he.filters.criteria}</h3>
               <div className="flex flex-wrap gap-2">
                 <MultiSelectFilter
                   label={he.filters.location}
@@ -348,7 +301,7 @@ export function FilterBar(props: Props) {
               </div>
             </section>
             <section className="space-y-2">
-              <Label htmlFor="mobile-sort" className="text-sm font-semibold text-navy-900">
+              <Label htmlFor="mobile-sort" className="text-h4">
                 {he.filters.sortBy}
               </Label>
               <NativeSelect
@@ -366,9 +319,9 @@ export function FilterBar(props: Props) {
               </NativeSelect>
             </section>
           </div>
-          <div className="flex gap-2 border-t border-line px-5 py-3">
+          <div className="flex gap-2 border-t border-border px-5 py-3">
             <Button
-              variant="secondary"
+              variant="outline"
               className="flex-1"
               onClick={api.resetFilters}
               disabled={api.activeCount === 0}

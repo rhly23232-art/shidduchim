@@ -7,6 +7,7 @@ import {
   nameColumn,
   notesColumn,
   resumeColumn,
+  Empty,
 } from './columns.shared'
 
 /** בחורים: שם מלא | גיל | ישיבה | עיר מגורים | הערות כלליות | רזומה | פעולות */
@@ -19,11 +20,7 @@ export const maleColumns = [
     meta: { sortKey: 'institution', className: 'w-[17%]' },
     cell: ({ getValue }) => {
       const v = getValue()
-      return v ? (
-        <span className="block truncate">{v}</span>
-      ) : (
-        <span className="text-ink-muted/60">—</span>
-      )
+      return v ? <span className="block truncate">{v}</span> : <Empty />
     },
   }),
   cityColumn,

@@ -1,5 +1,5 @@
-import { ChevronDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { FilterChevron, filterTriggerClass } from '@/components/ui/filter-trigger'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -7,7 +7,6 @@ import { RangeSlider } from '@/components/ui/slider'
 import { useDebounced } from '@/hooks/useDebounced'
 import { AGE_MAX, AGE_MIN } from '@/lib/age'
 import { he } from '@/lib/strings.he'
-import { cn } from '@/lib/utils'
 
 interface Props {
   min: number
@@ -61,7 +60,7 @@ export function AgeRangeControl({ min, max, onChange }: Props) {
         thumbLabels={[he.filters.ageFrom, he.filters.ageTo]}
       />
       <div className="flex items-end gap-3">
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 space-y-2">
           <Label htmlFor="age-min">{he.filters.ageFrom}</Label>
           <Input
             id="age-min"
@@ -75,10 +74,10 @@ export function AgeRangeControl({ min, max, onChange }: Props) {
             className="tabular h-9 text-center"
           />
         </div>
-        <span className="pb-2 text-ink-muted" aria-hidden>
+        <span className="pb-2 text-muted-foreground" aria-hidden>
           –
         </span>
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 space-y-2">
           <Label htmlFor="age-max">{he.filters.ageTo}</Label>
           <Input
             id="age-max"
@@ -102,24 +101,14 @@ export function AgeFilter(props: Props) {
   const active = ageLabel(props.min, props.max)
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        className={cn(
-          'inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-1',
-          active
-            ? 'border-navy-900 bg-navy-900 text-surface hover:bg-navy-800'
-            : 'border-line bg-surface text-navy-900 hover:border-navy-200 hover:bg-navy-50',
-        )}
-      >
+      <PopoverTrigger className={filterTriggerClass(!!active)}>
         <span className="tabular">{active ?? he.filters.age}</span>
-        <ChevronDown
-          className={cn('size-3.5 opacity-70 transition-transform', open && 'rotate-180')}
-          aria-hidden
-        />
+        <FilterChevron open={open} />
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4">
-        <p className="mb-3 text-sm font-semibold text-navy-900">
+        <p className="mb-4 text-body font-semibold text-foreground">
           {he.filters.age}
-          <span className="tabular ms-2 font-normal text-ink-muted">
+          <span className="tabular ms-2 font-normal text-muted-foreground">
             {props.min}–{props.max === AGE_MAX ? `${AGE_MAX}+` : props.max}
           </span>
         </p>

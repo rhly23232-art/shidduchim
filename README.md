@@ -10,7 +10,8 @@ React Hook Form + Zod · Supabase (Postgres, Auth, Storage, Edge Functions) · f
 - **כרטיס מועמד** — 4 חלקים, עריכה ומחיקה, ניהול רזומה (צפייה בתוך האפליקציה ל-PDF, תמונה ו-Word; הורדה; שליחה במייל עם קובץ מצורף).
 - **סרגל צד** — מעבר בין הטבלאות, פנל רעיונות ורשימת כל המועמדים עם חיפוש.
 - **פנל רעיונות** — רשימות חופשיות עם הצמדה, סימון כטופל וקישור למועמדים.
-- **חיפוש מהיר (Ctrl+K)** — מועמדים ופעולות מכל מקום.
+- **חיפוש מהיר** — מועמדים ופעולות מכל מקום.
+- **מערכת עיצוב (Calm Productivity)** — tokens, ספריית רכיבים ותיעוד: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md); עמוד הדגמה חי ב-`/design-system`.
 
 ## מסד הנתונים — שלוש אפשרויות (נבחרת אוטומטית בעלייה)
 
@@ -81,7 +82,7 @@ npm run verify:rls          # בדיקת RLS עם שני חשבונות (דור�
 
 ```
 src/
-  components/ui/          רכיבי shadcn (Button, Dialog, Sheet, Popover, Command, Slider…)
+  components/ui/          ספריית הרכיבים (Button, Field, Segmented, ChoiceGroup, Alert, EmptyState, Dialog, Sheet…)
   components/layout/      Header, SearchBox, UserMenu, Logo
   features/candidates/    CandidatesTable, columns.male.tsx, columns.female.tsx, FilterBar, SampleData,
                           CandidateDetailModal, CandidateForm, filtering.ts
@@ -89,7 +90,9 @@ src/
   hooks/                  useCandidates, useFilters (מסונכרן ל-URL), useDebounced, …
   lib/                    supabase.ts, api/ (Supabase / מסד claude.ai / הדגמה), hebrewDate.ts, age.ts,
                           validators.ts, strings.he.ts (כל מחרוזות הממשק)
-  pages/                  Login, Dashboard
+  pages/                  Login, Home, Candidates, Ideas, DesignSystem (Showcase)
+docs/
+  DESIGN_SYSTEM.md        עקרונות, tokens, רכיבים, RTL ונגישות
 supabase/
   migrations/             הסכמה המלאה
   functions/send-resume-email/   שליחת רזומה כקובץ מצורף (Resend)

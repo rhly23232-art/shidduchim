@@ -8,6 +8,7 @@ import {
   nameColumn,
   notesColumn,
   resumeColumn,
+  Empty,
 } from './columns.shared'
 
 /** הכל: שם מלא | בחור / בחורה | גיל | ישיבה / סמינר | עיר מגורים | הערות כלליות | רזומה | פעולות */
@@ -18,9 +19,7 @@ export const allColumns = [
     header: he.table.type,
     enableSorting: false,
     meta: { className: 'w-[7rem]' },
-    cell: ({ getValue }) => (
-      <Badge tone={getValue() === 'male' ? 'navy' : 'gold'}>{he.gender[getValue()]}</Badge>
-    ),
+    cell: ({ getValue }) => <Badge tone="neutral">{he.gender[getValue()]}</Badge>,
   }),
   ageColumn,
   col.accessor('institution', {
@@ -29,11 +28,7 @@ export const allColumns = [
     meta: { sortKey: 'institution', className: 'w-[17%]' },
     cell: ({ getValue }) => {
       const v = getValue()
-      return v ? (
-        <span className="block truncate">{v}</span>
-      ) : (
-        <span className="text-ink-muted/60">—</span>
-      )
+      return v ? <span className="block truncate">{v}</span> : <Empty />
     },
   }),
   cityColumn,

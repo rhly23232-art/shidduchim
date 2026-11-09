@@ -23,15 +23,15 @@ export function Switch({
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2',
-        checked ? 'bg-navy-900' : 'bg-navy-200',
+        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        checked ? 'bg-primary' : 'bg-input-hover',
         className,
       )}
     >
       <span
         aria-hidden
         className={cn(
-          'absolute top-0.5 size-5 rounded-full bg-surface shadow-sm transition-[inset-inline-start] duration-200',
+          'absolute top-0.5 size-5 rounded-full bg-card shadow-sm transition-[inset-inline-start] duration-base',
           checked ? 'start-[1.375rem]' : 'start-0.5',
         )}
       />

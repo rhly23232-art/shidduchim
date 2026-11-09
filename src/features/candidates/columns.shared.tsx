@@ -33,15 +33,19 @@ declare module '@tanstack/react-table' {
 
 export const col = createColumnHelper<CandidateRow>()
 
-const Empty = () => <span className="text-ink-muted/60">—</span>
+export const Empty = () => (
+  <span className="text-muted-foreground/60" aria-label="אין נתון">
+    —
+  </span>
+)
 
 export const nameColumn = col.accessor((r) => fullName(r), {
   id: 'name',
   header: he.table.fullName,
   meta: { sortKey: 'name', className: 'w-[15%]' },
   cell: ({ row }) => (
-    <div className="flex min-w-0 flex-col gap-0.5">
-      <span className="truncate font-semibold text-navy-900">{fullName(row.original)}</span>
+    <div className="flex min-w-0 flex-col gap-1">
+      <span className="truncate font-medium text-foreground">{fullName(row.original)}</span>
       {row.original.status !== 'active' && (
         <span>
           <StatusBadge status={row.original.status} />
@@ -80,7 +84,7 @@ export const notesColumn = col.accessor('general_notes', {
       <Tooltip content={<span className="whitespace-pre-line">{v}</span>}>
         <span
           tabIndex={0}
-          className="line-clamp-2 cursor-default text-[13px] leading-snug text-ink-muted focus-visible:rounded"
+          className="line-clamp-2 cursor-default text-body-sm text-muted-foreground focus-visible:rounded-sm"
         >
           {v}
         </span>
@@ -99,7 +103,7 @@ export const resumeColumn = col.display({
 export const actionsColumn = col.display({
   id: 'actions',
   header: () => <span className="sr-only">{he.table.actions}</span>,
-  meta: { className: 'w-[9.25rem] xl:w-[11.25rem]' },
+  meta: { className: 'w-[11.25rem]' },
   cell: ({ row, table }) => {
     const r = row.original
     const name = fullName(r)
@@ -113,16 +117,11 @@ export const actionsColumn = col.display({
           className="group/btn"
         >
           {he.table.details}
-          <ChevronLeft className="transition-transform duration-200 group-hover/btn:-translate-x-0.5" />
+          <ChevronLeft className="transition-transform duration-fast group-hover/btn:-translate-x-1" />
         </Button>
         <DropdownMenu dir="rtl">
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="hidden xl:inline-flex"
-              aria-label={he.table.moreActions(name)}
-            >
+            <Button variant="ghost" size="icon-sm" aria-label={he.table.moreActions(name)}>
               <MoreVertical />
             </Button>
           </DropdownMenuTrigger>

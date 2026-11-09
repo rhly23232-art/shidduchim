@@ -1,5 +1,32 @@
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+/** tailwind-merge must know the design-system type scale, or it mistakes `text-h2` for a color. */
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      'font-size': [
+        {
+          text: [
+            'display',
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'body-lg',
+            'body',
+            'body-sm',
+            'caption',
+            'label',
+            'button',
+            'table',
+          ],
+        },
+      ],
+      shadow: [{ shadow: ['sm', 'md', 'lg', 'none'] }],
+    },
+  },
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
