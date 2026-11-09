@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand */
+    --navy-900: 222 48% 17%;
+    --navy-800: 222 40% 24%;
+    --navy-700: 221 30% 34%;
+    --navy-200: 220 30% 84%;
+    --navy-100: 220 36% 92%;
+    --navy-50: 220 40% 96.5%;
+    --gold-700: 37 42% 32%;
+    --gold-500: 37 36% 54%;
+    --gold-300: 38 42% 74%;
+    --gold-100: 40 52% 93%;
+    --cream-50: 40 33% 97%;
+    --cream-100: 40 28% 93%;
+    --surface: 0 0% 100%;
+    /* Text & lines */
+    --ink: 222 30% 14%;
+    --ink-muted: 220 12% 38%;
+    --line: 36 20% 87%;
+    /* Feedback */
+    --danger: 0 62% 42%;
+    --danger-soft: 0 70% 96%;
+    --success: 152 48% 28%;
+    --success-soft: 150 40% 94%;
+    --warning: 32 80% 32%;
+    --warning-soft: 40 85% 93%;
+    /* Elevation */
+    --shadow-card: 0 1px 2px hsl(222 40% 15% / 0.05), 0 2px 8px -2px hsl(222 40% 15% / 0.07);
+    --shadow-card-hover: 0 2px 4px hsl(222 40% 15% / 0.06), 0 10px 24px -6px hsl(222 40% 15% / 0.14);
+    --shadow-pop: 0 4px 12px hsl(222 40% 15% / 0.08), 0 24px 48px -12px hsl(222 40% 15% / 0.22);
+    /* Layout (set at runtime) */
+    --header-h: 4rem;
+    --filterbar-h: 0px;
+  }
+
+  * {
+    @apply border-line;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + var(--filterbar-h) + 3rem);
+  }
+
+  body {
+    @apply bg-cream-50 font-sans text-ink antialiased;
+    font-feature-settings: 'kern';
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-gold-500 ring-offset-2 ring-offset-surface;
+  }
+
+  ::selection {
+    @apply bg-gold-100 text-navy-900;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-cream-100;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 animate-shimmer;
+    transform: translateX(100%);
+    background: linear-gradient(90deg, transparent, hsl(var(--surface) / 0.7), transparent);
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
