@@ -46,6 +46,7 @@ export type Database = {
           created_at: string
           degree: string | null
           desired_home_style: string | null
+          eda: string | null
           education_history: Json
           first_name: string
           future_plans: string | null
@@ -75,6 +76,7 @@ export type Database = {
           created_at?: string
           degree?: string | null
           desired_home_style?: string | null
+          eda?: string | null
           education_history?: Json
           first_name: string
           future_plans?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           created_at?: string
           degree?: string | null
           desired_home_style?: string | null
+          eda?: string | null
           education_history?: Json
           first_name?: string
           future_plans?: string | null
@@ -345,6 +348,7 @@ export type Database = {
           created_at: string | null
           degree: string | null
           desired_home_style: string | null
+          eda: string | null
           education_history: Json | null
           first_name: string | null
           future_plans: string | null

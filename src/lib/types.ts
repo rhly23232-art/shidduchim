@@ -1,4 +1,7 @@
+import type { EdaKey } from './eda'
 export type Gender = 'male' | 'female'
+/** Candidates page tab: one gender, or everyone ("הכל"). */
+export type TabKey = Gender | 'all'
 
 export const CANDIDATE_STATUSES = ['active', 'in_process', 'engaged', 'paused'] as const
 export type CandidateStatus = (typeof CANDIDATE_STATUSES)[number]
@@ -19,6 +22,8 @@ export interface CandidateInput {
   city: string | null
   region: string | null
   country_of_origin: string | null
+  /** עדה group; the detail lives in `community` (מוצא / חופשי) or `chassidut`. */
+  eda: EdaKey | null
   community: string | null
   chassidut: string | null
   height_cm: number | null

@@ -40,7 +40,7 @@ export default function CandidatesPage() {
             hasFilters={activeCount > 0}
             genderTotal={data.genderTotal}
             onResetFilters={filtersApi.resetFilters}
-            onAdd={() => actions.newCandidate(gender)}
+            onAdd={() => actions.newCandidate(gender === 'all' ? undefined : gender)}
             onOpen={(r) => actions.openCandidate(r.id)}
             onEdit={(r) => actions.editCandidate(r)}
             onDelete={actions.deleteCandidate}

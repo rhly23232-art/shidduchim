@@ -7,7 +7,7 @@ import type { CandidateInput, FamilyDetailsInput, InLawInput } from '../lib/type
  * Hebrew birth dates are computed from `birth_date` at generation time.
  */
 export interface SeedCandidate {
-  candidate: Omit<CandidateInput, 'hebrew_birth_date'>
+  candidate: Omit<CandidateInput, 'hebrew_birth_date' | 'eda'>
   family: FamilyDetailsInput
   in_laws: InLawInput[]
 }

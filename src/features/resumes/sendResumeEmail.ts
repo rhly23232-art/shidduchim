@@ -1,4 +1,6 @@
+import { edaLabel } from '@/features/candidates/EdaFilter'
 import { dataApi } from '@/lib/api'
+import { edaDetail, edaOf, hasEda } from '@/lib/eda'
 import { he } from '@/lib/strings.he'
 import type { CandidateRow } from '@/lib/types'
 import { fullName } from '@/lib/utils'
@@ -10,9 +12,9 @@ export function buildEmailBody(c: CandidateRow, senderName: string | null): stri
     [he.detail.fields.fullName, fullName(c)],
     [he.detail.fields.age, c.age],
     [he.detail.fields.city, c.city],
-    [inst, [c.institution, c.institution_type].filter(Boolean).join(' · ') || null],
+    [inst, c.institution],
     [he.detail.fields.occupation, c.occupation],
-    [he.detail.fields.community, [c.community, c.chassidut].filter(Boolean).join(' · ') || null],
+    [he.detail.fields.community, hasEda(c) ? edaLabel(edaOf(c), edaDetail(c)) : null],
     [he.detail.fields.height, c.height_cm ? `${c.height_cm} ${he.common.cm}` : null],
   ]
   const details = lines

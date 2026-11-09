@@ -4,7 +4,7 @@ import type {
   IdeaInput,
   CandidateFull,
   CandidateRow,
-  Gender,
+  TabKey,
   ResumeMeta,
   SaveCandidatePayload,
 } from '../types'
@@ -89,12 +89,12 @@ export interface DataApi {
    */
   listCandidates(maxRows: number): Promise<{ rows: CandidateRow[]; overLimit: boolean }>
   queryCandidates(
-    gender: Gender,
+    gender: TabKey,
     filters: CandidateFilters,
     sort: SortState,
     limit: number,
   ): Promise<ServerQueryResult>
-  listFacets(gender: Gender): Promise<FacetRow[]>
+  listFacets(gender: TabKey): Promise<FacetRow[]>
   getCandidate(id: string): Promise<CandidateFull | null>
   saveCandidate(payload: SaveCandidatePayload): Promise<string>
   deleteCandidate(id: string): Promise<void>

@@ -341,7 +341,9 @@ export function createHostBackend(
     },
 
     async queryCandidates(gender, f, sort, limit) {
-      const rows = (await allCandidates()).map(toRow).filter((r) => r.gender === gender)
+      const rows = (await allCandidates())
+        .map(toRow)
+        .filter((r) => gender === 'all' || r.gender === gender)
       const terms = normalizeSearch(f.q).split(' ').filter(Boolean)
       const out = rows.filter((r) => {
         if (!edaMatches(r, f.eda, f.edaText)) return false
@@ -355,7 +357,7 @@ export function createHostBackend(
 
     async listFacets(gender): Promise<FacetRow[]> {
       return (await allCandidates())
-        .filter((r) => r.gender === gender)
+        .filter((r) => gender === 'all' || r.gender === gender)
         .map(({ city, region, institution, community }) => ({
           city,
           region,

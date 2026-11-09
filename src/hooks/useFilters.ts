@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { CandidateFilters, SortKey, SortState } from '@/lib/api'
 import { AGE_MAX, AGE_MIN } from '@/lib/age'
-import type { Gender } from '@/lib/types'
+import type { Gender, TabKey } from '@/lib/types'
 
 const SORT_KEYS: SortKey[] = ['name', 'age', 'city', 'institution', 'occupation', 'updated']
 export const DEFAULT_SORT: SortState = { key: 'updated', dir: 'desc' }
@@ -31,7 +31,8 @@ export function useFilters() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
 
-  const gender: Gender = params.get('tab') === 'female' ? 'female' : 'male'
+  const tabParam = params.get('tab')
+  const gender: TabKey = tabParam === 'female' || tabParam === 'all' ? tabParam : 'male'
 
   const filters = useMemo<CandidateFilters>(() => {
     let ageMin = clampAge(params.get('ageMin'), AGE_MIN)
@@ -75,7 +76,7 @@ export function useFilters() {
   )
 
   const setGender = useCallback(
-    (g: Gender) =>
+    (g: TabKey) =>
       update((p) => {
         if (g === 'male') p.delete('tab')
         else p.set('tab', g)

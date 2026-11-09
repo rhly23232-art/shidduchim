@@ -1,5 +1,13 @@
 import type { CandidateRow } from './types'
-import { normalizeSearch } from './utils'
+
+// Local copy (no imports) so build scripts can use this module directly.
+const normalizeSearch = (text: string) =>
+  text
+    .replace(/[\u0591-\u05C7]/g, '')
+    .replace(/["'`׳״\-–—.,]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
 
 /** The four עדה groups used by the filter. */
 export const EDA_KEYS = ['litai', 'mizrah', 'chasidut', 'other'] as const
@@ -12,7 +20,10 @@ const MIZRAH =
  * Derives the group from the free-text עדה and חסידות fields:
  * a named חסידות → חסידות; ליטאי → ליטא; any eastern origin → עדות מזרח; everything else → אחר.
  */
-export function edaOf(r: Pick<CandidateRow, 'community' | 'chassidut'>): EdaKey {
+export function edaOf(
+  r: Pick<CandidateRow, 'community' | 'chassidut'> & { eda?: EdaKey | null },
+): EdaKey {
+  if (r.eda) return r.eda
   const ch = r.chassidut ?? ''
   const cm = r.community ?? ''
   if (/חסיד/.test(ch) || /חסיד/.test(cm)) return 'chasidut'
@@ -23,7 +34,7 @@ export function edaOf(r: Pick<CandidateRow, 'community' | 'chassidut'>): EdaKey 
 
 /** Group match plus the optional typed detail (מוצא / שם החסידות / טקסט חופשי). */
 export function edaMatches(
-  r: Pick<CandidateRow, 'community' | 'chassidut'>,
+  r: Pick<CandidateRow, 'community' | 'chassidut'> & { eda?: EdaKey | null },
   eda: EdaKey | null,
   text: string,
 ): boolean {
@@ -39,3 +50,18 @@ export function edaMatches(
         : normalizeSearch(`${r.community ?? ''} ${r.chassidut ?? ''}`)
   return hay.includes(t)
 }
+
+/** The typed detail shown next to the group: מוצא / שם החסידות / טקסט חופשי. */
+export function edaDetail(
+  r: Pick<CandidateRow, 'community' | 'chassidut'> & { eda?: EdaKey | null },
+): string {
+  const g = edaOf(r)
+  if (g === 'chasidut') return (r.chassidut ?? '').replace(/^חסידות\s+/, '').trim()
+  if (g === 'litai') return ''
+  return (r.community ?? '').trim()
+}
+
+/** Whether a candidate has any עדה information at all. */
+export const hasEda = (
+  r: Pick<CandidateRow, 'community' | 'chassidut'> & { eda?: EdaKey | null },
+) => !!(r.eda || r.community?.trim() || r.chassidut?.trim())

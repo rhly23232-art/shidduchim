@@ -1,7 +1,7 @@
 import { edaMatches } from '@/lib/eda'
 import type { CandidateFilters, FacetRow, SortState } from '@/lib/api'
 import { AGE_MAX, AGE_MIN } from '@/lib/age'
-import type { CandidateRow, Gender } from '@/lib/types'
+import type { CandidateRow, TabKey } from '@/lib/types'
 import { hebrewCollator, normalizeSearch } from '@/lib/utils'
 
 export const ageFilterActive = (f: Pick<CandidateFilters, 'ageMin' | 'ageMax'>) =>
@@ -24,7 +24,7 @@ function haystack(r: CandidateRow): string {
 
 export function filterCandidates(
   rows: CandidateRow[],
-  gender: Gender,
+  gender: TabKey,
   f: CandidateFilters,
 ): CandidateRow[] {
   const terms = normalizeSearch(f.q).split(' ').filter(Boolean)
@@ -34,7 +34,7 @@ export function filterCandidates(
   const regions = new Set(f.regions)
   const inst = new Set(f.institutions)
   return rows.filter((r) => {
-    if (r.gender !== gender) return false
+    if (gender !== 'all' && r.gender !== gender) return false
     if (ageOn) {
       if (r.age === null || r.age < f.ageMin) return false
       // ageMax at the slider's top end means "and above"

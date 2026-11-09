@@ -1,4 +1,4 @@
-import type { CandidateStatus, Gender } from './types'
+import type { CandidateStatus, Gender, TabKey } from './types'
 
 /** All Hebrew UI strings in one place. */
 export const he = {
@@ -79,6 +79,8 @@ export const he = {
   tabs: {
     male: 'טבלת בחורים',
     female: 'טבלת בחורות',
+    all: 'הכל',
+    allTitle: 'כל המועמדים',
     ariaLabel: 'סוג מועמדים',
   },
   status: {
@@ -110,6 +112,7 @@ export const he = {
     regions: 'אזורים',
     institutionMale: 'ישיבה',
     institutionFemale: 'סמינר',
+    institutionAll: 'ישיבה / סמינר',
     community: 'עדה',
     reset: 'איפוס',
     resetAll: 'איפוס כל המסנים',
@@ -147,6 +150,8 @@ export const he = {
     age: 'גיל',
     yeshiva: 'ישיבה',
     seminary: 'סמינר',
+    institutionAll: 'ישיבה / סמינר',
+    type: 'בחור / בחורה',
     occupation: 'עיסוק / מקום עבודה',
     city: 'עיר מגורים',
     notes: 'הערות כלליות',
@@ -159,13 +164,19 @@ export const he = {
     sortDesc: 'מיון יורד',
     sortedAsc: 'ממוין בסדר עולה',
     sortedDesc: 'ממוין בסדר יורד',
-    emptyTitle: (g: Gender) => (g === 'male' ? 'עדיין אין בחורים במאגר' : 'עדיין אין בחורות במאגר'),
+    emptyTitle: (g: TabKey) =>
+      g === 'male'
+        ? 'עדיין אין בחורים במאגר'
+        : g === 'female'
+          ? 'עדיין אין בחורות במאגר'
+          : 'עדיין אין מועמדים במאגר',
     emptyText: 'הוסיפו מועמד/ת ראשון/ה כדי להתחיל.',
     noResultsTitle: 'לא נמצאו מועמדים התואמים את הסינון',
     noResultsText: 'נסו להרחיב את טווח הגיל או להסיר חלק מהמסנים.',
     errorTitle: 'לא הצלחנו לטעון את הנתונים',
     errorText: 'בדקו את החיבור ונסו שוב.',
-    tableCaption: (g: Gender) => (g === 'male' ? 'טבלת בחורים' : 'טבלת בחורות'),
+    tableCaption: (g: TabKey) =>
+      g === 'male' ? 'טבלת בחורים' : g === 'female' ? 'טבלת בחורות' : 'כל המועמדים',
   },
   sortOptions: {
     name: 'שם',
@@ -482,5 +493,9 @@ export const he = {
 } as const
 
 export const genderLabel = (g: Gender) => he.gender[g]
-export const institutionLabel = (g: Gender) =>
-  g === 'male' ? he.filters.institutionMale : he.filters.institutionFemale
+export const institutionLabel = (g: TabKey) =>
+  g === 'male'
+    ? he.filters.institutionMale
+    : g === 'female'
+      ? he.filters.institutionFemale
+      : he.filters.institutionAll

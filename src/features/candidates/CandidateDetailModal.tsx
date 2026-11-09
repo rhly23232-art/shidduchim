@@ -24,6 +24,8 @@ import { formatGregorian } from '@/lib/hebrewDate'
 import { he } from '@/lib/strings.he'
 import type { CandidateFull, CandidateRow } from '@/lib/types'
 import { fullName } from '@/lib/utils'
+import { edaDetail, edaOf, hasEda } from '@/lib/eda'
+import { edaLabel } from './EdaFilter'
 import { StatusBadge } from './StatusBadge'
 
 const f = he.detail.fields
@@ -121,8 +123,11 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
           <Item key="greg" label={f.gregorianBirthDate} value={formatGregorian(c.birth_date)} />,
           <Item key="city" label={f.city} value={joinWith(c.city, c.region)} />,
           <Item key="origin" label={f.countryOfOrigin} value={c.country_of_origin} />,
-          <Item key="comm" label={f.community} value={c.community} />,
-          <Item key="chas" label={f.chassidut} value={c.chassidut} />,
+          <Item
+            key="eda"
+            label={f.community}
+            value={hasEda(c) ? edaLabel(edaOf(c), edaDetail(c)) : null}
+          />,
           <Item
             key="height"
             label={f.height}
@@ -161,13 +166,7 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
               </dd>
             </div>
           ) : null,
-          has(c.institution) ? (
-            <Item
-              key="inst"
-              label={instLabel}
-              value={joinWith(c.institution, c.institution_type)}
-            />
-          ) : null,
+          has(c.institution) ? <Item key="inst" label={instLabel} value={c.institution} /> : null,
           has(c.degree) ? <Item key="deg" label={f.degree} value={c.degree} /> : null,
           has(c.occupation) ? <Item key="occ" label={f.occupation} value={c.occupation} /> : null,
           has(c.future_plans) ? (

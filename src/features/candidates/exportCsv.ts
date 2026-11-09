@@ -1,7 +1,9 @@
 import { toast } from 'sonner'
+import { edaDetail, edaOf, hasEda } from '@/lib/eda'
+import { edaLabel } from './EdaFilter'
 import { hostErrorCode, isHosted, saveViaHost } from '@/lib/hostBridge'
 import { he } from '@/lib/strings.he'
-import type { CandidateRow, Gender } from '@/lib/types'
+import type { CandidateRow, TabKey } from '@/lib/types'
 import { errorMessage } from '@/lib/utils'
 
 const cell = (v: string | number | null | undefined) => {
@@ -10,19 +12,23 @@ const cell = (v: string | number | null | undefined) => {
 }
 
 /** Exports the currently filtered rows. UTF-8 BOM so Excel shows Hebrew correctly. */
-export async function exportCandidatesCsv(rows: CandidateRow[], gender: Gender) {
-  const inst = gender === 'male' ? he.table.yeshiva : he.table.seminary
+export async function exportCandidatesCsv(rows: CandidateRow[], gender: TabKey) {
+  const inst =
+    gender === 'male'
+      ? he.table.yeshiva
+      : gender === 'female'
+        ? he.table.seminary
+        : he.table.institutionAll
   const header = [
     he.table.fullName,
+    he.table.type,
     he.table.age,
     he.detail.fields.hebrewBirthDate,
     inst,
-    he.detail.fields.institutionType,
     he.table.occupation,
     he.table.city,
     he.detail.fields.region,
     he.detail.fields.community,
-    he.detail.fields.chassidut,
     he.detail.fields.height,
     he.detail.fields.status,
     he.table.notes,
@@ -30,15 +36,14 @@ export async function exportCandidatesCsv(rows: CandidateRow[], gender: Gender) 
   const lines = rows.map((r) =>
     [
       `${r.first_name} ${r.last_name}`,
+      he.gender[r.gender],
       r.age,
       r.hebrew_birth_date,
       r.institution,
-      r.institution_type,
       r.occupation,
       r.city,
       r.region,
-      r.community,
-      r.chassidut,
+      hasEda(r) ? edaLabel(edaOf(r), edaDetail(r)) : null,
       r.height_cm,
       he.status[r.status],
       r.general_notes,
@@ -48,7 +53,7 @@ export async function exportCandidatesCsv(rows: CandidateRow[], gender: Gender) 
   )
   const csv = '﻿' + [header.map(cell).join(','), ...lines].join('\r\n')
   const date = new Date().toISOString().slice(0, 10)
-  const filename = `${gender === 'male' ? 'בחורים' : 'בחורות'}-${date}.csv`
+  const filename = `${gender === 'male' ? 'בחורים' : gender === 'female' ? 'בחורות' : 'כל-המועמדים'}-${date}.csv`
   try {
     if (isHosted() && (await saveViaHost(filename, csv))) {
       toast.success(he.exportCsv.done, { description: filename })

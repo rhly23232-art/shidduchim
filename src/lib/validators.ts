@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { ageFromBirthDate } from './age'
+import { edaDetail, edaOf, hasEda, type EdaKey } from './eda'
 import { gregorianToHebrew } from './hebrewDate'
 import { he } from './strings.he'
 import {
@@ -75,9 +76,8 @@ export const candidateFormSchema = z
     city: optionalText(60),
     region: optionalText(60),
     country_of_origin: optionalText(60),
-    community: optionalText(60),
-    chassidut_on: z.boolean(),
-    chassidut: optionalText(60),
+    eda: z.enum(['', 'litai', 'mizrah', 'chasidut', 'other']),
+    eda_detail: optionalText(60),
     height_cm: intString(120, 230, v.heightRange),
     appearance: optionalText(200),
     status: z.enum(CANDIDATE_STATUSES),
@@ -125,9 +125,8 @@ export function emptyFormValues(gender: Gender): CandidateFormValues {
     city: '',
     region: '',
     country_of_origin: '',
-    community: '',
-    chassidut_on: false,
-    chassidut: '',
+    eda: '',
+    eda_detail: '',
     height_cm: '',
     appearance: '',
     status: 'active',
@@ -166,9 +165,8 @@ export function candidateToFormValues(c: CandidateFull): CandidateFormValues {
     city: s(c.city),
     region: s(c.region),
     country_of_origin: s(c.country_of_origin),
-    community: s(c.community),
-    chassidut_on: !!c.chassidut?.trim(),
-    chassidut: s(c.chassidut),
+    eda: hasEda(c) ? edaOf(c) : '',
+    eda_detail: hasEda(c) ? edaDetail(c) : '',
     height_cm: n(c.height_cm),
     appearance: s(c.appearance),
     status: c.status,
@@ -204,6 +202,25 @@ export function candidateToFormValues(c: CandidateFull): CandidateFormValues {
   }
 }
 
+/** Stores the chosen עדה group with its typed detail in the matching column. */
+export function edaToFields(
+  eda: CandidateFormValues['eda'],
+  detail: string,
+): { eda: EdaKey | null; community: string | null; chassidut: string | null } {
+  const d = emptyToNull(detail)
+  switch (eda) {
+    case 'litai':
+      return { eda, community: 'ליטאי', chassidut: null }
+    case 'chasidut':
+      return { eda, community: null, chassidut: d }
+    case 'mizrah':
+    case 'other':
+      return { eda, community: d, chassidut: null }
+    default:
+      return { eda: null, community: null, chassidut: null }
+  }
+}
+
 /** "שם פרטי שם משפחה": the first word is the first name, the rest is the family name. */
 export function splitFullName(full: string): { first_name: string; last_name: string } {
   const parts = full.trim().split(/\s+/)
@@ -227,8 +244,7 @@ export function formValuesToPayload(
       city: emptyToNull(values.city),
       region: emptyToNull(values.region),
       country_of_origin: emptyToNull(values.country_of_origin),
-      community: emptyToNull(values.community),
-      chassidut: values.chassidut_on ? emptyToNull(values.chassidut) : null,
+      ...edaToFields(values.eda, values.eda_detail),
       height_cm: num(values.height_cm),
       appearance: emptyToNull(values.appearance),
       institution: emptyToNull(values.institution),

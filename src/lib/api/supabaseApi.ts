@@ -8,7 +8,7 @@ import type {
   CandidateRow,
   CandidateStatus,
   EducationEntry,
-  Gender,
+  TabKey,
   ResumeMeta,
 } from '../types'
 import { he } from '../strings.he'
@@ -54,6 +54,7 @@ function mapRow(r: ViewRow): CandidateRow {
     city: r.city,
     region: r.region,
     country_of_origin: r.country_of_origin,
+    eda: (r.eda as CandidateRow['eda']) ?? null,
     community: r.community,
     chassidut: r.chassidut,
     height_cm: r.height_cm,
@@ -200,9 +201,10 @@ export const supabaseData: DataApi = {
     return { rows, overLimit: false }
   },
 
-  async queryCandidates(gender: Gender, f: CandidateFilters, sort: SortState, limit: number) {
+  async queryCandidates(gender: TabKey, f: CandidateFilters, sort: SortState, limit: number) {
     const sb = requireSupabase()
-    let q = sb.from('candidates_view').select('*', { count: 'exact' }).eq('gender', gender)
+    let q = sb.from('candidates_view').select('*', { count: 'exact' })
+    if (gender !== 'all') q = q.eq('gender', gender)
     if (f.ageMin > 18) q = q.lte('birth_date', isoDateYearsAgo(f.ageMin))
     if (f.ageMax < 45) q = q.gt('birth_date', isoDateYearsAgo(f.ageMax + 1))
     const loc = [
@@ -277,7 +279,7 @@ export const supabaseData: DataApi = {
       const { data, error } = await sb
         .from('candidates')
         .select('city, region, institution, community')
-        .eq('gender', gender)
+        .in('gender', gender === 'all' ? ['male', 'female'] : [gender])
         .range(from, from + PAGE - 1)
       if (error) throw error
       out.push(...data)

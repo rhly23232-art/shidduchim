@@ -5,7 +5,7 @@
 import { createStore, del as idbDel, get as idbGet, set as idbSet, type UseStore } from 'idb-keyval'
 import { SEED_CANDIDATES, SEED_IDEAS } from '@/data/seedData'
 import { ageFromBirthDate } from '../age'
-import { edaMatches } from '../eda'
+import { edaMatches, edaOf } from '../eda'
 import { gregorianToHebrew } from '../hebrewDate'
 import { he } from '../strings.he'
 import type {
@@ -134,6 +134,7 @@ export function seedRows(ownerId: string): StoredCandidate[] {
     const ts = new Date(base - i * 3_600_000).toISOString()
     return {
       ...s.candidate,
+      eda: edaOf(s.candidate),
       hebrew_birth_date: gregorianToHebrew(s.candidate.birth_date),
       id: uid(),
       owner_id: ownerId,
@@ -396,7 +397,7 @@ export const demoData: DataApi = {
   // Demo data never exceeds the client-side limit, but keep parity with the server contract.
   async queryCandidates(gender, f, sort, limit) {
     const all = (await getData(await requireUserId())).map(toRow)
-    const rows = all.filter((r) => r.gender === gender)
+    const rows = all.filter((r) => gender === 'all' || r.gender === gender)
     const terms = normalizeSearch(f.q).split(' ').filter(Boolean)
     const filtered = rows.filter((r) => {
       if (
@@ -423,7 +424,7 @@ export const demoData: DataApi = {
   async listFacets(gender): Promise<FacetRow[]> {
     const rows = await getData(await requireUserId())
     return rows
-      .filter((r) => r.gender === gender)
+      .filter((r) => gender === 'all' || r.gender === gender)
       .map(({ city, region, institution, community }) => ({ city, region, institution, community }))
   },
 

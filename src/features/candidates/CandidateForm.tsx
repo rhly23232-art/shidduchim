@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/field'
 import { Input, NativeSelect, Textarea } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
+import { EdaPicker } from './EdaFilter'
 import { useSaveCandidate } from '@/hooks/useCandidates'
 import { gregorianToHebrew } from '@/lib/hebrewDate'
 import { he } from '@/lib/strings.he'
@@ -181,7 +182,9 @@ export function CandidateForm({
 
   const gender = useWatch({ control, name: 'gender' })
   const birthDate = useWatch({ control, name: 'birth_date' })
-  const chassidutOn = useWatch({ control, name: 'chassidut_on' })
+  const edaRaw = useWatch({ control, name: 'eda' })
+  const eda = edaRaw === '' ? null : edaRaw
+  const edaDetailValue = useWatch({ control, name: 'eda_detail' })
   const hebrewDate = useMemo(() => gregorianToHebrew(birthDate), [birthDate])
   const err = (name: FieldPath<CandidateFormValues>) =>
     getFieldState(name, formState).error?.message
@@ -238,8 +241,6 @@ export function CandidateForm({
 
   const instOptions =
     gender === 'male' ? suggestions.institutionsMale : suggestions.institutionsFemale
-  const typeOptions =
-    gender === 'male' ? t.institutionTypeOptionsMale : t.institutionTypeOptionsFemale
 
   const text = (
     name: FieldPath<CandidateFormValues>,
@@ -396,31 +397,23 @@ export function CandidateForm({
                 <Grid>
                   {text('city', t.city, { list: 'dl-cities' })}
                   {text('region', t.region, { list: 'dl-regions' })}
-                  {text('community', t.community, { list: 'dl-communities' })}
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex h-[13px] items-center gap-2.5">
-                      <label htmlFor="chassidut-switch" className="text-[13px] font-medium">
-                        {t.chassidutToggle}
-                      </label>
-                      <Switch
-                        id="chassidut-switch"
-                        checked={chassidutOn}
-                        onChange={(v) => setValue('chassidut_on', v, { shouldDirty: true })}
-                        label={t.chassidutToggle}
-                        className="scale-90"
-                      />
-                    </div>
-                    {chassidutOn ? (
-                      <Input
-                        aria-label={t.chassidutName}
-                        list="dl-chassidut"
-                        placeholder={t.chassidutPlaceholder}
-                        autoFocus={!candidate}
-                        {...register('chassidut')}
-                      />
-                    ) : (
-                      <div className="h-10" aria-hidden />
-                    )}
+                  <div className="sm:col-span-2">
+                    <EdaPicker
+                      eda={eda}
+                      detail={edaDetailValue}
+                      onEda={(v) => {
+                        setValue('eda', v ?? '', { shouldDirty: true })
+                        setValue('eda_detail', '', { shouldDirty: true })
+                      }}
+                      onDetail={(v) => setValue('eda_detail', v, { shouldDirty: true })}
+                      detailList={
+                        eda === 'chasidut'
+                          ? 'dl-chassidut'
+                          : eda === 'mizrah'
+                            ? 'dl-communities'
+                            : undefined
+                      }
+                    />
                   </div>
                   {num('height_cm', t.height)}
                   <Field label={t.status} error={err('status')}>
@@ -445,34 +438,15 @@ export function CandidateForm({
               >
                 {gender === 'male' ? (
                   <Grid>
-                    {text('institution', t.institutionMale, { list: 'dl-inst' })}
-                    <Field label={t.institutionType} error={err('institution_type')}>
-                      {(id, aria) => (
-                        <NativeSelect id={id} {...aria} {...register('institution_type')}>
-                          <option value="">{he.form.choose}</option>
-                          {t.institutionTypeOptionsMale.map((o) => (
-                            <option key={o} value={o}>
-                              {o}
-                            </option>
-                          ))}
-                        </NativeSelect>
-                      )}
-                    </Field>
+                    {text('institution', t.institutionMale, {
+                      list: 'dl-inst',
+                      className: 'sm:col-span-2',
+                    })}
                   </Grid>
                 ) : (
                   <>
                     <Grid>
                       {text('institution', t.institutionFemale, { list: 'dl-inst' })}
-                      <Field label={t.institutionType} error={err('institution_type')}>
-                        {(id, aria) => (
-                          <Input
-                            id={id}
-                            {...aria}
-                            list="dl-inst-type"
-                            {...register('institution_type')}
-                          />
-                        )}
-                      </Field>
                       {text('occupation', t.occupation)}
                       {text('degree', t.degree)}
                       {area('future_plans', t.futurePlans, 2)}
@@ -693,11 +667,6 @@ export function CandidateForm({
               </datalist>
               <datalist id="dl-inst">
                 {instOptions.map((v) => (
-                  <option key={v} value={v} />
-                ))}
-              </datalist>
-              <datalist id="dl-inst-type">
-                {typeOptions.map((v) => (
                   <option key={v} value={v} />
                 ))}
               </datalist>

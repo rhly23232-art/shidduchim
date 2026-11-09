@@ -101,3 +101,64 @@ export function EdaFilter(props: Props) {
     </Popover>
   )
 }
+
+/** Form version (candidate details): same 4 options, the typed detail is saved with the candidate. */
+export function EdaPicker({
+  eda,
+  detail,
+  onEda,
+  onDetail,
+  detailList,
+}: {
+  eda: EdaKey | null
+  detail: string
+  onEda: (eda: EdaKey | null) => void
+  onDetail: (v: string) => void
+  detailList?: string
+}) {
+  const needsText = eda === 'mizrah' || eda === 'chasidut' || eda === 'other'
+  return (
+    <fieldset className="space-y-2">
+      <legend className="mb-1.5 text-[13px] font-medium">{he.filters.community}</legend>
+      <div
+        className="grid grid-cols-2 gap-1.5 sm:grid-cols-4"
+        role="radiogroup"
+        aria-label={he.filters.community}
+      >
+        {EDA_KEYS.map((k) => {
+          const on = eda === k
+          return (
+            <button
+              key={k}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => onEda(on ? null : k)}
+              className={cn(
+                'h-10 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500',
+                on
+                  ? 'border-navy-900 bg-navy-900 text-surface'
+                  : 'border-line bg-surface text-navy-900 hover:border-navy-200 hover:bg-navy-50',
+              )}
+            >
+              {he.eda[k]}
+            </button>
+          )
+        })}
+      </div>
+      {needsText && (
+        <div className="flex flex-col gap-1.5 pt-1">
+          <Label htmlFor="form-eda-detail">{he.eda.inputLabel[eda]}</Label>
+          <Input
+            id="form-eda-detail"
+            value={detail}
+            list={detailList}
+            maxLength={60}
+            onChange={(e) => onDetail(e.target.value)}
+            placeholder={he.eda.placeholder[eda]}
+          />
+        </div>
+      )}
+    </fieldset>
+  )
+}

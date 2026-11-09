@@ -12,7 +12,7 @@ import { useMeasureVar } from '@/hooks/useMeasureVar'
 import type { FiltersApi, ListKey } from '@/hooks/useFilters'
 import type { SortState } from '@/lib/api'
 import { he, institutionLabel } from '@/lib/strings.he'
-import type { CandidateRow, Gender } from '@/lib/types'
+import type { CandidateRow, TabKey } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { AgeFilter, AgeRangeControl, ageLabel } from './AgeFilter'
 import type { FacetOptions } from './filtering'
@@ -109,7 +109,7 @@ const SORT_OPTIONS: { value: string; label: string; sort: SortState }[] = [
 ]
 
 export const CANDIDATES_PANEL_ID = 'candidates-panel'
-export const tabId = (g: Gender) => `tab-${g}`
+export const tabId = (g: TabKey) => `tab-${g}`
 
 /** WAI-ARIA tabs: roving tabindex, arrow keys (RTL-aware), Home/End. */
 function GenderTabs({
@@ -117,11 +117,11 @@ function GenderTabs({
   onChange,
   counts,
 }: {
-  gender: Gender
-  onChange: (g: Gender) => void
+  gender: TabKey
+  onChange: (g: TabKey) => void
   counts: Props['counts']
 }) {
-  const order = ['male', 'female'] as const
+  const order = ['male', 'female', 'all'] as const
   const onKeyDown = (e: React.KeyboardEvent) => {
     const idx = order.indexOf(gender)
     let next: number | null = null
@@ -168,7 +168,7 @@ function GenderTabs({
                 active ? 'bg-navy-700 text-surface' : 'bg-surface text-ink-muted',
               )}
             >
-              {counts ? counts[g] : '·'}
+              {counts ? (g === 'all' ? counts.male + counts.female : counts[g]) : '·'}
             </span>
           </button>
         )

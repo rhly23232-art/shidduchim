@@ -28,7 +28,8 @@ const uniqSorted = (values: (string | null)[]) =>
 function usePageTitle(): string {
   const { pathname, search } = useLocation()
   if (pathname.startsWith('/ideas')) return he.nav.ideas
-  return new URLSearchParams(search).get('tab') === 'female' ? he.tabs.female : he.tabs.male
+  const tab = new URLSearchParams(search).get('tab')
+  return tab === 'female' ? he.tabs.female : tab === 'all' ? he.tabs.allTitle : he.tabs.male
 }
 
 export function AppShell() {
@@ -150,7 +151,10 @@ export function AppShell() {
       <div
         className={cn(
           'min-h-[100dvh] lg:grid',
-          sidebarOpen ? 'lg:grid-cols-[17.5rem_minmax(0,1fr)]' : 'lg:grid-cols-1',
+          'lg:transition-[grid-template-columns] lg:duration-200 lg:ease-out',
+          sidebarOpen
+            ? 'lg:grid-cols-[17.5rem_minmax(0,1fr)]'
+            : 'lg:grid-cols-[4.5rem_minmax(0,1fr)]',
         )}
       >
         <a
@@ -159,11 +163,8 @@ export function AppShell() {
         >
           {he.app.skipToContent}
         </a>
-        <aside
-          id="app-sidebar"
-          className={cn('sticky top-0 hidden h-[100dvh]', sidebarOpen && 'lg:block')}
-        >
-          <Sidebar />
+        <aside id="app-sidebar" className="sticky top-0 hidden h-[100dvh] overflow-hidden lg:block">
+          <Sidebar collapsed={!sidebarOpen} />
         </aside>
         <Sheet open={navOpen} onOpenChange={setNavOpen}>
           <SheetContent

@@ -6,6 +6,7 @@
 import { writeFileSync } from 'node:fs'
 import { SEED_CANDIDATES, SEED_IDEAS } from '../src/data/seedData.ts'
 import { gregorianToHebrew } from '../src/lib/hebrewDate.ts'
+import { edaOf } from '../src/lib/eda.ts'
 
 const DEMO_USER_ID = '11111111-1111-4111-8111-111111111111'
 const DEMO_EMAIL = 'demo@shidduchim.local'
@@ -53,6 +54,7 @@ SEED_CANDIDATES.forEach((s, i) => {
     city: c.city,
     region: c.region,
     country_of_origin: c.country_of_origin,
+    eda: edaOf(c),
     community: c.community,
     chassidut: c.chassidut,
     height_cm: c.height_cm,

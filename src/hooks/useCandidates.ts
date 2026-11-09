@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useMemo } from 'react'
 import { dataApi, type CandidateFilters, type SortState } from '@/lib/api'
 import { CLIENT_FILTER_LIMIT } from '@/lib/env'
-import type { CandidateRow, Gender, SaveCandidatePayload } from '@/lib/types'
+import type { CandidateRow, SaveCandidatePayload, TabKey } from '@/lib/types'
 import {
   buildFacets,
   filterCandidates,
@@ -14,9 +14,9 @@ export const qk = {
   all: ['candidates'] as const,
   list: ['candidates', 'list'] as const,
   counts: ['candidates', 'counts'] as const,
-  server: (g: Gender, f: CandidateFilters, s: SortState) =>
+  server: (g: TabKey, f: CandidateFilters, s: SortState) =>
     ['candidates', 'server', g, f, s] as const,
-  facets: (g: Gender) => ['candidates', 'facets', g] as const,
+  facets: (g: TabKey) => ['candidates', 'facets', g] as const,
   detail: (id: string) => ['candidate', id] as const,
 }
 
@@ -46,7 +46,7 @@ const EMPTY_FACETS: FacetOptions = { cities: [], regions: [], institutions: [] }
  * Larger accounts automatically switch to server-side filtering.
  */
 export function useCandidateDataset(
-  gender: Gender,
+  gender: TabKey,
   filters: CandidateFilters,
   sort: SortState,
 ): CandidateDataset {
@@ -84,7 +84,7 @@ export function useCandidateDataset(
   }, [allRows])
 
   const genderRows = useMemo(
-    () => allRows?.filter((r) => r.gender === gender) ?? [],
+    () => allRows?.filter((r) => gender === 'all' || r.gender === gender) ?? [],
     [allRows, gender],
   )
   const clientFacets = useMemo(() => buildFacets(genderRows), [genderRows])
@@ -116,7 +116,11 @@ export function useCandidateDataset(
     mode: 'server',
     rows: server.data?.rows ?? [],
     matched: server.data?.total ?? 0,
-    genderTotal: counts.data?.[gender] ?? 0,
+    genderTotal: counts.data
+      ? gender === 'all'
+        ? counts.data.male + counts.data.female
+        : counts.data[gender]
+      : 0,
     counts: counts.data,
     facets: serverFacets,
     capped: (server.data?.total ?? 0) > (server.data?.rows.length ?? 0),

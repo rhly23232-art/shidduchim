@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge'
 import { he } from '@/lib/strings.he'
 import {
   actionsColumn,
@@ -18,14 +17,12 @@ export const maleColumns = [
     id: 'institution',
     header: he.table.yeshiva,
     meta: { sortKey: 'institution', className: 'w-[17%]' },
-    cell: ({ row }) => {
-      const { institution, institution_type } = row.original
-      if (!institution) return <span className="text-ink-muted/60">—</span>
-      return (
-        <div className="flex min-w-0 flex-col items-start gap-1">
-          <span className="max-w-full truncate">{institution}</span>
-          {institution_type && <Badge tone="navy">{institution_type}</Badge>}
-        </div>
+    cell: ({ getValue }) => {
+      const v = getValue()
+      return v ? (
+        <span className="block truncate">{v}</span>
+      ) : (
+        <span className="text-ink-muted/60">—</span>
       )
     },
   }),

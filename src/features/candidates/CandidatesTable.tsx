@@ -24,8 +24,9 @@ import { ResumeActions } from '@/features/resumes/ResumeActions'
 import { useIsMobile } from '@/hooks/useMediaQuery'
 import type { SortKey, SortState } from '@/lib/api'
 import { he, institutionLabel } from '@/lib/strings.he'
-import type { CandidateRow, Gender } from '@/lib/types'
+import type { CandidateRow, TabKey } from '@/lib/types'
 import { cn, fullName } from '@/lib/utils'
+import { allColumns } from './columns.all'
 import { femaleColumns } from './columns.female'
 import { maleColumns } from './columns.male'
 import { LoadSamplesButton } from './SampleData'
@@ -35,7 +36,7 @@ const VIRTUALIZE_AFTER = 100
 const ROW_H = 68
 
 interface Props {
-  gender: Gender
+  gender: TabKey
   rows: CandidateRow[]
   sort: SortState
   onSortChange: (s: SortState | null) => void
@@ -132,10 +133,9 @@ function DesktopTable({
   onEdit,
   onDelete,
 }: Props) {
-  const columns = (gender === 'male' ? maleColumns : femaleColumns) as ColumnDef<
-    CandidateRow,
-    unknown
-  >[]
+  const columns = (
+    gender === 'male' ? maleColumns : gender === 'female' ? femaleColumns : allColumns
+  ) as ColumnDef<CandidateRow, unknown>[]
   const sorting = useMemo<SortingState>(
     () => (sort.key === 'updated' ? [] : [{ id: sort.key, desc: sort.dir === 'desc' }]),
     [sort],
@@ -363,7 +363,7 @@ function CandidateCard({
   onOpen,
 }: {
   row: CandidateRow
-  gender: Gender
+  gender: TabKey
   onOpen: (r: CandidateRow) => void
 }) {
   const name = fullName(r)
@@ -384,7 +384,12 @@ function CandidateCard({
               .join(' · ')}
           </p>
         </div>
-        <StatusBadge status={r.status} />
+        <div className="flex shrink-0 flex-wrap justify-end gap-1">
+          {gender === 'all' && (
+            <Badge tone={r.gender === 'male' ? 'navy' : 'gold'}>{he.gender[r.gender]}</Badge>
+          )}
+          <StatusBadge status={r.status} />
+        </div>
       </div>
       <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
         {r.institution && (
@@ -392,9 +397,6 @@ function CandidateCard({
             <dt className="text-ink-muted">{institutionLabel(gender)}</dt>
             <dd className="flex min-w-0 items-center gap-1.5">
               <span className="truncate">{r.institution}</span>
-              {gender === 'male' && r.institution_type && (
-                <Badge tone="navy">{r.institution_type}</Badge>
-              )}
             </dd>
           </>
         )}
