@@ -13,19 +13,6 @@ import { he } from '@/lib/strings.he'
 import type { CandidateRow, Gender } from '@/lib/types'
 import { cn, fullName, hebrewCollator } from '@/lib/utils'
 
-export function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const min = Math.round(diff / 60_000)
-  if (min < 1) return 'עכשיו'
-  if (min < 60) return `לפני ${min} דק׳`
-  const h = Math.round(min / 60)
-  if (h < 24) return h === 1 ? 'לפני שעה' : `לפני ${h} שעות`
-  const d = Math.round(h / 24)
-  if (d === 1) return 'אתמול'
-  if (d < 30) return `לפני ${d} ימים`
-  return new Date(iso).toLocaleDateString('he-IL')
-}
-
 /** Searchable single-select for a candidate of a given gender (or any). */
 export function CandidatePicker({
   id,

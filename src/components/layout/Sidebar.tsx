@@ -1,6 +1,8 @@
 import {
+  ArchiveRestore,
   FileStack,
   FileText,
+  FileUp,
   House,
   Lightbulb,
   Search,
@@ -10,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom'
+import { useLastBackup } from '@/features/history/backup'
 import { useAppActions } from '@/features/workspace/appActions'
 import { useCandidateIndex } from '@/hooks/useWorkspace'
 import { he } from '@/lib/strings.he'
@@ -32,7 +35,10 @@ function NavItem({
   active,
   onNavigate,
   collapsed,
+  hint,
 }: {
+  /** small reminder dot + text (e.g. backup due) */
+  hint?: string
   collapsed?: boolean
   to: string
   icon: ReactNode
@@ -46,7 +52,7 @@ function NavItem({
       to={to}
       end={end}
       onClick={onNavigate}
-      aria-label={collapsed ? label : undefined}
+      aria-label={collapsed ? (hint ? `${label} — ${hint}` : label) : undefined}
       aria-current={active === undefined ? undefined : active ? 'page' : false}
       className={({ isActive }) => {
         const on = active ?? isActive
@@ -73,6 +79,18 @@ function NavItem({
               {icon}
             </span>
             {!collapsed && <span className="flex-1 truncate">{label}</span>}
+            {hint && (
+              <>
+                <span
+                  className={cn(
+                    'size-2 shrink-0 rounded-full bg-warning-dot',
+                    collapsed && 'absolute end-2 top-2',
+                  )}
+                  aria-hidden
+                />
+                <span className="sr-only">{` — ${hint}`}</span>
+              </>
+            )}
           </>
         )
       }}
@@ -107,6 +125,8 @@ export function Sidebar({
   const location = useLocation()
   const [params] = useSearchParams()
   const [q, setQ] = useState('')
+  const last = useLastBackup()
+  const backupDue = rows.length > 0 && (!last || Date.now() - last.getTime() > 7 * 86_400_000)
 
   const list = useMemo(() => {
     const terms = normalizeSearch(q).split(' ').filter(Boolean)
@@ -198,6 +218,21 @@ export function Sidebar({
               to="/resume-table"
               icon={<FileStack />}
               label={he.nav.resumeTable}
+              onNavigate={onNavigate}
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/import"
+              icon={<FileUp />}
+              label={he.nav.import}
+              onNavigate={onNavigate}
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/backup"
+              icon={<ArchiveRestore />}
+              label={he.nav.backup}
+              hint={backupDue ? he.nav.backupDue : undefined}
               onNavigate={onNavigate}
               collapsed={collapsed}
             />

@@ -2,6 +2,7 @@ import { isDemoMode } from '../env'
 import { demoAuth, demoData } from './demoApi'
 import { createHostBackend, type HostAssets, type HostDb, type HostUser } from './hostDbApi'
 import { supabaseAuth, supabaseData } from './supabaseApi'
+import { journaled } from './journaled'
 import type { AuthApi, DataApi } from './types'
 
 export type BackendMode = 'supabase' | 'host' | 'demo'
@@ -50,7 +51,23 @@ export async function initBackend(): Promise<BackendMode> {
 export const authApi: AuthApi = new Proxy({} as AuthApi, {
   get: (_t, key) => Reflect.get(currentAuth, key, currentAuth),
 })
+let journaledData: DataApi | null = null
+let journaledFor: DataApi | null = null
+const withJournal = () => {
+  if (journaledFor !== currentData) {
+    journaledFor = currentData
+    journaledData = journaled(currentData)
+  }
+  return journaledData!
+}
+
+/** Every save/delete through this facade is recorded in the change history / recycle bin. */
 export const dataApi: DataApi = new Proxy({} as DataApi, {
+  get: (_t, key) => Reflect.get(withJournal(), key),
+})
+
+/** The backend without journaling — only for restore operations that write their own entry. */
+export const rawDataApi: DataApi = new Proxy({} as DataApi, {
   get: (_t, key) => Reflect.get(currentData, key, currentData),
 })
 export type * from './types'

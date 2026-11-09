@@ -115,6 +115,40 @@ check('B cannot change A’s idea', (bIdeaUpd.data?.length ?? 0) === 0)
 const bIdeaLink = await b.from('ideas').insert({ title: 'x', male_id: targetId })
 check('B cannot link an idea to A’s candidate', !!bIdeaLink.error)
 
+// History / recycle bin isolation (table `journal`, bucket `journal`)
+// `journal` is newer than the generated types: use an untyped handle.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- table is newer than the generated types
+const ja = a as unknown as { from(t: string): any; storage: typeof a.storage }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- table is newer than the generated types
+const jb = b as unknown as { from(t: string): any; storage: typeof b.storage }
+const jIns = await ja
+  .from('journal')
+  .insert({ kind: 'edit', candidate_id: targetId, title: 'בדיקה', data: { changes: [] } })
+  .select()
+  .single()
+check('A can write own history entry', !jIns.error, jIns.error?.message)
+const jSeeB = await jb.from('journal').select('id')
+check('B sees none of A’s history', (jSeeB.data?.length ?? 0) === 0)
+const jDelB = await jb.from('journal').delete().eq('id', jIns.data?.id).select()
+check('B cannot delete A’s history entry', (jDelB.data?.length ?? 0) === 0)
+const jForge = await jb
+  .from('journal')
+  .insert({ owner_id: aId, kind: 'edit', title: 'x', data: {} })
+check('B cannot write history as A', !!jForge.error)
+const jUpd = await ja.from('journal').update({ title: 'x' }).eq('id', jIns.data?.id).select()
+check('History entries are append-only (no update)', !!jUpd.error || (jUpd.data?.length ?? 0) === 0)
+const jPath = `${aId}/${jIns.data?.id}/resume.pdf`
+const jUp = await ja.storage.from('journal').upload(jPath, pdf, { contentType: 'application/pdf' })
+check('A can keep a deleted file in own journal folder', !jUp.error, jUp.error?.message)
+const jDl = await jb.storage.from('journal').download(jPath)
+check('B cannot read A’s kept file', !!jDl.error)
+const jUpB = await jb.storage
+  .from('journal')
+  .upload(`${aId}/x/evil.pdf`, pdf, { contentType: 'application/pdf' })
+check('B cannot write into A’s journal folder', !!jUpB.error)
+await ja.storage.from('journal').remove([jPath])
+await ja.from('journal').delete().eq('id', jIns.data?.id)
+
 // cleanup B's data
 await b.from('candidates').delete().eq('owner_id', bUid)
 

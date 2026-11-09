@@ -33,6 +33,8 @@ function usePageTitle(): string {
   if (pathname.startsWith('/documents/resume')) return he.documents.editor.title
   if (pathname.startsWith('/documents')) return he.documents.title
   if (pathname.startsWith('/resume-table')) return he.resumeTable.title
+  if (pathname.startsWith('/import')) return he.importer.title
+  if (pathname.startsWith('/backup')) return he.backup.title
   const tab = new URLSearchParams(search).get('tab')
   return tab === 'female' ? he.tabs.female : tab === 'all' ? he.tabs.allTitle : he.tabs.male
 }

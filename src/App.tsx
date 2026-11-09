@@ -22,6 +22,8 @@ const DesignSystemPage = lazy(() => import('@/pages/DesignSystem'))
 const DocumentsPage = lazy(() => import('@/pages/Documents'))
 const ResumeEditorPage = lazy(() => import('@/pages/ResumeEditor'))
 const ResumeTablePage = lazy(() => import('@/pages/ResumeTable'))
+const ImportPage = lazy(() => import('@/pages/Import'))
+const BackupPage = lazy(() => import('@/pages/Backup'))
 
 /** Hash routing for static hosting without rewrites (VITE_HASH_ROUTER=true); clean URLs otherwise. */
 const Router = import.meta.env.VITE_HASH_ROUTER === 'true' ? HashRouter : BrowserRouter
@@ -103,6 +105,8 @@ export default function App() {
                         <Route path="documents" element={<DocumentsPage />} />
                         <Route path="documents/resume" element={<ResumeEditorPage />} />
                         <Route path="resume-table" element={<ResumeTablePage />} />
+                        <Route path="import" element={<ImportPage />} />
+                        <Route path="backup" element={<BackupPage />} />
                         <Route path="design-system" element={<DesignSystemPage />} />
                       </Route>
                       <Route path="*" element={<Navigate to="/" replace />} />

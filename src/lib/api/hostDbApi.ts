@@ -12,7 +12,7 @@ import { he } from '../strings.he'
 import type { CandidateFull, CandidateRow, Idea, InLaw, ResumeMeta } from '../types'
 import { hebrewCollator, normalizeSearch } from '../utils'
 import { sampleResumeBlob, seedIdeas, seedRows, type StoredCandidate } from './demoApi'
-import type { AppUser, AuthApi, DataApi, FacetRow } from './types'
+import type { AppUser, AuthApi, DataApi, FacetRow, JournalEntry, JournalStore } from './types'
 
 // ---------- minimal typings of the host capabilities we use ----------------------------
 interface Snap {
@@ -188,7 +188,7 @@ export function createHostBackend(
       session.workspace === 'profile' ? `${root}/profile` : `${root}/${session.workspace}`,
     )
   }
-  const wsColl = (name: 'candidates' | 'ideas'): CollRef => {
+  const wsColl = (name: 'candidates' | 'ideas' | 'journal'): CollRef => {
     const cur = () => workspaceDoc().collection(name)
     return {
       doc: (id?: string) => cur().doc(id),
@@ -200,6 +200,7 @@ export function createHostBackend(
   }
   const candidates = wsColl('candidates')
   const ideas = wsColl('ideas')
+  const journalColl = wsColl('journal')
   const ownerId = () => session?.id ?? user.id
 
   let restored: Promise<void> | null = null
@@ -324,9 +325,38 @@ export function createHostBackend(
     return new Blob([fromBase64(await res.text())], { type: resume.mime_type })
   }
 
+  const journal: JournalStore = {
+    async add(e) {
+      const entry: JournalEntry = { ...e, id: e.id ?? uid(), at: now() }
+      await guard(() =>
+        journalColl.doc(entry.id).set(clean(entry as unknown as Record<string, unknown>)),
+      )
+      return entry
+    },
+    async list(opts = {}) {
+      let list = await guard(() => readAll<JournalEntry>(journalColl))
+      if (opts.candidateId) list = list.filter((e) => e.candidate_id === opts.candidateId)
+      if (opts.kinds) list = list.filter((e) => opts.kinds!.includes(e.kind))
+      return list.sort((a, b) => b.at.localeCompare(a.at)).slice(0, opts.limit ?? 500)
+    },
+    async remove(id) {
+      await guard(() => journalColl.doc(id).delete())
+    },
+    async putFile(_entryId, blob, _name, mime) {
+      return (await storeFile(blob, mime)).path
+    },
+    async getFile(path, mime) {
+      return readFile({ storage_path: path, mime_type: mime } as ResumeMeta)
+    },
+    async dropFile(path) {
+      await dropFile(path)
+    },
+  }
+
   const data: DataApi = {
     supportsServerEmail: false,
     supportsShareLinks: false,
+    journal,
 
     async countCandidates() {
       const rows = await allCandidates()

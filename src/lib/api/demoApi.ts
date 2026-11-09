@@ -17,7 +17,7 @@ import type {
   SaveCandidatePayload,
 } from '../types'
 import { hebrewCollator, normalizeSearch, sleep } from '../utils'
-import type { AppUser, AuthApi, DataApi, FacetRow } from './types'
+import type { AppUser, AuthApi, DataApi, FacetRow, JournalEntry, JournalStore } from './types'
 
 export const DEMO_EMAIL = 'demo@shidduchim.local'
 export const DEMO_PASSWORD = 'shidduch123'
@@ -372,10 +372,54 @@ export const demoAuth: AuthApi = {
   },
 }
 
+// ---------- history / recycle bin -----------------------------------------------
+const journalKey = (userId: string) => `journal:${userId}`
+const demoJournal: JournalStore = {
+  async add(e) {
+    const userId = await requireUserId()
+    const entry: JournalEntry = { ...e, id: e.id ?? uid(), at: now() }
+    const list = (await get<JournalEntry[]>(journalKey(userId))) ?? []
+    list.unshift(entry)
+    await set(journalKey(userId), list.slice(0, 2000))
+    return entry
+  },
+  async list(opts = {}) {
+    const userId = await requireUserId()
+    let list = (await get<JournalEntry[]>(journalKey(userId))) ?? []
+    if (opts.candidateId) list = list.filter((e) => e.candidate_id === opts.candidateId)
+    if (opts.kinds) list = list.filter((e) => opts.kinds!.includes(e.kind))
+    return list.slice(0, opts.limit ?? 500)
+  },
+  async remove(id) {
+    const userId = await requireUserId()
+    const list = (await get<JournalEntry[]>(journalKey(userId))) ?? []
+    await set(
+      journalKey(userId),
+      list.filter((e) => e.id !== id),
+    )
+  },
+  async putFile(entryId, blob, name, mime) {
+    await requireUserId()
+    const path = `jfile:${entryId}:${name}`
+    await set(path, new Blob([await blob.arrayBuffer()], { type: mime }))
+    return path
+  },
+  async getFile(path) {
+    await requireUserId()
+    const blob = await get<Blob>(path)
+    if (!blob) throw new Error(he.resume.downloadFailed)
+    return blob
+  },
+  async dropFile(path) {
+    await del(path)
+  },
+}
+
 // ---------- data ------------------------------------------------------------------
 export const demoData: DataApi = {
   supportsServerEmail: false,
   supportsShareLinks: false,
+  journal: demoJournal,
 
   async countCandidates() {
     const rows = await getData(await requireUserId())

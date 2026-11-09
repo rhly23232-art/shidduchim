@@ -1,24 +1,13 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { FlaskConical, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { useCandidateIndex } from '@/hooks/useWorkspace'
+import { useCandidateIndex, useRefreshAll } from '@/hooks/useWorkspace'
 import { dataApi } from '@/lib/api'
 import { he } from '@/lib/strings.he'
 import { errorMessage } from '@/lib/utils'
-
-function useRefreshAll() {
-  const qc = useQueryClient()
-  return () =>
-    Promise.all([
-      qc.invalidateQueries({ queryKey: ['candidates'] }),
-      qc.invalidateQueries({ queryKey: ['candidate'] }),
-      qc.invalidateQueries({ queryKey: ['ws'] }),
-    ])
-}
 
 /** Empty-state action: fills a brand-new database with clearly marked sample candidates. */
 export function LoadSamplesButton() {

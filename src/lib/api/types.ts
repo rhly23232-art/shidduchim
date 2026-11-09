@@ -82,7 +82,52 @@ export interface UploadTarget {
   resume: ResumeMeta | null
 }
 
+export type JournalKind = 'create' | 'edit' | 'delete' | 'idea_delete' | 'restore'
+
+export interface FieldChange {
+  field: string
+  before: string | null
+  after: string | null
+}
+
+export interface JournalData {
+  /** Candidate before the change (edit / delete) */
+  snapshot?: CandidateFull
+  changes?: FieldChange[]
+  /** Resume kept for a deleted candidate */
+  file?: { path: string; name: string; mime: string; size: number }
+  /** Ideas that pointed at a deleted candidate (relinked on restore) */
+  ideaLinks?: { ideaId: string; field: 'male_id' | 'female_id' }[]
+  /** Deleted idea */
+  idea?: Idea
+}
+
+export interface JournalEntry {
+  id: string
+  kind: JournalKind
+  candidate_id: string | null
+  title: string
+  at: string
+  data: JournalData
+}
+
+/** Change history + recycle bin storage (one per backend). */
+export interface JournalStore {
+  add(entry: Omit<JournalEntry, 'id' | 'at'> & { id?: string }): Promise<JournalEntry>
+  /** Newest first. */
+  list(opts?: {
+    candidateId?: string
+    kinds?: JournalKind[]
+    limit?: number
+  }): Promise<JournalEntry[]>
+  remove(id: string): Promise<void>
+  putFile(entryId: string, blob: Blob, name: string, mime: string): Promise<string>
+  getFile(path: string, mime: string): Promise<Blob>
+  dropFile(path: string): Promise<void>
+}
+
 export interface DataApi {
+  readonly journal: JournalStore
   readonly supportsServerEmail: boolean
   readonly supportsShareLinks: boolean
   countCandidates(): Promise<CandidateCounts>

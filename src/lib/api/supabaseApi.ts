@@ -20,6 +20,8 @@ import type {
   FacetRow,
   SortState,
   UploadTarget,
+  JournalEntry,
+  JournalStore,
 } from './types'
 
 type ViewRow = Database['public']['Views']['candidates_view']['Row']
@@ -167,7 +169,92 @@ export const supabaseAuth: AuthApi = {
 }
 
 // ---------- data ------------------------------------------------------------------
+// ---------- history / recycle bin (table `journal`, bucket `journal`) -------------
+const JOURNAL_BUCKET = 'journal'
+interface JournalRow {
+  id: string
+  kind: JournalEntry['kind']
+  candidate_id: string | null
+  title: string
+  at: string
+  data: JournalEntry['data']
+}
+// `journal` is newer than the generated types — use an untyped handle for it.
+type Loose = {
+  from(t: string): {
+    insert(v: unknown): { select(): { single(): Promise<{ data: unknown; error: Error | null }> } }
+    select(c: string): {
+      order(
+        c: string,
+        o: { ascending: boolean },
+      ): {
+        limit(n: number): LooseQuery
+      }
+    }
+    delete(): { eq(c: string, v: string): Promise<{ error: Error | null }> }
+  }
+}
+type LooseQuery = PromiseLike<{ data: unknown[] | null; error: Error | null }> & {
+  eq(c: string, v: string): LooseQuery
+  in(c: string, v: string[]): LooseQuery
+}
+const loose = () => requireSupabase() as unknown as Loose
+
+const supabaseJournal: JournalStore = {
+  async add(e) {
+    const { data, error } = await loose()
+      .from('journal')
+      .insert({
+        ...(e.id ? { id: e.id } : {}),
+        kind: e.kind,
+        candidate_id: e.candidate_id,
+        title: e.title.slice(0, 300),
+        data: e.data,
+      })
+      .select()
+      .single()
+    if (error) throw error
+    return data as JournalRow
+  },
+  async list(opts = {}) {
+    let q = loose()
+      .from('journal')
+      .select('id, kind, candidate_id, title, at, data')
+      .order('at', { ascending: false })
+      .limit(opts.limit ?? 500)
+    if (opts.candidateId) q = q.eq('candidate_id', opts.candidateId)
+    if (opts.kinds) q = q.in('kind', opts.kinds)
+    const { data, error } = await q
+    if (error) throw error
+    return (data ?? []) as JournalRow[]
+  },
+  async remove(id) {
+    const { error } = await loose().from('journal').delete().eq('id', id)
+    if (error) throw error
+  },
+  async putFile(entryId, blob, name, mime) {
+    const sb = requireSupabase()
+    const { data: u } = await sb.auth.getUser()
+    if (!u.user) throw new Error(he.auth.sessionExpired)
+    const path = `${u.user.id}/${entryId}/${storageFileName(name)}`
+    const { error } = await sb.storage
+      .from(JOURNAL_BUCKET)
+      .upload(path, blob, { contentType: mime })
+    if (error) throw error
+    return path
+  },
+  async getFile(path) {
+    const { data, error } = await requireSupabase().storage.from(JOURNAL_BUCKET).download(path)
+    if (error) throw error
+    return data
+  },
+  async dropFile(path) {
+    await requireSupabase().storage.from(JOURNAL_BUCKET).remove([path])
+  },
+}
+
 export const supabaseData: DataApi = {
+  journal: supabaseJournal,
   supportsServerEmail: true,
   supportsShareLinks: true,
 

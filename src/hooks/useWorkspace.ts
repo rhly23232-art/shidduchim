@@ -58,3 +58,14 @@ export function useDeleteIdea() {
     onError: (e) => toast.error(he.common.unknownError, { description: errorMessage(e) }),
   })
 }
+
+/** Refetches everything after bulk changes (import, restore, samples). */
+export function useRefreshAll() {
+  const qc = useQueryClient()
+  return () =>
+    Promise.all([
+      qc.invalidateQueries({ queryKey: ['candidates'] }),
+      qc.invalidateQueries({ queryKey: ['candidate'] }),
+      qc.invalidateQueries({ queryKey: ['ws'] }),
+    ])
+}

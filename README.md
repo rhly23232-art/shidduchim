@@ -14,6 +14,13 @@ React Hook Form + Zod · Supabase (Postgres, Auth, Storage, Edge Functions) · f
   שמירה כרזומה בכרטיס, ושליחת טופס ריק במייל לאם המועמד/ת למילוי.
 - **טבלת רזומה** — כל המועמדים והרזומות: צפייה, הורדה, העלאה, וייצוא כל המועמדים לקובץ Excel (‎.xlsx).
 - **חיפוש מהיר** — מועמדים ופעולות מכל מקום.
+- **ייבוא מאקסל** — העברת מאגר קיים מקובץ Excel ‏(xlsx) או CSV (כולל קידוד עברי ישן): זיהוי עמודות אוטומטי,
+  המרת תאריכים (לועזי / עברי / תאריכי Excel), בדיקה לפני ייבוא, זיהוי כפילויות מול המאגר ובתוך הקובץ
+  (דילוג / עדכון / הוספה), ועמודות שלא שויכו נשמרות בהערות.
+- **היסטוריית שינויים** — כל שינוי בכרטיס נרשם (שדה, לפני ← אחרי, מתי), עם חזרה למצב שלפני כל שינוי.
+- **סל מחזור** — מועמד או רעיון שנמחקו נשמרים 30 יום ומשוחזרים בלחיצה, כולל קובץ הרזומה והקישורים מהרעיונות.
+- **גיבוי ושחזור** — קובץ גיבוי מלא (‎.zip: כל הכרטיסים, המשפחה, המחותנים, הרעיונות והרזומות), תזכורת שבועית,
+  ושחזור מקובץ שמוסיף רק את מה שחסר.
 - **מערכת עיצוב (Calm Productivity)** — tokens, ספריית רכיבים ותיעוד: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md); עמוד הדגמה חי ב-`/design-system`.
 
 ## מסד הנתונים — שלוש אפשרויות (נבחרת אוטומטית בעלייה)
@@ -77,7 +84,7 @@ npm run verify:rls          # בדיקת RLS עם שני חשבונות (דור�
 | `npm run dev` | שרת פיתוח |
 | `npm run build` | בדיקת טיפוסים + build לייצור |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
-| `npm run verify:rls` | 23 בדיקות בידוד בין חשבונות (מועמדים, משפחה, מחותנים, רעיונות, RPC ו-Storage) |
+| `npm run verify:rls` | 31 בדיקות בידוד בין חשבונות (מועמדים, משפחה, מחותנים, רעיונות, היסטוריה, RPC ו-Storage) |
 
 לאירוח סטטי ללא rewrites (למשל GitHub Pages) בנו עם `VITE_HASH_ROUTER=true`.
 
@@ -91,7 +98,8 @@ src/
                           CandidateDetailModal, CandidateForm, filtering.ts
   features/resumes/       ResumeActions, EmailDialog, uploadResume.ts, sendResumeEmail.ts
   hooks/                  useCandidates, useFilters (מסונכרן ל-URL), useDebounced, …
-  lib/files/              zip.ts, docx.ts, xlsx.ts — יצירת Word/Excel אמיתיים ללא תלות חיצונית
+  lib/files/              zip/unzip, docx, xlsx, readSheet — יצירה וקריאה של Word/Excel/CSV ללא תלות חיצונית
+  lib/api/journaled.ts    רישום אוטומטי של כל שמירה/מחיקה להיסטוריה ולסל המחזור
   lib/                    supabase.ts, api/ (Supabase / מסד claude.ai / הדגמה), hebrewDate.ts, age.ts,
                           validators.ts, strings.he.ts (כל מחרוזות הממשק)
   pages/                  Login, Home, Candidates, Ideas, DesignSystem (Showcase)
