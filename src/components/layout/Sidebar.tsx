@@ -117,11 +117,6 @@ export function Sidebar({
   const [params] = useSearchParams()
   const [q, setQ] = useState('')
 
-  const counts = useMemo(() => {
-    let male = 0
-    for (const r of rows) if (r.gender === 'male') male++
-    return { male, female: rows.length - male }
-  }, [rows])
   const openIdeas = ideas.data?.filter((i) => !i.done).length ?? 0
 
   const list = useMemo(() => {
@@ -169,7 +164,6 @@ export function Sidebar({
               to="/candidates?tab=male"
               icon={<UserRound />}
               label={he.nav.males}
-              badge={counts.male}
               active={onCandidates && tab === 'male'}
               onNavigate={onNavigate}
               collapsed={collapsed}
@@ -178,7 +172,6 @@ export function Sidebar({
               to="/candidates?tab=female"
               icon={<Users />}
               label={he.nav.females}
-              badge={counts.female}
               active={onCandidates && tab === 'female'}
               onNavigate={onNavigate}
               collapsed={collapsed}
@@ -187,7 +180,6 @@ export function Sidebar({
               to="/candidates?tab=all"
               icon={<UsersRound />}
               label={he.tabs.allTitle}
-              badge={rows.length}
               active={onCandidates && tab === 'all'}
               onNavigate={onNavigate}
               collapsed={collapsed}

@@ -112,15 +112,7 @@ export const CANDIDATES_PANEL_ID = 'candidates-panel'
 export const tabId = (g: TabKey) => `tab-${g}`
 
 /** WAI-ARIA tabs: roving tabindex, arrow keys (RTL-aware), Home/End. */
-function GenderTabs({
-  gender,
-  onChange,
-  counts,
-}: {
-  gender: TabKey
-  onChange: (g: TabKey) => void
-  counts: Props['counts']
-}) {
+function GenderTabs({ gender, onChange }: { gender: TabKey; onChange: (g: TabKey) => void }) {
   const order = ['male', 'female', 'all'] as const
   const onKeyDown = (e: React.KeyboardEvent) => {
     const idx = order.indexOf(gender)
@@ -162,14 +154,6 @@ function GenderTabs({
             )}
           >
             {he.tabs[g]}
-            <span
-              className={cn(
-                'tabular min-w-6 rounded-full px-1.5 text-center text-xs leading-5 transition-colors',
-                active ? 'bg-navy-700 text-surface' : 'bg-surface text-ink-muted',
-              )}
-            >
-              {counts ? (g === 'all' ? counts.male + counts.female : counts[g]) : '·'}
-            </span>
           </button>
         )
       })}
@@ -178,19 +162,8 @@ function GenderTabs({
 }
 
 export function FilterBar(props: Props) {
-  const {
-    api,
-    facets,
-    counts,
-    shown,
-    displayed,
-    total,
-    loading,
-    fetching,
-    serverMode,
-    capped,
-    rows,
-  } = props
+  const { api, facets, shown, displayed, total, loading, fetching, serverMode, capped, rows } =
+    props
   const ref = useRef<HTMLDivElement>(null)
   useMeasureVar(ref, '--filterbar-h')
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -223,7 +196,7 @@ export function FilterBar(props: Props) {
     >
       <div className="space-y-2.5 px-4 py-3 md:px-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
-          <GenderTabs gender={api.gender} onChange={api.setGender} counts={counts} />
+          <GenderTabs gender={api.gender} onChange={api.setGender} />
           <SearchBox
             value={api.filters.q}
             onChange={api.setQuery}
@@ -260,7 +233,11 @@ export function FilterBar(props: Props) {
             aria-live="polite"
           >
             {fetching && !loading && <Loader2 className="size-3.5 animate-spin" aria-hidden />}
-            {loading ? he.common.loading : he.filters.results(shown, total)}
+            {loading
+              ? he.common.loading
+              : api.activeCount > 0
+                ? he.filters.results(shown, total)
+                : null}
           </p>
           <Tooltip content={he.exportCsv.button}>
             <Button
