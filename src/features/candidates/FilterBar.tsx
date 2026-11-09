@@ -7,7 +7,7 @@ import { Chip } from '@/components/ui/chip'
 import { Segmented } from '@/components/ui/segmented'
 import { Tooltip } from '@/components/ui/tooltip'
 import { SearchBox } from '@/components/layout/SearchBox'
-import { exportCandidatesCsv } from './exportCsv'
+import { exportCandidatesExcel } from './exportExcel'
 import { NativeSelect } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
@@ -212,7 +212,7 @@ export function FilterBar(props: Props) {
               variant="ghost"
               aria-label={he.exportCsv.button}
               disabled={loading || rows.length === 0}
-              onClick={() => void exportCandidatesCsv(rows, api.gender)}
+              onClick={() => void exportCandidatesExcel(rows, api.gender)}
             >
               <FileSpreadsheet />
             </Button>

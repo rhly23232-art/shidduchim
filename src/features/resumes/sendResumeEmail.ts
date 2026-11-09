@@ -1,5 +1,6 @@
 import { edaLabel } from '@/features/candidates/EdaFilter'
 import { dataApi } from '@/lib/api'
+import type { SendEmailInput } from '@/lib/api/types'
 import { edaDetail, edaOf, hasEda } from '@/lib/eda'
 import { he } from '@/lib/strings.he'
 import type { CandidateRow } from '@/lib/types'
@@ -40,12 +41,7 @@ export function emailSubject(c: CandidateRow): string {
 }
 
 /** Server path: real attachment via the `send-resume-email` edge function (Resend). */
-export async function sendViaServer(input: {
-  candidateId: string
-  to: string
-  subject: string
-  body: string
-}) {
+export async function sendViaServer(input: SendEmailInput) {
   await dataApi.sendResumeEmail(input)
 }
 

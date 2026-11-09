@@ -10,6 +10,9 @@ React Hook Form + Zod · Supabase (Postgres, Auth, Storage, Edge Functions) · f
 - **כרטיס מועמד** — 4 חלקים, עריכה ומחיקה, ניהול רזומה (צפייה בתוך האפליקציה ל-PDF, תמונה ו-Word; הורדה; שליחה במייל עם קובץ מצורף).
 - **סרגל צד** — מעבר בין הטבלאות, פנל רעיונות ורשימת כל המועמדים עם חיפוש.
 - **פנל רעיונות** — רשימות חופשיות עם הצמדה, סימון כטופל וקישור למועמדים.
+- **מסמכים** — טופס רזומה: מילוי חופשי במערכת (טיוטה נשמרת, מילוי אוטומטי מכרטיס מועמד), הורדה כקובץ Word,
+  שמירה כרזומה בכרטיס, ושליחת טופס ריק במייל לאם המועמד/ת למילוי.
+- **טבלת רזומה** — כל המועמדים והרזומות: צפייה, הורדה, העלאה, וייצוא כל המועמדים לקובץ Excel (‎.xlsx).
 - **חיפוש מהיר** — מועמדים ופעולות מכל מקום.
 - **מערכת עיצוב (Calm Productivity)** — tokens, ספריית רכיבים ותיעוד: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md); עמוד הדגמה חי ב-`/design-system`.
 
@@ -88,6 +91,7 @@ src/
                           CandidateDetailModal, CandidateForm, filtering.ts
   features/resumes/       ResumeActions, EmailDialog, uploadResume.ts, sendResumeEmail.ts
   hooks/                  useCandidates, useFilters (מסונכרן ל-URL), useDebounced, …
+  lib/files/              zip.ts, docx.ts, xlsx.ts — יצירת Word/Excel אמיתיים ללא תלות חיצונית
   lib/                    supabase.ts, api/ (Supabase / מסד claude.ai / הדגמה), hebrewDate.ts, age.ts,
                           validators.ts, strings.he.ts (כל מחרוזות הממשק)
   pages/                  Login, Home, Candidates, Ideas, DesignSystem (Showcase)

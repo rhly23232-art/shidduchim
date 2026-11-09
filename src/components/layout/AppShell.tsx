@@ -30,6 +30,9 @@ function usePageTitle(): string {
   if (pathname === '/' || pathname === '') return he.home.title
   if (pathname.startsWith('/ideas')) return he.nav.ideas
   if (pathname.startsWith('/design-system')) return he.ds.title
+  if (pathname.startsWith('/documents/resume')) return he.documents.editor.title
+  if (pathname.startsWith('/documents')) return he.documents.title
+  if (pathname.startsWith('/resume-table')) return he.resumeTable.title
   const tab = new URLSearchParams(search).get('tab')
   return tab === 'female' ? he.tabs.female : tab === 'all' ? he.tabs.allTitle : he.tabs.male
 }

@@ -139,6 +139,7 @@ Focus = `ring` 2px עם offset; Disabled = 50% אטימות + חסימת לחי�
 | **ConfirmDialog** | `alert-dialog.tsx` | אישור לפני כל פעולה הרסנית |
 | **Sheet (Drawer)** | `sheet.tsx` | `end` (טופס), `start` (ניווט במובייל), `bottom` (מסננים במובייל) |
 | **Popover / DropdownMenu / Command** | `popover.tsx` · `dropdown-menu.tsx` · `command.tsx` | צפים עם `shadow-md`; פריט הרסני ב-`destructive` |
+| **ComposeEmailDialog** | `features/resumes/` | חלון שליחת מייל אחיד עם קובץ מצורף (Gmail / שרת / ידני) — לכל שליחה במערכת |
 | **Toast** | `App.tsx` (sonner, `unstyled`) | אייקון צבעוני לפי סוג, כפתור סגירה |
 
 ### כללי שימוש

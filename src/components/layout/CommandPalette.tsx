@@ -1,6 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Command as CommandPrimitive } from 'cmdk'
-import { Lightbulb, Plus, Search, UserRound, Users } from 'lucide-react'
+import { FileStack, FileText, Lightbulb, Plus, Search, UserRound, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DialogOverlay } from '@/components/ui/dialog'
@@ -55,6 +55,8 @@ export function CommandPalette({
     { to: '/candidates?tab=male', label: he.tabs.male, icon: <UserRound /> },
     { to: '/candidates?tab=female', label: he.tabs.female, icon: <Users /> },
     { to: '/ideas', label: he.nav.ideas, icon: <Lightbulb /> },
+    { to: '/documents', label: he.nav.documents, icon: <FileText /> },
+    { to: '/resume-table', label: he.nav.resumeTable, icon: <FileStack /> },
   ]
 
   return (

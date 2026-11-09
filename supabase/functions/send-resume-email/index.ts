@@ -19,9 +19,14 @@ const json = (body: unknown, status = 200) =>
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX_ATTACHMENT = 10 * 1024 * 1024
+const MAX_INLINE = 2 * 1024 * 1024
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
 function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
+  )
 }
 
 function toBase64(bytes: Uint8Array): string {
@@ -44,17 +49,40 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return json({ ok: false, error: 'נדרשת התחברות' }, 401)
 
-  let input: { candidateId?: unknown; to?: unknown; subject?: unknown; body?: unknown }
+  let input: {
+    candidateId?: unknown
+    to?: unknown
+    subject?: unknown
+    body?: unknown
+    attachment?: unknown
+  }
   try {
     input = await req.json()
   } catch {
     return json({ ok: false, error: 'בקשה לא תקינה' }, 400)
   }
-  const { candidateId, to, subject, body } = input
-  if (typeof candidateId !== 'string' || !UUID_RE.test(candidateId)) return json({ ok: false, error: 'מזהה מועמד לא תקין' }, 400)
-  if (typeof to !== 'string' || !EMAIL_RE.test(to.trim())) return json({ ok: false, error: 'כתובת דואר לא תקינה' }, 400)
-  if (typeof subject !== 'string' || !subject.trim() || subject.length > 200) return json({ ok: false, error: 'נושא לא תקין' }, 400)
-  if (typeof body !== 'string' || !body.trim() || body.length > 5000) return json({ ok: false, error: 'תוכן לא תקין' }, 400)
+  const { candidateId, to, subject, body, attachment } = input
+  // Either a candidate's stored resume, or one generated Word document from the app (blank form).
+  const inline =
+    attachment && typeof attachment === 'object'
+      ? (attachment as { filename?: unknown; mime?: unknown; base64?: unknown })
+      : null
+  if (inline) {
+    if (typeof inline.filename !== 'string' || !/^[^/\\]{1,120}\.docx$/i.test(inline.filename))
+      return json({ ok: false, error: 'שם קובץ לא תקין' }, 400)
+    if (inline.mime !== DOCX_MIME) return json({ ok: false, error: 'סוג קובץ לא נתמך' }, 400)
+    if (typeof inline.base64 !== 'string' || !/^[A-Za-z0-9+/=]+$/.test(inline.base64))
+      return json({ ok: false, error: 'קובץ לא תקין' }, 400)
+    if ((inline.base64.length * 3) / 4 > MAX_INLINE)
+      return json({ ok: false, error: 'הקובץ גדול מדי לשליחה' }, 413)
+  } else if (typeof candidateId !== 'string' || !UUID_RE.test(candidateId))
+    return json({ ok: false, error: 'מזהה מועמד לא תקין' }, 400)
+  if (typeof to !== 'string' || !EMAIL_RE.test(to.trim()))
+    return json({ ok: false, error: 'כתובת דואר לא תקינה' }, 400)
+  if (typeof subject !== 'string' || !subject.trim() || subject.length > 200)
+    return json({ ok: false, error: 'נושא לא תקין' }, 400)
+  if (typeof body !== 'string' || !body.trim() || body.length > 5000)
+    return json({ ok: false, error: 'תוכן לא תקין' }, 400)
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
     global: { headers: { Authorization: authHeader } },
@@ -64,27 +92,37 @@ Deno.serve(async (req) => {
   const { data: userData, error: userErr } = await supabase.auth.getUser()
   if (userErr || !userData.user) return json({ ok: false, error: 'נדרשת התחברות' }, 401)
 
-  // RLS guarantees the caller can only reach their own candidate.
-  const { data: candidate, error: cErr } = await supabase
-    .from('candidates')
-    .select('id, first_name, last_name')
-    .eq('id', candidateId)
-    .maybeSingle()
-  if (cErr) return json({ ok: false, error: cErr.message }, 500)
-  if (!candidate) return json({ ok: false, error: 'המועמד/ת לא נמצא/ה' }, 404)
-
-  const { data: resume } = await supabase
-    .from('resumes')
-    .select('storage_path, file_name, mime_type, size_bytes')
-    .eq('candidate_id', candidateId)
-    .maybeSingle()
-
   const attachments: { filename: string; content: string }[] = []
-  if (resume) {
-    if (resume.size_bytes > MAX_ATTACHMENT) return json({ ok: false, error: 'הקובץ גדול מדי לשליחה' }, 413)
-    const { data: file, error: dlErr } = await supabase.storage.from('resumes').download(resume.storage_path)
-    if (dlErr || !file) return json({ ok: false, error: 'לא ניתן לקרוא את קובץ הרזומה' }, 500)
-    attachments.push({ filename: resume.file_name, content: toBase64(new Uint8Array(await file.arrayBuffer())) })
+  if (inline) {
+    attachments.push({ filename: inline.filename as string, content: inline.base64 as string })
+  } else {
+    // RLS guarantees the caller can only reach their own candidate.
+    const { data: candidate, error: cErr } = await supabase
+      .from('candidates')
+      .select('id, first_name, last_name')
+      .eq('id', candidateId)
+      .maybeSingle()
+    if (cErr) return json({ ok: false, error: cErr.message }, 500)
+    if (!candidate) return json({ ok: false, error: 'המועמד/ת לא נמצא/ה' }, 404)
+
+    const { data: resume } = await supabase
+      .from('resumes')
+      .select('storage_path, file_name, mime_type, size_bytes')
+      .eq('candidate_id', candidateId)
+      .maybeSingle()
+
+    if (resume) {
+      if (resume.size_bytes > MAX_ATTACHMENT)
+        return json({ ok: false, error: 'הקובץ גדול מדי לשליחה' }, 413)
+      const { data: file, error: dlErr } = await supabase.storage
+        .from('resumes')
+        .download(resume.storage_path)
+      if (dlErr || !file) return json({ ok: false, error: 'לא ניתן לקרוא את קובץ הרזומה' }, 500)
+      attachments.push({
+        filename: resume.file_name,
+        content: toBase64(new Uint8Array(await file.arrayBuffer())),
+      })
+    }
   }
 
   const html = `<div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#1b2333">${escapeHtml(body).replace(/\n/g, '<br>')}</div>`

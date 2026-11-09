@@ -67,10 +67,13 @@ export interface ServerQueryResult {
 }
 
 export interface SendEmailInput {
-  candidateId: string
+  /** Attach this candidate's stored resume. */
+  candidateId?: string
   to: string
   subject: string
   body: string
+  /** Or attach a generated document (e.g. the blank resume form). Word files only, ≤ 2MB. */
+  attachment?: { filename: string; mime: string; base64: string }
 }
 
 export interface UploadTarget {

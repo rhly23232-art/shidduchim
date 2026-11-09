@@ -1,4 +1,13 @@
-import { House, Lightbulb, Search, UserRound, Users, UsersRound } from 'lucide-react'
+import {
+  FileStack,
+  FileText,
+  House,
+  Lightbulb,
+  Search,
+  UserRound,
+  Users,
+  UsersRound,
+} from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom'
 import { useAppActions } from '@/features/workspace/appActions'
@@ -174,6 +183,25 @@ export function Sidebar({
             onNavigate={onNavigate}
             collapsed={collapsed}
           />
+        </div>
+        <div>
+          <SectionLabel collapsed={collapsed}>{he.nav.sectionDocs}</SectionLabel>
+          <div className="space-y-1">
+            <NavItem
+              to="/documents"
+              icon={<FileText />}
+              label={he.nav.documents}
+              onNavigate={onNavigate}
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/resume-table"
+              icon={<FileStack />}
+              label={he.nav.resumeTable}
+              onNavigate={onNavigate}
+              collapsed={collapsed}
+            />
+          </div>
         </div>
       </div>
 
