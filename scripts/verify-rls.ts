@@ -149,6 +149,46 @@ check('B cannot write into A’s journal folder', !!jUpB.error)
 await ja.storage.from('journal').remove([jPath])
 await ja.from('journal').delete().eq('id', jIns.data?.id)
 
+// Email log (rate limit / idempotency) — users cannot tamper with their own counters
+const idemKey = crypto.randomUUID()
+const eIns = await ja
+  .from('email_log')
+  .insert({ idempotency_key: idemKey, kind: 'document', recipient_domain: 'example.com' })
+  .select()
+  .single()
+check('A can log an outgoing email (pending)', !eIns.error, eIns.error?.message)
+const eSent = await ja.from('email_log').insert({
+  idempotency_key: crypto.randomUUID(),
+  kind: 'document',
+  recipient_domain: 'x.com',
+  status: 'sent',
+})
+check('A cannot insert a log row already marked sent', !!eSent.error)
+const eOld = await ja.from('email_log').insert({
+  idempotency_key: crypto.randomUUID(),
+  kind: 'document',
+  recipient_domain: 'x.com',
+  created_at: '2020-01-01T00:00:00Z',
+})
+check('A cannot back-date a log row', !!eOld.error)
+const eMove = await ja
+  .from('email_log')
+  .update({ created_at: '2020-01-01T00:00:00Z' })
+  .eq('id', eIns.data?.id)
+  .select()
+check(
+  'A cannot move a log row out of the rate-limit window',
+  !!eMove.error || (eMove.data?.length ?? 0) === 0,
+)
+const eDel = await ja.from('email_log').delete().eq('id', eIns.data?.id).select()
+check('A cannot delete log rows', !!eDel.error || (eDel.data?.length ?? 0) === 0)
+const eDup = await ja
+  .from('email_log')
+  .insert({ idempotency_key: idemKey, kind: 'document', recipient_domain: 'example.com' })
+check('Same idempotency key cannot be logged twice', eDup.error?.code === '23505', eDup.error?.code)
+const eSeeB = await jb.from('email_log').select('id')
+check('B sees none of A’s email log', (eSeeB.data?.length ?? 0) === 0)
+
 // cleanup B's data
 await b.from('candidates').delete().eq('owner_id', bUid)
 

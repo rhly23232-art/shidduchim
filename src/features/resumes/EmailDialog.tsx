@@ -53,7 +53,7 @@ export function EmailDialog({ open, onOpenChange, candidate, defaultTo = '' }: P
       attachment={attachment}
       sendViaServer={
         dataApi.supportsServerEmail
-          ? (v) => sendViaServer({ candidateId: candidate.id, ...v })
+          ? (v, key) => sendViaServer({ candidateId: candidate.id, ...v, idempotencyKey: key })
           : undefined
       }
       buildMailto={(v) => buildMailto(candidate, v.to, v.subject, v.body)}

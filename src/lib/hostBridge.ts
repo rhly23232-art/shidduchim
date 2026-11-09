@@ -90,13 +90,27 @@ export async function sendViaGmail(input: {
       throw { code: 'too_large' } satisfies HostError
     }
   }
-  await mcp.callTool(GMAIL_SERVER, GMAIL_SEND_TOOL, {
-    to: [input.to.trim()],
-    subject: input.subject,
-    body: input.body,
-    attachments,
-  })
+  // No automatic retry: Gmail sends are not idempotent, a retry could send twice.
+  // The timeout is generous because the host may show the user an approval prompt first.
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    await Promise.race([
+      mcp.callTool(GMAIL_SERVER, GMAIL_SEND_TOOL, {
+        to: [input.to.trim()],
+        subject: input.subject,
+        body: input.body,
+        attachments,
+      }),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject({ code: 'timeout' } satisfies HostError), GMAIL_TIMEOUT_MS)
+      }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
 }
+
+const GMAIL_TIMEOUT_MS = 120_000
 
 /** Offers a file through the host's save dialog. Returns false when the host can't. */
 export async function saveViaHost(filename: string, data: Blob | string): Promise<boolean> {

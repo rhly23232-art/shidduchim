@@ -32,9 +32,10 @@ export function useGeneratedAttachment(filename: string, build: () => Blob, deps
     [blob, filename],
   )
   const server = dataApi.supportsServerEmail
-    ? async (v: EmailFormValues) =>
+    ? async (v: EmailFormValues, idempotencyKey: string) =>
         sendViaServer({
           ...v,
+          idempotencyKey,
           attachment: { filename, mime: DOCX_MIME, base64: await blobToBase64(blob) },
         })
     : undefined

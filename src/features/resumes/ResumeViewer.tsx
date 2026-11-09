@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog'
 import { Tooltip } from '@/components/ui/tooltip'
 import { dataApi } from '@/lib/api'
+import { sanitizeHtml } from '@/lib/sanitizeHtml'
 import { he } from '@/lib/strings.he'
 import { errorMessage, formatBytes } from '@/lib/utils'
 import { useResumeActions } from './uploadResume'
@@ -57,19 +58,6 @@ async function loadPdf(blob: Blob): Promise<PdfDoc> {
     useSystemFonts: false,
   })
   return (await task.promise) as unknown as PdfDoc
-}
-
-/** mammoth emits a small, safe tag set; strip anything active just in case. */
-function sanitize(html: string): string {
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html')
-  doc.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach((n) => n.remove())
-  doc.querySelectorAll('*').forEach((el) => {
-    for (const a of [...el.attributes]) {
-      if (/^on/i.test(a.name) || (/^(href|src)$/i.test(a.name) && /^\s*javascript:/i.test(a.value)))
-        el.removeAttribute(a.name)
-    }
-  })
-  return doc.body.firstElementChild?.innerHTML ?? ''
 }
 
 function PdfCanvas({ doc, page, scale }: { doc: PdfDoc; page: number; scale: number }) {
@@ -139,7 +127,7 @@ export function ResumeViewer() {
         } else {
           const mammoth = (await import('mammoth')).default
           const res = await mammoth.convertToHtml({ arrayBuffer: await blob.arrayBuffer() })
-          if (alive) setLoaded({ forId, kind: 'docx', html: sanitize(res.value) })
+          if (alive) setLoaded({ forId, kind: 'docx', html: sanitizeHtml(res.value) })
         }
       } catch (e) {
         if (alive) setError(errorMessage(e))

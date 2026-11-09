@@ -54,6 +54,7 @@ export function gmailErrorText(err: unknown): string {
     case 'server_unavailable':
     case 'upstream_error':
     case 'cancelled':
+    case 'timeout':
       return he.email.gmailUnclear
     default:
       return raw
@@ -94,7 +95,7 @@ export interface ComposeEmailDialogProps {
   attachment: EmailAttachment | null
   noAttachmentText?: string
   /** Server route (Supabase edge function); omitted → unavailable */
-  sendViaServer?: (values: EmailFormValues) => Promise<void>
+  sendViaServer?: (values: EmailFormValues, idempotencyKey: string) => Promise<void>
   /** mailto: fallback outside claude.ai */
   buildMailto?: (values: EmailFormValues) => Promise<string>
   /** Extra controls above the fields (e.g. choosing a candidate) */
@@ -120,6 +121,8 @@ export function ComposeEmailDialog({
   children,
 }: ComposeEmailDialogProps) {
   const [sending, setSending] = useState(false)
+  // One key per opening of the dialog: retries of the same message are never sent twice.
+  const [idemKey, setIdemKey] = useState(() => crypto.randomUUID())
   const [route, setRoute] = useState<Route>(sendViaServer ? 'server' : 'none')
   const hosted = isHosted()
   const form = useForm<EmailFormValues>({
@@ -132,6 +135,7 @@ export function ComposeEmailDialog({
     // keep a typed address when only the subject/body defaults change
     const to = form.getValues('to') || defaults.to
     form.reset({ ...defaults, to })
+    setIdemKey(crypto.randomUUID())
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on open / key change only
   }, [open, defaultsKey])
 
@@ -159,7 +163,7 @@ export function ComposeEmailDialog({
         })
         toast.success(he.email.gmailSent(values.to))
       } else if (sendViaServer) {
-        await sendViaServer(values)
+        await sendViaServer(values, idemKey)
         toast.success(he.email.sent(values.to))
       }
       onOpenChange(false)

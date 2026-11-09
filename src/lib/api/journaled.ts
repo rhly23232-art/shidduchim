@@ -75,6 +75,14 @@ export function diffPayloads(a: SaveCandidatePayload, b: SaveCandidatePayload): 
   return out
 }
 
+/** A safety step around a destructive action failed — the action was not performed. */
+export class JournalError extends Error {
+  constructor(message: string, cause?: unknown) {
+    super(message, { cause })
+    this.name = 'JournalError'
+  }
+}
+
 const nameOf = (c: { first_name: string; last_name: string }) =>
   `${c.first_name} ${c.last_name}`.trim()
 
@@ -126,7 +134,8 @@ export function journaled(base: DataApi): DataApi {
           let file: { path: string; name: string; mime: string; size: number } | undefined
           let ideaLinks: { ideaId: string; field: 'male_id' | 'female_id' }[] = []
           if (snapshot) {
-            await safe(async () => {
+            // Never lose a resume silently: if its copy cannot be kept, the delete is cancelled.
+            await (async () => {
               if (snapshot.resume) {
                 const blob = await target.getResumeBlob(snapshot.resume)
                 const path = await target.journal.putFile(
@@ -142,6 +151,11 @@ export function journaled(base: DataApi): DataApi {
                   size: snapshot.resume.size_bytes,
                 }
               }
+            })().catch((e) => {
+              throw new JournalError(
+                'לא ניתן היה לשמור עותק של הרזומה בסל המחזור, ולכן המחיקה בוטלה. נסו שוב.',
+                e,
+              )
             })
             await safe(async () => {
               const ideas = await target.listIdeas()

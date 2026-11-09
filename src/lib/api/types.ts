@@ -74,6 +74,8 @@ export interface SendEmailInput {
   body: string
   /** Or attach a generated document (e.g. the blank resume form). Word files only, ≤ 2MB. */
   attachment?: { filename: string; mime: string; base64: string }
+  /** Same key = same email: the server never sends it twice. */
+  idempotencyKey?: string
 }
 
 export interface UploadTarget {
