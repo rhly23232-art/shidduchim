@@ -3,7 +3,7 @@ import { Lightbulb, Search, UserRound, Users, UsersRound } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom'
 import { useAppActions } from '@/features/workspace/appActions'
-import { useCandidateIndex, useIdeas } from '@/hooks/useWorkspace'
+import { useCandidateIndex } from '@/hooks/useWorkspace'
 import { he } from '@/lib/strings.he'
 import { cn, fullName, hebrewCollator, normalizeSearch } from '@/lib/utils'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -111,13 +111,11 @@ export function Sidebar({
   collapsed?: boolean
 }) {
   const { rows } = useCandidateIndex()
-  const ideas = useIdeas()
   const actions = useAppActions()
   const location = useLocation()
   const [params] = useSearchParams()
   const [q, setQ] = useState('')
 
-  const openIdeas = ideas.data?.filter((i) => !i.done).length ?? 0
 
   const list = useMemo(() => {
     const terms = normalizeSearch(q).split(' ').filter(Boolean)
@@ -198,7 +196,6 @@ export function Sidebar({
             to="/ideas"
             icon={<Lightbulb />}
             label={he.nav.ideas}
-            badge={openIdeas}
             onNavigate={onNavigate}
             collapsed={collapsed}
           />
