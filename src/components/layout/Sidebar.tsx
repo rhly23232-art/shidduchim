@@ -5,9 +5,7 @@ import { useAppActions } from '@/features/workspace/appActions'
 import { useCandidateIndex } from '@/hooks/useWorkspace'
 import { he } from '@/lib/strings.he'
 import { cn, fullName, hebrewCollator, normalizeSearch } from '@/lib/utils'
-import { Avatar } from '@/components/ui/avatar'
 import { Tooltip } from '@/components/ui/tooltip'
-import { AREA_TINT, TINTS, type TintName } from '@/lib/palette'
 import { Logo, LogoMark } from './Logo'
 
 const STATUS_DOT = {
@@ -25,9 +23,7 @@ function NavItem({
   active,
   onNavigate,
   collapsed,
-  tint,
 }: {
-  tint: TintName
   collapsed?: boolean
   to: string
   icon: ReactNode
@@ -49,7 +45,7 @@ function NavItem({
           'group relative flex h-10 items-center gap-3 rounded-md text-body font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           collapsed ? 'justify-center px-0' : 'px-3',
           on
-            ? cn(TINTS[tint].bg, TINTS[tint].fg)
+            ? 'bg-accent text-accent-foreground'
             : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
         )
       }}
@@ -60,14 +56,11 @@ function NavItem({
           <>
             {on && (
               <span
-                className={cn(
-                  'absolute inset-y-2 start-0 w-[3px] rounded-full',
-                  TINTS[tint].strong,
-                )}
+                className="absolute inset-y-2 start-0 w-[3px] rounded-full bg-brand"
                 aria-hidden
               />
             )}
-            <span className={cn('[&_svg]:size-[18px]', TINTS[tint].fg)} aria-hidden>
+            <span className="[&_svg]:size-[18px]" aria-hidden>
               {icon}
             </span>
             {!collapsed && <span className="flex-1 truncate">{label}</span>}
@@ -139,7 +132,6 @@ export function Sidebar({
           to="/"
           end
           icon={<House />}
-          tint={AREA_TINT.home}
           label={he.nav.home}
           onNavigate={onNavigate}
           collapsed={collapsed}
@@ -150,7 +142,6 @@ export function Sidebar({
             <NavItem
               to="/candidates?tab=male"
               icon={<UserRound />}
-              tint={AREA_TINT.male}
               label={he.nav.males}
               active={onCandidates && tab === 'male'}
               onNavigate={onNavigate}
@@ -159,7 +150,6 @@ export function Sidebar({
             <NavItem
               to="/candidates?tab=female"
               icon={<Users />}
-              tint={AREA_TINT.female}
               label={he.nav.females}
               active={onCandidates && tab === 'female'}
               onNavigate={onNavigate}
@@ -168,7 +158,6 @@ export function Sidebar({
             <NavItem
               to="/candidates?tab=all"
               icon={<UsersRound />}
-              tint={AREA_TINT.all}
               label={he.tabs.allTitle}
               active={onCandidates && tab === 'all'}
               onNavigate={onNavigate}
@@ -181,7 +170,6 @@ export function Sidebar({
           <NavItem
             to="/ideas"
             icon={<Lightbulb />}
-            tint={AREA_TINT.ideas}
             label={he.nav.ideas}
             onNavigate={onNavigate}
             collapsed={collapsed}
@@ -218,20 +206,12 @@ export function Sidebar({
                     actions.openCandidate(r.id)
                     onNavigate?.()
                   }}
-                  className="flex w-full items-center gap-3 rounded-md px-2 py-1 text-start transition-colors duration-fast hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-start transition-colors duration-fast hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <span className="relative">
-                    <Avatar name={fullName(r)} colorKey={r.id} size="sm" />
-                    {r.status !== 'active' && (
-                      <span
-                        className={cn(
-                          'absolute -bottom-px -end-px size-2 rounded-full ring-2 ring-card',
-                          STATUS_DOT[r.status],
-                        )}
-                        aria-hidden
-                      />
-                    )}
-                  </span>
+                  <span
+                    className={cn('size-2 shrink-0 rounded-full', STATUS_DOT[r.status])}
+                    aria-hidden
+                  />
                   <span className="min-w-0 flex-1 truncate text-body-sm text-foreground">
                     {fullName(r)}
                     <span className="sr-only"> — {he.status[r.status]}</span>

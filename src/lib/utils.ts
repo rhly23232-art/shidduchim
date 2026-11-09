@@ -24,7 +24,6 @@ const twMerge = extendTailwindMerge({
         },
       ],
       shadow: [{ shadow: ['sm', 'md', 'lg', 'none'] }],
-      'text-color': [{ text: [(v: string) => /^tint-[a-z]+-fg$/.test(v)] }],
     },
   },
 })

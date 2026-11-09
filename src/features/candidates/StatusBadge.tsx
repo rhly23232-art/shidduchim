@@ -5,7 +5,7 @@ import type { CandidateStatus } from '@/lib/types'
 const TONE = {
   active: 'success',
   in_process: 'warning',
-  engaged: 'violet',
+  engaged: 'info',
   paused: 'neutral',
 } as const
 

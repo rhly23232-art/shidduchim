@@ -3,7 +3,6 @@ import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Alert } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
-import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,8 +40,6 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { SearchBox } from '@/components/layout/SearchBox'
 import { HebrewDatePicker } from '@/features/candidates/HebrewDatePicker'
 import { StatusBadge } from '@/features/candidates/StatusBadge'
-import { TINT_NAMES, TINTS, type TintName } from '@/lib/palette'
-import { cn } from '@/lib/utils'
 
 /*
  * Design System Showcase — internal documentation page (/design-system).
@@ -81,21 +78,11 @@ const TYPE: { cls: string; name: string; spec: string }[] = [
   { cls: 'text-table tabular', name: 'Table Text', spec: '14/20 · ספרות טבלאיות' },
 ]
 
-const AREA_LABEL: Partial<Record<TintName, string>> = {
-  sky: 'מסך ראשי',
-  blue: 'בחורים',
-  violet: 'בחורות',
-  teal: 'כל המועמדים',
-  amber: 'רעיונות',
-  rose: 'מערכת העיצוב',
-}
-
 const SPACING = [4, 8, 12, 16, 20, 24, 32, 40, 48, 64]
 
 const SECTIONS = [
   ['principles', 'עקרונות'],
   ['colors', 'צבעים'],
-  ['tints', 'פלטה קטגורית'],
   ['type', 'טיפוגרפיה'],
   ['spacing', 'ריווח, פינות וצללים'],
   ['buttons', 'כפתורים'],
@@ -210,42 +197,6 @@ export default function DesignSystemPage() {
             </li>
           ))}
         </ul>
-      </Section>
-
-      <Section id="tints" title="פלטה קטגורית — זהות לאזורים ולאנשים">
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-          {TINT_NAMES.map((n) => (
-            <li key={n} className="overflow-hidden rounded-lg border border-border bg-card">
-              <div className={cn('flex h-16 items-end justify-between p-3', TINTS[n].bg)}>
-                <span className={cn('size-4 rounded-full', TINTS[n].strong)} aria-hidden />
-                <span className={cn('text-body-sm font-semibold', TINTS[n].fg)} dir="ltr">
-                  {n}
-                </span>
-              </div>
-              <p className="px-3 py-2 text-caption text-muted-foreground">
-                {AREA_LABEL[n] ?? 'אווטארים'}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <Demo title="אווטארים ותגיות זהות">
-          <Row>
-            {['יוסף כהן', 'שרה לוי', 'משה פרידמן', 'רחל אלבז', 'דוד שטרן', 'חנה ביטון'].map((n) => (
-              <span key={n} className="flex items-center gap-2 text-body">
-                <Avatar name={n} />
-                {n}
-              </span>
-            ))}
-          </Row>
-          <div className="mt-4">
-            <Row>
-              <Badge tone="blue">בחור</Badge>
-              <Badge tone="violet">בחורה</Badge>
-              <Badge tone="teal">לימודים</Badge>
-              <Badge tone="amber">מוצמד</Badge>
-            </Row>
-          </div>
-        </Demo>
       </Section>
 
       <Section id="type" title="טיפוגרפיה — Heebo">
@@ -451,9 +402,9 @@ export default function DesignSystemPage() {
               value={seg}
               onChange={setSeg}
               items={[
-                { value: 'male', label: 'בחורים', tint: 'blue' },
-                { value: 'female', label: 'בחורות', tint: 'violet' },
-                { value: 'all', label: 'הכל', tint: 'teal' },
+                { value: 'male', label: 'בחורים' },
+                { value: 'female', label: 'בחורות' },
+                { value: 'all', label: 'הכל' },
               ]}
             />
             <Row>

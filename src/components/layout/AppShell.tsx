@@ -19,12 +19,20 @@ import { he } from '@/lib/strings.he'
 import type { CandidateFull, CandidateRow, Gender } from '@/lib/types'
 import { cn, errorMessage, fullName, hebrewCollator } from '@/lib/utils'
 import { CommandPalette } from './CommandPalette'
-import { useArea } from './areas'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 
 const uniqSorted = (values: (string | null)[]) =>
   [...new Set(values.filter((v): v is string => !!v))].sort(hebrewCollator.compare)
+
+function usePageTitle(): string {
+  const { pathname, search } = useLocation()
+  if (pathname === '/' || pathname === '') return he.home.title
+  if (pathname.startsWith('/ideas')) return he.nav.ideas
+  if (pathname.startsWith('/design-system')) return he.ds.title
+  const tab = new URLSearchParams(search).get('tab')
+  return tab === 'female' ? he.tabs.female : tab === 'all' ? he.tabs.allTitle : he.tabs.male
+}
 
 export function AppShell() {
   const qc = useQueryClient()
@@ -64,7 +72,7 @@ export function AppShell() {
     })
   }
   const del = useDeleteCandidate()
-  const area = useArea()
+  const title = usePageTitle()
 
   // Warm up host capabilities early so the first click is instant (no-ops outside claude.ai).
   useEffect(() => {
@@ -170,7 +178,7 @@ export function AppShell() {
 
         <div className="min-w-0">
           <Header
-            area={area}
+            title={title}
             onMenu={toggleMenu}
             menuOpen={isDesktop ? sidebarOpen : navOpen}
             onSearch={() => setPaletteOpen(true)}

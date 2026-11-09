@@ -10,10 +10,6 @@ export const badgeVariants = cva(
       tone: {
         neutral: 'bg-secondary text-muted-foreground',
         accent: 'bg-accent text-accent-foreground',
-        blue: 'bg-tint-blue text-tint-blue-fg',
-        violet: 'bg-tint-violet text-tint-violet-fg',
-        amber: 'bg-tint-amber text-tint-amber-fg',
-        teal: 'bg-tint-teal text-tint-teal-fg',
         info: 'bg-info-soft text-info',
         success: 'bg-success-soft text-success',
         warning: 'bg-warning-soft text-warning',

@@ -1,6 +1,5 @@
 import { createColumnHelper, type RowData } from '@tanstack/react-table'
 import { ChevronLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react'
-import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -43,18 +42,15 @@ export const Empty = () => (
 export const nameColumn = col.accessor((r) => fullName(r), {
   id: 'name',
   header: he.table.fullName,
-  meta: { sortKey: 'name', className: 'w-[19%]' },
+  meta: { sortKey: 'name', className: 'w-[15%]' },
   cell: ({ row }) => (
-    <div className="flex min-w-0 items-center gap-3">
-      <Avatar name={fullName(row.original)} colorKey={row.original.id} />
-      <div className="flex min-w-0 flex-col gap-1">
-        <span className="truncate font-medium text-foreground">{fullName(row.original)}</span>
-        {row.original.status !== 'active' && (
-          <span>
-            <StatusBadge status={row.original.status} />
-          </span>
-        )}
-      </div>
+    <div className="flex min-w-0 flex-col gap-1">
+      <span className="truncate font-medium text-foreground">{fullName(row.original)}</span>
+      {row.original.status !== 'active' && (
+        <span>
+          <StatusBadge status={row.original.status} />
+        </span>
+      )}
     </div>
   ),
 })

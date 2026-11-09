@@ -194,41 +194,33 @@ export default function LoginPage() {
           <h1 className="mt-4 text-h1 text-foreground">{he.app.name}</h1>
           <p className="mt-1 text-body text-muted-foreground">{he.app.tagline}</p>
         </div>
-        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-          <div className="flex h-1" aria-hidden>
-            <span className="flex-1 bg-tint-blue-strong" />
-            <span className="flex-1 bg-tint-violet-strong" />
-            <span className="flex-1 bg-tint-teal-strong" />
-            <span className="flex-1 bg-tint-amber-strong" />
-          </div>
-          <div className="p-6 sm:p-8">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={mode}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-              >
-                <h2 className="text-h2 text-foreground">
-                  {mode === 'login' ? he.auth.loginTitle : he.auth.signupTitle}
-                </h2>
-                {backendMode() === 'host' && (
-                  <Alert
-                    tone="info"
-                    className="mt-3"
-                    icon={<Database className="mt-0.5 size-4 shrink-0" aria-hidden />}
-                  >
-                    {firstVisit ? he.hostDb.firstAccount : he.hostDb.loginNote}
-                  </Alert>
-                )}
-                <p className="mb-6 mt-1 text-body text-muted-foreground">
-                  {mode === 'login' ? he.auth.loginSubtitle : he.auth.signupSubtitle}
-                </p>
-                {mode === 'login' ? <LoginForm onDone={done} /> : <SignupForm onDone={done} />}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+        <div className="rounded-lg border border-border bg-card p-6 shadow-sm sm:p-8">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <h2 className="text-h2 text-foreground">
+                {mode === 'login' ? he.auth.loginTitle : he.auth.signupTitle}
+              </h2>
+              {backendMode() === 'host' && (
+                <Alert
+                  tone="info"
+                  className="mt-3"
+                  icon={<Database className="mt-0.5 size-4 shrink-0" aria-hidden />}
+                >
+                  {firstVisit ? he.hostDb.firstAccount : he.hostDb.loginNote}
+                </Alert>
+              )}
+              <p className="mb-6 mt-1 text-body text-muted-foreground">
+                {mode === 'login' ? he.auth.loginSubtitle : he.auth.signupSubtitle}
+              </p>
+              {mode === 'login' ? <LoginForm onDone={done} /> : <SignupForm onDone={done} />}
+            </motion.div>
+          </AnimatePresence>
         </div>
         <p className="mt-6 text-center">
           <Button variant="link" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>

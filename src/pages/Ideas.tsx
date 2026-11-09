@@ -2,7 +2,6 @@ import { CheckCircle2, Lightbulb, Pencil, Pin, PinOff, Plus, RotateCcw, Trash2 }
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
-import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -197,7 +196,6 @@ export default function IdeasPage() {
         <Card role="status">
           <EmptyState
             icon={<Lightbulb />}
-            tint="amber"
             title={he.ideas.empty}
             description={he.ideas.emptyText}
             action={
@@ -218,8 +216,8 @@ export default function IdeasPage() {
                 key={i.id}
                 className={cn(
                   'flex flex-col rounded-lg border p-5 transition-colors duration-base',
-                  i.done ? 'border-border bg-secondary' : i.pinned ? 'bg-tint-amber/40' : 'bg-card',
-                  !i.done && (i.pinned ? 'border-tint-amber-strong/60' : 'border-border'),
+                  i.done ? 'border-border bg-secondary' : 'bg-card',
+                  !i.done && (i.pinned ? 'border-brand/50' : 'border-border'),
                 )}
               >
                 <div className="flex items-start gap-2">
@@ -231,12 +229,7 @@ export default function IdeasPage() {
                   >
                     {i.title}
                   </h2>
-                  {i.pinned && (
-                    <Badge tone="amber">
-                      <Pin className="size-3" aria-hidden />
-                      {he.ideas.pinned}
-                    </Badge>
-                  )}
+                  {i.pinned && <Badge tone="accent">{he.ideas.pinned}</Badge>}
                   {i.done && <Badge tone="success">{he.ideas.doneBadge}</Badge>}
                 </div>
                 {i.body && (
@@ -251,9 +244,8 @@ export default function IdeasPage() {
                         key={c!.id}
                         type="button"
                         onClick={() => actions.openCandidate(c!.id)}
-                        className="inline-flex items-center gap-2 rounded-full border border-border bg-card py-1 pe-3 ps-1 text-body-sm font-medium text-foreground transition-colors duration-fast hover:border-input-hover hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="rounded-full border border-border bg-card px-3 py-1 text-body-sm font-medium text-primary transition-colors duration-fast hover:border-input-hover hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Avatar name={fullName(c!)} colorKey={c!.id} size="sm" className="size-6" />
                         {fullName(c!)}
                       </button>
                     ))}

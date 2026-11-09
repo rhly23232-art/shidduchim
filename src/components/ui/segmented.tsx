@@ -1,5 +1,4 @@
 import { useRef, type KeyboardEvent } from 'react'
-import { TINTS, type TintName } from '@/lib/palette'
 import { cn } from '@/lib/utils'
 
 export interface SegmentedItem<T extends string> {
@@ -8,8 +7,6 @@ export interface SegmentedItem<T extends string> {
   id?: string
   /** For role="tab": id of the panel this tab controls. */
   controls?: string
-  /** Identity color shown when selected (dot + text). */
-  tint?: TintName
 }
 
 /**
@@ -77,20 +74,10 @@ export function Segmented<T extends string>({
               'inline-flex flex-1 items-center justify-center whitespace-nowrap rounded-sm font-medium transition-[background-color,color,box-shadow] duration-fast ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               size === 'sm' ? 'h-7 px-3 text-body-sm' : 'h-8 px-4 text-body',
               on
-                ? cn('bg-card shadow-sm', item.tint ? TINTS[item.tint].fg : 'text-foreground')
+                ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            {item.tint && (
-              <span
-                className={cn(
-                  'me-2 size-2 rounded-full transition-opacity duration-fast',
-                  TINTS[item.tint].strong,
-                  !on && 'opacity-50',
-                )}
-                aria-hidden
-              />
-            )}
             {item.label}
           </button>
         )

@@ -19,9 +19,7 @@ export const allColumns = [
     header: he.table.type,
     enableSorting: false,
     meta: { className: 'w-[7rem]' },
-    cell: ({ getValue }) => (
-      <Badge tone={getValue() === 'male' ? 'blue' : 'violet'}>{he.gender[getValue()]}</Badge>
-    ),
+    cell: ({ getValue }) => <Badge tone="neutral">{he.gender[getValue()]}</Badge>,
   }),
   ageColumn,
   col.accessor('institution', {

@@ -1,6 +1,5 @@
 import { BookOpen, Heart, Pencil, Trash2, UserRound, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,8 +22,7 @@ import { useCandidateDetail } from '@/hooks/useCandidates'
 import { formatGregorian } from '@/lib/hebrewDate'
 import { he } from '@/lib/strings.he'
 import type { CandidateFull, CandidateRow } from '@/lib/types'
-import { TINTS, type TintName } from '@/lib/palette'
-import { cn, fullName } from '@/lib/utils'
+import { fullName } from '@/lib/utils'
 import { edaDetail, edaOf, hasEda } from '@/lib/eda'
 import { edaLabel } from './EdaFilter'
 import { StatusBadge } from './StatusBadge'
@@ -58,10 +56,8 @@ function Section({
   icon,
   children,
   index,
-  tint,
 }: {
   title: string
-  tint: TintName
   icon: ReactNode
   children: ReactNode[]
   index: number
@@ -75,11 +71,7 @@ function Section({
     >
       <h3 id={`sec-${index}`} className="mb-4 flex items-center gap-2 text-h4 text-foreground">
         <span
-          className={cn(
-            'grid size-7 place-items-center rounded-md',
-            TINTS[tint].bg,
-            TINTS[tint].fg,
-          )}
+          className="grid size-7 place-items-center rounded-md bg-secondary text-muted-foreground"
           aria-hidden
         >
           {icon}
@@ -112,7 +104,6 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
     <div className="space-y-6">
       <Section
         index={0}
-        tint="blue"
         title={he.detail.sections.personal}
         icon={<UserRound className="size-4" />}
       >
@@ -139,7 +130,6 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
 
       <Section
         index={1}
-        tint="teal"
         title={he.detail.sections.education}
         icon={<BookOpen className="size-4" />}
       >
@@ -154,7 +144,7 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
                   {c.education_history.map((e, i) => (
                     <li key={i} className="relative">
                       <span
-                        className="absolute -start-[27px] top-1.5 size-3 rounded-full border-2 border-card bg-tint-teal-strong ring-2 ring-tint-teal"
+                        className="absolute -start-[27px] top-1.5 size-3 rounded-full border-2 border-card bg-brand ring-2 ring-border"
                         aria-hidden
                       />
                       <p className="text-body font-medium text-foreground">{e.name}</p>
@@ -179,12 +169,7 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
       </Section>
 
       {full ? (
-        <Section
-          index={2}
-          tint="violet"
-          title={he.detail.sections.family}
-          icon={<Users className="size-4" />}
-        >
+        <Section index={2} title={he.detail.sections.family} icon={<Users className="size-4" />}>
           {[
             has(fam?.father_name) ? (
               <Item
@@ -249,12 +234,7 @@ function DetailSections({ c, full }: { c: CandidateRow; full: CandidateFull | un
         </div>
       )}
 
-      <Section
-        index={3}
-        tint="amber"
-        title={he.detail.sections.traits}
-        icon={<Heart className="size-4" />}
-      >
+      <Section index={3} title={he.detail.sections.traits} icon={<Heart className="size-4" />}>
         {[
           has(c.character_description) ? (
             <Item key="char" label={f.character} value={c.character_description} wide />
@@ -287,25 +267,20 @@ export function CandidateDetailModal({ id, preview, onClose, onEdit, onDelete }:
         {c ? (
           <>
             <DialogHeader className="gap-2">
-              <div className="flex items-center gap-4">
-                <Avatar name={fullName(c)} colorKey={c.id} size="lg" />
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <DialogTitle className="text-h1">{fullName(c)}</DialogTitle>
-                    <StatusBadge status={c.status} hideActive={false} />
-                  </div>
-                  <DialogDescription className="mt-1">
-                    {[
-                      he.gender[c.gender],
-                      c.age !== null ? `${he.table.age} ${c.age}` : null,
-                      c.city,
-                      c.institution,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </DialogDescription>
-                </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <DialogTitle className="text-h1">{fullName(c)}</DialogTitle>
+                <StatusBadge status={c.status} hideActive={false} />
               </div>
+              <DialogDescription>
+                {[
+                  he.gender[c.gender],
+                  c.age !== null ? `${he.table.age} ${c.age}` : null,
+                  c.city,
+                  c.institution,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </DialogDescription>
             </DialogHeader>
             <DialogBody>
               <DetailSections c={c} full={full} />
