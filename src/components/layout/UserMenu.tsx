@@ -8,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { backendMode } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { he } from '@/lib/strings.he'
 
@@ -35,8 +34,8 @@ export function UserMenu() {
             </span>
           )}
         </DropdownMenuLabel>
-        {backendMode() !== 'host' && <DropdownMenuSeparator />}
-        {backendMode() !== 'host' && (
+        <DropdownMenuSeparator />
+        {
           <DropdownMenuItem
             onSelect={() => {
               // Explicit logout: next login starts clean (no previous filters in the URL).
@@ -46,7 +45,7 @@ export function UserMenu() {
             <LogOut />
             {he.auth.logout}
           </DropdownMenuItem>
-        )}
+        }
       </DropdownMenuContent>
     </DropdownMenu>
   )

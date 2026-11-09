@@ -25,6 +25,8 @@ export interface AuthApi {
   signIn(email: string, password: string): Promise<AppUser>
   signUp(email: string, password: string, fullName: string): Promise<SignUpResult>
   signOut(): Promise<void>
+  /** Database mode: whether any matchmaker account exists yet (first visit → sign-up). */
+  hasAccounts?(): Promise<boolean>
 }
 
 export interface CandidateCounts {

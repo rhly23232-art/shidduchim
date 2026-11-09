@@ -114,27 +114,158 @@ export function createHostBackend(
   user: { id: string; name: string; email: string | null },
   assets: HostAssets | null,
 ) {
-  const base = db.doc(`data/users/${user.id}/profile`)
-  const candidates = base.collection('candidates')
-  const ideas = base.collection('ideas')
+  // ---------------- matchmaker accounts (username + password) ----------------
+  // All of it lives in the signed-in claude.ai user's PRIVATE subtree. Each matchmaker account
+  // gets its own workspace; the first account inherits the original workspace ("profile"),
+  // so data created before accounts existed stays with it.
+  const root = `data/users/${user.id}`
+  const accounts = db.doc(`${root}/profile`).collection('accounts')
+  interface Account {
+    id: string
+    email: string
+    fullName: string
+    salt: string
+    hash: string
+    workspace: string
+    created_at: string
+  }
+  let session: Account | null = null
+  const listeners = new Set<(u: AppUser | null) => void>()
+  const toApp = (a: Account): AppUser => ({
+    id: a.id,
+    email: a.email,
+    fullName: a.fullName || null,
+  })
+  const emit = () => listeners.forEach((cb) => cb(session ? toApp(session) : null))
+  const SESSION_KEY = `shidduchim-host-session:${user.id}`
+  const readSession = () => {
+    try {
+      return localStorage.getItem(SESSION_KEY)
+    } catch {
+      return null
+    }
+  }
+  const writeSession = (id: string | null) => {
+    try {
+      if (id) localStorage.setItem(SESSION_KEY, id)
+      else localStorage.removeItem(SESSION_KEY)
+    } catch {
+      /* session for this visit only */
+    }
+  }
 
-  const appUser: AppUser = { id: user.id, email: user.email ?? '', fullName: user.name || null }
+  async function sha256Hex(text: string): Promise<string> {
+    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+    return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('')
+  }
+  async function hashPassword(password: string, salt: string): Promise<string> {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(password),
+      'PBKDF2',
+      false,
+      ['deriveBits'],
+    )
+    const bits = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        hash: 'SHA-256',
+        salt: new TextEncoder().encode(salt),
+        iterations: 150_000,
+      },
+      key,
+      256,
+    )
+    return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, '0')).join('')
+  }
+  const accountId = async (email: string) =>
+    (await sha256Hex(email.trim().toLowerCase())).slice(0, 40)
+
+  const workspaceDoc = () => {
+    if (!session) throw new Error(he.auth.sessionExpired)
+    return db.doc(
+      session.workspace === 'profile' ? `${root}/profile` : `${root}/${session.workspace}`,
+    )
+  }
+  const wsColl = (name: 'candidates' | 'ideas'): CollRef => {
+    const cur = () => workspaceDoc().collection(name)
+    return {
+      doc: (id?: string) => cur().doc(id),
+      where: (f: string, op: string, v: unknown) => cur().where(f, op, v),
+      orderBy: (f: string, dir?: 'asc' | 'desc') => cur().orderBy(f, dir),
+      limit: (n: number) => cur().limit(n),
+      get: () => cur().get(),
+    }
+  }
+  const candidates = wsColl('candidates')
+  const ideas = wsColl('ideas')
+  const ownerId = () => session?.id ?? user.id
+
+  let restored: Promise<void> | null = null
+  const restore = () =>
+    (restored ??= (async () => {
+      const id = readSession()
+      if (!id) return
+      const snap = await accounts
+        .doc(id)
+        .get()
+        .catch(() => null)
+      session = snap?.exists ? (snap.data() as unknown as Account) : null
+      if (!session) writeSession(null)
+    })())
 
   const auth: AuthApi = {
     async getUser() {
-      return appUser
+      await restore()
+      return session ? toApp(session) : null
     },
-    onAuthChange() {
-      return () => undefined
+    onAuthChange(cb) {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
     },
-    async signIn() {
-      return appUser
+    async signIn(email, password) {
+      const snap = await guard(async () => accounts.doc(await accountId(email)).get())
+      const acc = snap.exists ? (snap.data() as unknown as Account) : null
+      if (!acc || (await hashPassword(password, acc.salt)) !== acc.hash)
+        throw new Error(he.auth.invalidCredentials)
+      session = acc
+      writeSession(acc.id)
+      emit()
+      return toApp(acc)
     },
-    async signUp() {
+    async signUp(email, password, fullName) {
+      const id = await accountId(email)
+      const existing = await guard(() => accounts.doc(id).get())
+      if (existing.exists) throw new Error(he.auth.emailTaken)
+      const any = await guard(() => accounts.limit(1).get())
+      const salt = uid()
+      const acc: Account = {
+        id,
+        email: email.trim().toLowerCase(),
+        fullName: fullName.trim(),
+        salt,
+        hash: await hashPassword(password, salt),
+        // the first account keeps the data that already exists
+        workspace: any.docs.length === 0 ? 'profile' : `ws-${id}`,
+        created_at: now(),
+      }
+      await guard(() => accounts.doc(id).set(clean(acc)))
+      session = acc
+      writeSession(id)
+      emit()
       return { signedIn: true }
     },
     async signOut() {
-      /* identity is the claude.ai account — nothing to sign out of here */
+      session = null
+      writeSession(null)
+      emit()
+    },
+    async hasAccounts() {
+      const any = await accounts
+        .limit(1)
+        .get()
+        .catch(() => null)
+      return !!any && any.docs.length > 0
     },
   }
 
@@ -262,7 +393,7 @@ export function createHostBackend(
       const row: StoredCandidate = {
         ...payload.candidate,
         id,
-        owner_id: user.id,
+        owner_id: ownerId(),
         created_at: now(),
         updated_at: now(),
         resume: null,
@@ -340,7 +471,7 @@ export function createHostBackend(
     async loadSampleData() {
       const existing = await allCandidates()
       if (existing.some((r) => r.is_sample)) return 0
-      const rows = seedRows(user.id)
+      const rows = seedRows(ownerId())
       // Six sample candidates get a generated sample resume so view/download/email can be tried.
       for (const [i, row] of rows.entries()) {
         if (i < 6 && assets) {

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FlaskConical, Loader2, LogIn, UserPlus } from 'lucide-react'
-import { useState } from 'react'
+import { Database, FlaskConical, Loader2, LogIn, UserPlus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -11,7 +11,7 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { DEMO_EMAIL, DEMO_PASSWORD } from '@/lib/api/demoApi'
 import { useAuth } from '@/lib/auth'
-import { isDemoMode } from '@/lib/env'
+import { authApi, backendMode } from '@/lib/api'
 import { he } from '@/lib/strings.he'
 import { errorMessage } from '@/lib/utils'
 import { loginSchema, signupSchema, type LoginValues, type SignupValues } from '@/lib/validators'
@@ -82,7 +82,7 @@ function LoginForm({ onDone }: { onDone: () => void }) {
         {isSubmitting ? <Loader2 className="animate-spin" /> : <LogIn />}
         {he.auth.login}
       </Button>
-      {isDemoMode && (
+      {backendMode() === 'demo' && (
         <>
           <div className="flex items-center gap-3 text-xs text-ink-muted" aria-hidden>
             <span className="h-px flex-1 bg-line" />
@@ -185,6 +185,17 @@ function SignupForm({ onDone }: { onDone: () => void }) {
 export default function LoginPage() {
   const { user, loading } = useAuth()
   const [mode, setMode] = useState<Mode>('login')
+  const [firstVisit, setFirstVisit] = useState(false)
+  // Database mode, first visit: no account yet → open on "create account".
+  useEffect(() => {
+    if (backendMode() !== 'host' || !authApi.hasAccounts) return
+    void authApi.hasAccounts().then((has) => {
+      if (!has) {
+        setFirstVisit(true)
+        setMode('signup')
+      }
+    })
+  }, [])
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/'
@@ -235,7 +246,13 @@ export default function LoginPage() {
               <h2 className="text-2xl font-bold text-navy-900">
                 {mode === 'login' ? he.auth.loginTitle : he.auth.signupTitle}
               </h2>
-              <p className="mb-6 mt-1 text-sm text-ink-muted">
+              {backendMode() === 'host' && (
+                <p className="mt-3 flex items-center gap-2 rounded-lg bg-success-soft px-3 py-2 text-[13px] text-success">
+                  <Database className="size-4 shrink-0" aria-hidden />
+                  {firstVisit ? he.hostDb.firstAccount : he.hostDb.loginNote}
+                </p>
+              )}
+              <p className="mb-6 mt-3 text-sm text-ink-muted">
                 {mode === 'login' ? he.auth.loginSubtitle : he.auth.signupSubtitle}
               </p>
               {mode === 'login' ? <LoginForm onDone={done} /> : <SignupForm onDone={done} />}
