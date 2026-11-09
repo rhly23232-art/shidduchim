@@ -23,7 +23,7 @@ const para = (
 ) =>
   `<w:p><w:pPr><w:bidi/>${opts.align ? `<w:jc w:val="${opts.align}"/>` : ''}${
     opts.border
-      ? '<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="BFC3CA"/></w:pBdr>'
+      ? '<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="D3CBC0"/></w:pBdr>'
       : ''
   }<w:spacing w:before="${opts.before ?? 0}" w:after="${opts.after ?? 120}"/></w:pPr>${runs}</w:p>`
 
@@ -37,14 +37,14 @@ const textParas = (value: string) =>
 function blockXml(b: DocBlock): string {
   switch (b.kind) {
     case 'title':
-      return para(RTL_RUN(b.text, { bold: true, size: 40, color: '202124' }), {
+      return para(RTL_RUN(b.text, { bold: true, size: 40, color: '2B2622' }), {
         align: 'center',
         after: 80,
       })
     case 'subtitle':
-      return para(RTL_RUN(b.text, { size: 22, color: '6B6F76' }), { align: 'center', after: 360 })
+      return para(RTL_RUN(b.text, { size: 22, color: '6D665F' }), { align: 'center', after: 360 })
     case 'heading':
-      return para(RTL_RUN(b.text, { bold: true, size: 28, color: '3A57A8' }), {
+      return para(RTL_RUN(b.text, { bold: true, size: 28, color: '6C5D51' }), {
         before: 280,
         after: 160,
         border: true,
@@ -53,7 +53,7 @@ function blockXml(b: DocBlock): string {
       return b.value?.trim()
         ? para(RTL_RUN(`${b.label}: `, { bold: true }) + RTL_RUN(b.value.trim()), { after: 100 })
         : para(
-            RTL_RUN(`${b.label}: `, { bold: true }) + RTL_RUN('_'.repeat(48), { color: 'A0A4AB' }),
+            RTL_RUN(`${b.label}: `, { bold: true }) + RTL_RUN('_'.repeat(48), { color: 'B3A898' }),
             { after: 160 },
           )
     case 'area': {
@@ -61,7 +61,7 @@ function blockXml(b: DocBlock): string {
       if (b.value?.trim()) return label + textParas(b.value.trim())
       // Separate underscore lines: bordered empty paragraphs get merged into one by Word.
       const lines = Array.from({ length: b.lines ?? 3 }, () =>
-        para(RTL_RUN('_'.repeat(68), { color: 'A0A4AB' }), { after: 200 }),
+        para(RTL_RUN('_'.repeat(68), { color: 'B3A898' }), { after: 200 }),
       ).join('')
       return label + lines
     }

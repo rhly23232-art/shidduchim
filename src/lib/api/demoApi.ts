@@ -206,9 +206,9 @@ export async function sampleResumeBlob(c: StoredCandidate): Promise<Blob | null>
     if (!ctx) return null
     ctx.fillStyle = '#fbf9f5'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = '#16233f'
+    ctx.fillStyle = '#6c5d51'
     ctx.fillRect(0, 0, canvas.width, 230)
-    ctx.fillStyle = '#b8975e'
+    ctx.fillStyle = '#c9b9a2'
     ctx.fillRect(0, 230, canvas.width, 8)
     ctx.direction = 'rtl'
     ctx.textAlign = 'right'
@@ -240,10 +240,10 @@ export async function sampleResumeBlob(c: StoredCandidate): Promise<Blob | null>
     let y = 340
     for (const [k, v] of rows) {
       if (!v) continue
-      ctx.fillStyle = '#5b6474'
+      ctx.fillStyle = '#6d665f'
       ctx.font = '30px Heebo, Arial, sans-serif'
       ctx.fillText(k, 1140, y)
-      ctx.fillStyle = '#1b2333'
+      ctx.fillStyle = '#2b2622'
       ctx.font = '40px Heebo, Arial, sans-serif'
       ctx.fillText(v.length > 48 ? `${v.slice(0, 47)}…` : v, 1140, y + 52)
       ctx.strokeStyle = '#e6e0d4'

@@ -47,20 +47,20 @@ import { StatusBadge } from '@/features/candidates/StatusBadge'
  */
 
 const COLORS: { token: string; hex: string; use: string }[] = [
-  { token: 'background', hex: '#FAFAF9', use: 'רקע ראשי של האפליקציה' },
-  { token: 'card', hex: '#FFFFFF', use: 'משטחי עבודה, חלוניות, תפריטים' },
-  { token: 'secondary', hex: '#F4F5F6', use: 'רקע משני, ריחוף, אזורים שקטים' },
-  { token: 'foreground', hex: '#202124', use: 'טקסט ראשי' },
-  { token: 'muted-foreground', hex: '#6B6F76', use: 'טקסט משני (AA)' },
-  { token: 'brand', hex: '#5478D4', use: 'צבע הדגשה: מחוונים, פוקוס, אייקונים' },
-  { token: 'primary', hex: '#486AC7', use: 'כפתור ראשי וקישורים (AA עם לבן)' },
-  { token: 'accent', hex: '#EDF1FC', use: 'מצב נבחר / פעיל' },
-  { token: 'border', hex: '#E8E9EC', use: 'גבולות ומפרידים' },
-  { token: 'input', hex: '#D6D7DC', use: 'גבול שדות טופס' },
-  { token: 'success', hex: '#2C7249', use: 'הצלחה' },
-  { token: 'warning', hex: '#924F0C', use: 'אזהרה' },
-  { token: 'destructive', hex: '#C53030', use: 'שגיאה / מחיקה' },
-  { token: 'info', hex: '#3160AA', use: 'מידע' },
+  { token: 'background', hex: '#F8F5EF', use: 'רקע ראשי — בז׳ עדין' },
+  { token: 'card', hex: '#FEFDFC', use: 'משטחי עבודה, חלוניות, תפריטים' },
+  { token: 'secondary', hex: '#F1ECE4', use: 'רקע משני, ריחוף, אזורים שקטים' },
+  { token: 'foreground', hex: '#2B2622', use: 'טקסט ראשי' },
+  { token: 'muted-foreground', hex: '#6D665F', use: 'טקסט משני (AA)' },
+  { token: 'brand', hex: '#91806E', use: 'הדגשה בחום אפרפר: מחוונים, פוקוס' },
+  { token: 'primary', hex: '#6C5D51', use: 'כפתור ראשי וקישורים (AA עם לבן)' },
+  { token: 'accent', hex: '#EEE7DD', use: 'מצב נבחר / פעיל' },
+  { token: 'border', hex: '#E6E0D6', use: 'גבולות ומפרידים' },
+  { token: 'input', hex: '#D3CBC0', use: 'גבול שדות טופס' },
+  { token: 'success', hex: '#366345', use: 'הצלחה' },
+  { token: 'warning', hex: '#8A4C0F', use: 'אזהרה' },
+  { token: 'destructive', hex: '#B93131', use: 'שגיאה / מחיקה' },
+  { token: 'info', hex: '#675342', use: 'מידע' },
 ]
 
 const TYPE: { cls: string; name: string; spec: string }[] = [
@@ -135,8 +135,9 @@ export default function DesignSystemPage() {
     <main id="main" className="mx-auto w-full max-w-5xl space-y-12 px-4 pb-24 pt-6 md:px-8">
       <header className="space-y-3">
         <p className="text-body text-muted-foreground">
-          Calm Productivity — שפה עיצובית רגועה, ברורה ומדויקת. כל הרכיבים בעמוד זה הם הרכיבים
-          האמיתיים של המערכת. התיעוד המלא: <span dir="ltr">docs/DESIGN_SYSTEM.md</span>
+          Calm Productivity — שפה עיצובית רגועה, ברורה ומדויקת: רקע בז׳ עדין והדגשות בחום אפרפר. כל
+          הרכיבים בעמוד זה הם הרכיבים האמיתיים של המערכת. התיעוד המלא:{' '}
+          <span dir="ltr">docs/DESIGN_SYSTEM.md</span>
         </p>
         <nav aria-label="תוכן העמוד" className="flex flex-wrap gap-2">
           {SECTIONS.map(([id, label]) => (

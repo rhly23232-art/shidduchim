@@ -8,43 +8,43 @@
  */
 @layer base {
   :root {
-    /* Surfaces */
-    --background: 60 9% 98%; /* #FAFAF9 — app canvas */
-    --card: 0 0% 100%; /* #FFFFFF — work surfaces, popovers, dialogs */
-    --secondary: 210 9% 96%; /* #F4F5F6 — secondary background */
-    --secondary-hover: 220 8% 92%;
-    --muted: 210 9% 96%;
+    /* Surfaces — soft warm beige */
+    --background: 40 38% 95.5%; /* app canvas — very light beige */
+    --card: 40 50% 99.2%; /* work surfaces, popovers, dialogs — warm white */
+    --secondary: 38 30% 92%; /* secondary background */
+    --secondary-hover: 36 24% 88%;
+    --muted: 38 30% 92%;
 
     /* Text */
-    --foreground: 225 6% 13.3%; /* #202124 */
-    --muted-foreground: 218 5% 44%; /* #6B6F76 — #777B83 darkened to pass WCAG AA on white */
+    --foreground: 28 12% 15%; /* warm near-black */
+    --muted-foreground: 30 7% 40%; /* warm grey (AA on card and beige) */
 
-    /* Brand / interaction */
-    --brand: 223 60% 58%; /* #5478D4 — accent: indicators, focus, icons */
-    --primary: 224 53% 53%; /* #486AC7 — filled buttons & links (AA with white text) */
-    --primary-hover: 224 49% 46%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 223 75% 96%; /* selected / active tint */
-    --accent-foreground: 224 49% 42%;
-    --ring: 223 60% 58%;
+    /* Brand / interaction — greyish brown (taupe). No blue anywhere. */
+    --brand: 30 14% 50%; /* accent: indicators, focus, icons */
+    --primary: 28 14% 37%; /* filled buttons & links (AA with white text) */
+    --primary-hover: 28 15% 30%;
+    --primary-foreground: 40 50% 99%;
+    --accent: 35 32% 90%; /* selected / active tint */
+    --accent-foreground: 28 18% 29%;
+    --ring: 30 16% 48%;
 
     /* Lines */
-    --border: 225 10% 91.8%; /* #E8E9EC — dividers, cards */
-    --input: 225 8% 85%; /* form control borders */
-    --input-hover: 225 7% 74%;
+    --border: 37 24% 87%; /* dividers, cards */
+    --input: 34 17% 79%; /* form control borders */
+    --input-hover: 32 13% 66%;
 
     /* Semantic */
-    --destructive: 0 61% 48%;
-    --destructive-hover: 0 61% 42%;
-    --destructive-soft: 0 70% 96%;
-    --success: 145 44% 31%;
-    --success-soft: 145 35% 94%;
-    --warning: 30 85% 31%;
-    --warning-soft: 36 90% 94%;
-    --warning-dot: 30 80% 55%;
-    --info: 217 55% 43%;
-    --info-soft: 218 70% 96%;
-    --overlay: 225 10% 10%;
+    --destructive: 0 58% 46%;
+    --destructive-hover: 0 58% 40%;
+    --destructive-soft: 4 62% 95%;
+    --success: 140 30% 30%;
+    --success-soft: 100 28% 92%;
+    --warning: 30 80% 30%;
+    --warning-soft: 38 80% 92%;
+    --warning-dot: 32 75% 52%;
+    --info: 28 22% 33%; /* informational — warm brown instead of blue */
+    --info-soft: 36 34% 91%;
+    --overlay: 28 15% 10%;
 
     /* Radius */
     --radius-sm: 6px;
@@ -52,9 +52,9 @@
     --radius-lg: 12px;
 
     /* Elevation — minimal */
-    --shadow-sm: 0 1px 2px 0 hsl(225 6% 13% / 0.05);
-    --shadow-md: 0 1px 3px hsl(225 6% 13% / 0.05), 0 6px 16px -4px hsl(225 6% 13% / 0.1);
-    --shadow-lg: 0 2px 6px hsl(225 6% 13% / 0.05), 0 20px 44px -12px hsl(225 6% 13% / 0.2);
+    --shadow-sm: 0 1px 2px 0 hsl(28 15% 15% / 0.05);
+    --shadow-md: 0 1px 3px hsl(28 15% 15% / 0.05), 0 6px 16px -4px hsl(28 15% 15% / 0.1);
+    --shadow-lg: 0 2px 6px hsl(28 15% 15% / 0.05), 0 20px 44px -12px hsl(28 15% 15% / 0.2);
 
     /* Layout (set at runtime) */
     --header-h: 4rem;
