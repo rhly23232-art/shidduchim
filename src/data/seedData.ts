@@ -809,3 +809,167 @@ export const SEED_CANDIDATES: SeedCandidate[] = [
     ],
   },
 ]
+
+// ---------- Matchmaker workspace samples (indices into SEED_CANDIDATES) ----------
+// males: 0–9, females: 10–19
+export interface SeedProposal {
+  male: number
+  female: number
+  stage: 'idea' | 'suggested' | 'checking' | 'meeting' | 'engaged' | 'closed'
+  male_response: 'pending' | 'interested' | 'declined'
+  female_response: 'pending' | 'interested' | 'declined'
+  /** days from today; negative = overdue */
+  followupInDays: number | null
+  notes: string | null
+  closed_reason: string | null
+  /** chronological notes added to the history */
+  log: string[]
+}
+
+export const SEED_PROPOSALS: SeedProposal[] = [
+  {
+    male: 0,
+    female: 14,
+    stage: 'meeting',
+    male_response: 'interested',
+    female_response: 'interested',
+    followupInDays: 1,
+    notes: 'שתי המשפחות מרוצות מאוד. פגישה שלישית נקבעה.',
+    closed_reason: null,
+    log: ['האב של הבחור ביקש פרטים נוספים על הסמינר', 'בירורים הסתיימו בהצלחה מצד שתי המשפחות'],
+  },
+  {
+    male: 1,
+    female: 10,
+    stage: 'checking',
+    male_response: 'interested',
+    female_response: 'pending',
+    followupInDays: -1,
+    notes: 'הצד של הבחורה מבררים בישיבה.',
+    closed_reason: null,
+    log: ['הבחור מעוניין, ממתינים לתשובת משפחת גרינברג'],
+  },
+  {
+    male: 3,
+    female: 12,
+    stage: 'suggested',
+    male_response: 'pending',
+    female_response: 'pending',
+    followupInDays: 3,
+    notes: 'שתי המשפחות מבית שמש, רקע ספרדי דומה.',
+    closed_reason: null,
+    log: [],
+  },
+  {
+    male: 4,
+    female: 19,
+    stage: 'idea',
+    male_response: 'pending',
+    female_response: 'pending',
+    followupInDays: null,
+    notes: 'משפחות מיוחסות, שניהם רציניים מאוד.',
+    closed_reason: null,
+    log: [],
+  },
+  {
+    male: 7,
+    female: 16,
+    stage: 'suggested',
+    male_response: 'interested',
+    female_response: 'pending',
+    followupInDays: 0,
+    notes: 'מאותה חסידות. לברר לגבי הגיס המשותף.',
+    closed_reason: null,
+    log: [],
+  },
+  {
+    male: 2,
+    female: 13,
+    stage: 'engaged',
+    male_response: 'interested',
+    female_response: 'interested',
+    followupInDays: null,
+    notes: 'מזל טוב! הווארט נקבע לשבוע הבא.',
+    closed_reason: null,
+    log: ['נפגשו ארבע פעמים', 'סגרו בשעה טובה'],
+  },
+  {
+    male: 8,
+    female: 17,
+    stage: 'closed',
+    male_response: 'interested',
+    female_response: 'declined',
+    followupInDays: null,
+    notes: null,
+    closed_reason: 'הבחורה מעדיפה בחור בגיל קרוב יותר',
+    log: [],
+  },
+]
+
+export const SEED_IDEAS: {
+  title: string
+  body: string | null
+  male: number | null
+  female: number | null
+  pinned: boolean
+}[] = [
+  {
+    title: 'לחשוב על חיים וייס עם מרים שפירא',
+    body: 'שתי משפחות של תלמידי חכמים בירושלים, גיל מתאים.',
+    male: 9,
+    female: 14,
+    pinned: true,
+  },
+  {
+    title: 'לברר על בחורים מישיבת סלבודקה בגיל 23–25',
+    body: 'יש כמה בחורות בוגרות סמינר וולף שמחפשות.',
+    male: null,
+    female: null,
+    pinned: false,
+  },
+  {
+    title: 'דבורה פישר — לחפש בחור בוגר ורציני',
+    body: 'אולי לשאול את ראש הכולל ביד אליעזר.',
+    male: null,
+    female: 17,
+    pinned: false,
+  },
+]
+
+export const SEED_TASKS: {
+  title: string
+  dueInDays: number | null
+  candidate: number | null
+  proposal: number | null
+  done: boolean
+}[] = [
+  {
+    title: 'להתקשר לאם של שרה גרינברג לגבי תשובה',
+    dueInDays: -1,
+    candidate: 10,
+    proposal: 1,
+    done: false,
+  },
+  {
+    title: 'לשלוח רזומה של יעקב אלבז למשפחת אוחיון',
+    dueInDays: 0,
+    candidate: 3,
+    proposal: 2,
+    done: false,
+  },
+  {
+    title: 'לקבל תמונה עדכנית של קורות החיים של משה לוי',
+    dueInDays: 4,
+    candidate: 1,
+    proposal: null,
+    done: false,
+  },
+  {
+    title: 'לעדכן את פרטי המשפחה של אסתר דהן',
+    dueInDays: 7,
+    candidate: 15,
+    proposal: null,
+    done: false,
+  },
+  { title: 'לברר בישיבת חברון על משה לוי', dueInDays: -3, candidate: 1, proposal: 1, done: true },
+]

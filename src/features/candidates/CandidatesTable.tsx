@@ -173,7 +173,7 @@ function DesktopTable({
 
   return (
     // 768–1023px: horizontal scroll keeps every specified column readable; ≥1024px: sticky header.
-    <div className="overflow-x-auto rounded-xl border border-line bg-surface shadow-card lg:overflow-visible">
+    <div className="relative overflow-x-auto rounded-xl border border-line bg-surface shadow-card lg:overflow-visible">
       <table className="w-full min-w-[960px] table-fixed border-separate border-spacing-0 text-sm lg:min-w-0">
         <caption className="sr-only">{he.table.tableCaption(gender)}</caption>
         <thead>

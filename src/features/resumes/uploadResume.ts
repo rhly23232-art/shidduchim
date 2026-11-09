@@ -7,6 +7,8 @@ import { he } from '@/lib/strings.he'
 import type { CandidateFull, CandidateRow, ResumeMeta } from '@/lib/types'
 import { errorMessage } from '@/lib/utils'
 import { validateResumeFile } from '@/lib/validators'
+import { hostErrorCode, isHosted, saveViaHost } from '@/lib/hostBridge'
+import { openResumeViewer } from './viewerStore'
 
 // ---------- shared upload-progress store (row + modal show the same progress) -----
 const progress = new Map<string, number>()
@@ -91,6 +93,14 @@ export function useResumeActions() {
 
   const download = useCallback(async (resume: ResumeMeta) => {
     try {
+      if (isHosted()) {
+        // Inside the claude.ai viewer direct downloads are blocked — use its save dialog.
+        const blob = await dataApi.getResumeBlob(resume)
+        if (await saveViaHost(resume.file_name, blob)) {
+          toast.success(he.resume.downloadStarted, { description: resume.file_name })
+          return
+        }
+      }
       // Short-lived signed URL (60s).
       const url = await dataApi.getResumeUrl(resume, { download: true, expiresIn: 60 })
       const a = document.createElement('a')
@@ -102,24 +112,18 @@ export function useResumeActions() {
       a.remove()
       toast.success(he.resume.downloadStarted, { description: resume.file_name })
     } catch (err) {
+      if (hostErrorCode(err) === 'declined') return
       toast.error(he.resume.downloadFailed, { description: errorMessage(err) })
     }
   }, [])
 
-  const view = useCallback(async (resume: ResumeMeta) => {
-    // Open the tab synchronously (inside the click) so popup blockers allow it.
-    const win = window.open('about:blank', '_blank')
-    try {
-      const url = await dataApi.getResumeUrl(resume, { download: false, expiresIn: 60 })
-      if (win) win.location.href = url
-      else window.location.assign(url)
-    } catch (err) {
-      win?.close()
-      toast.error(he.resume.downloadFailed, { description: errorMessage(err) })
-    }
+  /** Opens the in-app viewer (works everywhere — no new tab needed). */
+  const view = useCallback((resume: ResumeMeta, title?: string) => {
+    openResumeViewer(resume, title ?? resume.file_name)
   }, [])
 
   return { upload, remove, download, view }
 }
 
-export const isViewable = (mime: string) => mime === 'application/pdf' || mime.startsWith('image/')
+export const isViewable = (mime: string) =>
+  mime === 'application/pdf' || mime.startsWith('image/') || mime.includes('wordprocessingml')

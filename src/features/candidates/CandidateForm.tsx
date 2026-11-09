@@ -181,7 +181,10 @@ export function CandidateForm({
               <SheetDescription className="mt-1 text-sm text-ink-muted">
                 {t.subtitle}
               </SheetDescription>
-              <nav className="-mx-1 mt-3 flex gap-1 overflow-x-auto pb-1" aria-label={t.newTitle}>
+              <nav
+                className="relative -mx-1 mt-3 flex gap-1 overflow-x-auto pb-1"
+                aria-label={t.newTitle}
+              >
                 {SECTIONS.map((s) => (
                   <button
                     key={s.id}
@@ -325,7 +328,7 @@ export function CandidateForm({
                     {education.fields.map((fld, i) => (
                       <li
                         key={fld.id}
-                        className="grid gap-3 rounded-xl border border-line bg-cream-50/50 p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-start"
+                        className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-cream-50/50 p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-start"
                       >
                         {text(`education_history.${i}.name`, t.educationName, { required: true })}
                         <Field label={t.educationType} error={err(`education_history.${i}.type`)}>
@@ -400,7 +403,7 @@ export function CandidateForm({
                     {inLaws.fields.map((fld, i) => (
                       <li
                         key={fld.id}
-                        className="grid gap-3 rounded-xl border border-line bg-cream-50/50 p-3 sm:grid-cols-[8rem_1.2fr_1.5fr_auto] sm:items-start"
+                        className="grid grid-cols-1 gap-3 rounded-xl border border-line bg-cream-50/50 p-3 sm:grid-cols-[8rem_1.2fr_1.5fr_auto] sm:items-start"
                       >
                         <Field
                           label={t.inLawRelation}

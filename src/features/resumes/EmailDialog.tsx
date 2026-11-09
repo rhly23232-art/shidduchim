@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ExternalLink, Info, Loader2, Paperclip, Send } from 'lucide-react'
+import { Check, Copy, Download, ExternalLink, Loader2, Mail, Paperclip, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { Field } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,53 +13,126 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field } from '@/components/ui/field'
 import { Input, Textarea } from '@/components/ui/input'
 import { Tooltip } from '@/components/ui/tooltip'
 import { dataApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { hostErrorCode, hostMcp, isHosted, sendViaGmail } from '@/lib/hostBridge'
 import { he } from '@/lib/strings.he'
 import type { CandidateRow } from '@/lib/types'
 import { errorMessage, formatBytes, fullName } from '@/lib/utils'
 import { emailFormSchema, type EmailFormValues } from '@/lib/validators'
 import { buildEmailBody, buildMailto, emailSubject, sendViaServer } from './sendResumeEmail'
+import { useResumeActions } from './uploadResume'
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   candidate: CandidateRow
+  defaultTo?: string
 }
 
-export function EmailDialog({ open, onOpenChange, candidate }: Props) {
+type Route = 'gmail' | 'server' | 'none'
+
+function gmailErrorText(err: unknown): string {
+  switch (hostErrorCode(err)) {
+    case 'server_not_connected':
+    case 'server_not_found':
+    case 'selection_required':
+      return he.email.gmailNotConnected
+    case 'needs_reauth':
+      return he.email.gmailReauth
+    case 'not_in_manifest':
+    case 'approval_required':
+    case 'blocked_by_policy':
+    case 'not_granted':
+      return he.email.gmailNotAllowed
+    case 'too_large':
+      return he.email.gmailTooBig
+    case 'server_unavailable':
+    case 'upstream_error':
+    case 'cancelled':
+      return he.email.gmailUnclear
+    default:
+      return errorMessage(err)
+  }
+}
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [done, setDone] = useState(false)
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      onClick={() => {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            setDone(true)
+            setTimeout(() => setDone(false), 1800)
+          })
+          .catch(() => toast.error(he.common.unknownError))
+      }}
+    >
+      {done ? <Check className="text-success" /> : <Copy />}
+      {done ? he.email.copied : label}
+    </Button>
+  )
+}
+
+export function EmailDialog({ open, onOpenChange, candidate, defaultTo = '' }: Props) {
   const { user } = useAuth()
+  const { download } = useResumeActions()
   const [sending, setSending] = useState(false)
-  const [opening, setOpening] = useState(false)
+  const [route, setRoute] = useState<Route>(dataApi.supportsServerEmail ? 'server' : 'none')
+  const hosted = isHosted()
   const form = useForm<EmailFormValues>({
     resolver: zodResolver(emailFormSchema),
     defaultValues: { to: '', subject: '', body: '' },
   })
 
   useEffect(() => {
-    if (open) {
-      form.reset({
-        to: '',
-        subject: emailSubject(candidate),
-        body: buildEmailBody(candidate, user?.fullName ?? null),
-      })
+    if (!open) return
+    form.reset({
+      to: defaultTo,
+      subject: emailSubject(candidate),
+      body: buildEmailBody(candidate, user?.fullName ?? null),
+    })
+    // Inside the claude.ai viewer: send through the viewer's own Gmail (real attachment).
+    let alive = true
+    void hostMcp().then((mcp) => {
+      if (alive && mcp) setRoute('gmail')
+    })
+    return () => {
+      alive = false
     }
-  }, [open, candidate, user?.fullName, form])
+  }, [open, candidate, user?.fullName, form, defaultTo])
 
-  const serverEnabled = dataApi.supportsServerEmail
+  const resume = candidate.resume
 
   const onSend = form.handleSubmit(async (values) => {
     setSending(true)
     try {
-      await sendViaServer({ candidateId: candidate.id, ...values })
-      toast.success(he.email.sent(values.to))
+      if (route === 'gmail') {
+        const attachment = resume
+          ? {
+              blob: await dataApi.getResumeBlob(resume),
+              filename: resume.file_name,
+              mime: resume.mime_type,
+            }
+          : undefined
+        await sendViaGmail({ ...values, attachment })
+        toast.success(he.email.gmailSent(values.to))
+      } else {
+        await sendViaServer({ candidateId: candidate.id, ...values })
+        toast.success(he.email.sent(values.to))
+      }
       onOpenChange(false)
     } catch (err) {
       toast.error(he.email.sendFailed, {
-        description: errorMessage(err),
-        action: { label: he.email.mailtoButton, onClick: () => void onMailto() },
+        description: route === 'gmail' ? gmailErrorText(err) : errorMessage(err),
+        duration: 9000,
       })
     } finally {
       setSending(false)
@@ -68,19 +140,17 @@ export function EmailDialog({ open, onOpenChange, candidate }: Props) {
   })
 
   const onMailto = form.handleSubmit(async (values) => {
-    setOpening(true)
     try {
-      const href = await buildMailto(candidate, values.to, values.subject, values.body)
-      window.location.href = href
+      window.location.href = await buildMailto(candidate, values.to, values.subject, values.body)
     } catch (err) {
       toast.error(he.email.sendFailed, { description: errorMessage(err) })
-    } finally {
-      setOpening(false)
     }
   })
 
   const { errors } = form.formState
-  const resume = candidate.resume
+  const subject = form.watch('subject')
+  const body = form.watch('body')
+  const canSend = route !== 'none'
 
   return (
     <Dialog open={open} onOpenChange={(o) => !sending && onOpenChange(o)}>
@@ -111,7 +181,7 @@ export function EmailDialog({ open, onOpenChange, candidate }: Props) {
               {(id, aria) => <Input id={id} {...aria} {...form.register('subject')} />}
             </Field>
             <Field label={he.email.body} error={errors.body?.message} required>
-              {(id, aria) => <Textarea id={id} {...aria} rows={9} {...form.register('body')} />}
+              {(id, aria) => <Textarea id={id} {...aria} rows={8} {...form.register('body')} />}
             </Field>
 
             <div className="flex items-center gap-2.5 rounded-lg bg-navy-50 px-3 py-2.5 text-sm">
@@ -132,29 +202,52 @@ export function EmailDialog({ open, onOpenChange, candidate }: Props) {
               )}
             </div>
 
-            <p className="flex gap-2 rounded-lg border border-gold-300 bg-gold-100/50 px-3 py-2.5 text-[13px] leading-relaxed text-gold-700">
-              <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-              {dataApi.supportsShareLinks ? he.email.mailtoNote : he.email.mailtoNoteDemo}
-            </p>
-          </DialogBody>
-          <DialogFooter className="justify-between">
-            <Button variant="ghost" onClick={() => void onMailto()} disabled={opening || sending}>
-              {opening ? <Loader2 className="animate-spin" /> : <ExternalLink />}
-              {he.email.mailtoButton}
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={sending}>
-                {he.common.cancel}
-              </Button>
-              <Tooltip content={serverEnabled ? null : he.email.serverUnavailableDemo}>
-                <span tabIndex={serverEnabled ? undefined : 0} className="inline-flex">
-                  <Button type="submit" variant="primary" disabled={!serverEnabled || sending}>
-                    {sending ? <Loader2 className="animate-spin" /> : <Send />}
-                    {sending ? he.email.sending : he.email.send}
+            <section className="rounded-xl border border-line p-3" aria-labelledby="manual-send">
+              <h3 id="manual-send" className="font-sans text-sm font-semibold text-navy-900">
+                {he.email.manualTitle}
+              </h3>
+              <p className="mt-0.5 text-[13px] text-ink-muted">{he.email.manualText}</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                <CopyButton text={`${subject}\n\n${body}`} label={he.email.copyAll} />
+                {resume && (
+                  <Button size="sm" variant="ghost" onClick={() => void download(resume)}>
+                    <Download />
+                    {he.email.downloadForAttach}
                   </Button>
-                </span>
-              </Tooltip>
-            </div>
+                )}
+                {!hosted && (
+                  <Button size="sm" variant="ghost" onClick={() => void onMailto()}>
+                    <ExternalLink />
+                    {he.email.mailtoButton}
+                  </Button>
+                )}
+              </div>
+            </section>
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={sending}>
+              {he.common.cancel}
+            </Button>
+            <Tooltip content={canSend ? null : he.email.serverUnavailableDemo}>
+              <span tabIndex={canSend ? undefined : 0} className="inline-flex">
+                <Button type="submit" variant="primary" disabled={!canSend || sending}>
+                  {sending ? (
+                    <Loader2 className="animate-spin" />
+                  ) : route === 'gmail' ? (
+                    <Mail />
+                  ) : (
+                    <Send />
+                  )}
+                  {sending
+                    ? route === 'gmail'
+                      ? he.email.gmailSending
+                      : he.email.sending
+                    : route === 'gmail'
+                      ? he.email.viaGmail
+                      : he.email.send}
+                </Button>
+              </span>
+            </Tooltip>
           </DialogFooter>
         </form>
       </DialogContent>

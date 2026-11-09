@@ -175,6 +175,74 @@ export type Database = {
           },
         ]
       }
+      ideas: {
+        Row: {
+          body: string | null
+          created_at: string
+          done: boolean
+          female_id: string | null
+          id: string
+          male_id: string | null
+          owner_id: string
+          pinned: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          done?: boolean
+          female_id?: string | null
+          id?: string
+          male_id?: string | null
+          owner_id?: string
+          pinned?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          done?: boolean
+          female_id?: string | null
+          id?: string
+          male_id?: string | null
+          owner_id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideas_female_id_fkey"
+            columns: ["female_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideas_female_id_fkey"
+            columns: ["female_id"]
+            isOneToOne: false
+            referencedRelation: "candidates_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideas_male_id_fkey"
+            columns: ["male_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideas_male_id_fkey"
+            columns: ["male_id"]
+            isOneToOne: false
+            referencedRelation: "candidates_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       in_laws: {
         Row: {
           candidate_id: string
@@ -211,6 +279,124 @@ export type Database = {
           {
             foreignKeyName: "in_laws_candidate_id_fkey"
             columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_events: {
+        Row: {
+          created_at: string
+          from_stage: Database["public"]["Enums"]["proposal_stage"] | null
+          id: string
+          kind: string
+          proposal_id: string
+          response: Database["public"]["Enums"]["side_response"] | null
+          side: Database["public"]["Enums"]["gender"] | null
+          text: string | null
+          to_stage: Database["public"]["Enums"]["proposal_stage"] | null
+        }
+        Insert: {
+          created_at?: string
+          from_stage?: Database["public"]["Enums"]["proposal_stage"] | null
+          id?: string
+          kind: string
+          proposal_id: string
+          response?: Database["public"]["Enums"]["side_response"] | null
+          side?: Database["public"]["Enums"]["gender"] | null
+          text?: string | null
+          to_stage?: Database["public"]["Enums"]["proposal_stage"] | null
+        }
+        Update: {
+          created_at?: string
+          from_stage?: Database["public"]["Enums"]["proposal_stage"] | null
+          id?: string
+          kind?: string
+          proposal_id?: string
+          response?: Database["public"]["Enums"]["side_response"] | null
+          side?: Database["public"]["Enums"]["gender"] | null
+          text?: string | null
+          to_stage?: Database["public"]["Enums"]["proposal_stage"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_events_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          closed_reason: string | null
+          created_at: string
+          female_id: string
+          female_response: Database["public"]["Enums"]["side_response"]
+          id: string
+          male_id: string
+          male_response: Database["public"]["Enums"]["side_response"]
+          next_followup: string | null
+          notes: string | null
+          owner_id: string
+          stage: Database["public"]["Enums"]["proposal_stage"]
+          updated_at: string
+        }
+        Insert: {
+          closed_reason?: string | null
+          created_at?: string
+          female_id: string
+          female_response?: Database["public"]["Enums"]["side_response"]
+          id?: string
+          male_id: string
+          male_response?: Database["public"]["Enums"]["side_response"]
+          next_followup?: string | null
+          notes?: string | null
+          owner_id?: string
+          stage?: Database["public"]["Enums"]["proposal_stage"]
+          updated_at?: string
+        }
+        Update: {
+          closed_reason?: string | null
+          created_at?: string
+          female_id?: string
+          female_response?: Database["public"]["Enums"]["side_response"]
+          id?: string
+          male_id?: string
+          male_response?: Database["public"]["Enums"]["side_response"]
+          next_followup?: string | null
+          notes?: string | null
+          owner_id?: string
+          stage?: Database["public"]["Enums"]["proposal_stage"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_female_id_fkey"
+            columns: ["female_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_female_id_fkey"
+            columns: ["female_id"]
+            isOneToOne: false
+            referencedRelation: "candidates_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_male_id_fkey"
+            columns: ["male_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_male_id_fkey"
+            columns: ["male_id"]
             isOneToOne: false
             referencedRelation: "candidates_view"
             referencedColumns: ["id"]
@@ -258,6 +444,64 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: true
             referencedRelation: "candidates_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          done: boolean
+          due_date: string | null
+          id: string
+          owner_id: string
+          proposal_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          owner_id?: string
+          proposal_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          owner_id?: string
+          proposal_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]
@@ -311,6 +555,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      owns_proposal: {
+        Args: {
+          pid: string
+        }
+        Returns: boolean
+      }
       save_candidate: {
         Args: {
           payload: Json
@@ -320,6 +570,14 @@ export type Database = {
     }
     Enums: {
       gender: "male" | "female"
+      proposal_stage:
+        | "idea"
+        | "suggested"
+        | "checking"
+        | "meeting"
+        | "engaged"
+        | "closed"
+      side_response: "pending" | "interested" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never

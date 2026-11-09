@@ -1,7 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Loader2, RotateCcw, SlidersHorizontal, X } from 'lucide-react'
+import { FileSpreadsheet, Loader2, RotateCcw, SlidersHorizontal, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
+import { SearchBox } from '@/components/layout/SearchBox'
+import { exportCandidatesCsv } from './exportCsv'
 import { NativeSelect } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
@@ -9,7 +12,7 @@ import { useMeasureVar } from '@/hooks/useMeasureVar'
 import type { FiltersApi, ListKey } from '@/hooks/useFilters'
 import type { SortState } from '@/lib/api'
 import { he, institutionLabel } from '@/lib/strings.he'
-import type { Gender } from '@/lib/types'
+import type { CandidateRow, Gender } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { AgeFilter, AgeRangeControl, ageLabel } from './AgeFilter'
 import type { FacetOptions } from './filtering'
@@ -26,6 +29,8 @@ interface Props {
   fetching: boolean
   serverMode: boolean
   capped: boolean
+  /** Currently shown rows (for export). */
+  rows: CandidateRow[]
 }
 
 interface Chip {
@@ -173,8 +178,19 @@ function GenderTabs({
 }
 
 export function FilterBar(props: Props) {
-  const { api, facets, counts, shown, displayed, total, loading, fetching, serverMode, capped } =
-    props
+  const {
+    api,
+    facets,
+    counts,
+    shown,
+    displayed,
+    total,
+    loading,
+    fetching,
+    serverMode,
+    capped,
+    rows,
+  } = props
   const ref = useRef<HTMLDivElement>(null)
   useMeasureVar(ref, '--filterbar-h')
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -209,9 +225,14 @@ export function FilterBar(props: Props) {
       className="sticky z-20 border-b border-line bg-cream-50/95 backdrop-blur supports-[backdrop-filter]:bg-cream-50/85"
       style={{ top: 'var(--header-h)' }}
     >
-      <div className="mx-auto max-w-[1440px] space-y-2.5 px-4 py-3 md:px-6">
+      <div className="space-y-2.5 px-4 py-3 md:px-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
           <GenderTabs gender={api.gender} onChange={api.setGender} counts={counts} />
+          <SearchBox
+            value={api.filters.q}
+            onChange={api.setQuery}
+            className="order-last w-full sm:order-none sm:w-60 xl:w-72"
+          />
 
           {/* Desktop filters */}
           <div
@@ -245,6 +266,17 @@ export function FilterBar(props: Props) {
             {fetching && !loading && <Loader2 className="size-3.5 animate-spin" aria-hidden />}
             {loading ? he.common.loading : he.filters.results(shown, total)}
           </p>
+          <Tooltip content={he.exportCsv.button}>
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              aria-label={he.exportCsv.button}
+              disabled={loading || rows.length === 0}
+              onClick={() => void exportCandidatesCsv(rows, api.gender)}
+            >
+              <FileSpreadsheet />
+            </Button>
+          </Tooltip>
         </div>
 
         <AnimatePresence initial={false}>

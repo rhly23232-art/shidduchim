@@ -169,7 +169,7 @@ export function ResumeActions({ candidate, variant }: Props) {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {isViewable(resume.mime_type) && (
-              <DropdownMenuItem onSelect={() => void actions.view(resume)}>
+              <DropdownMenuItem onSelect={() => actions.view(resume, name)}>
                 <Eye />
                 {he.resume.view}
               </DropdownMenuItem>
@@ -233,7 +233,7 @@ export function ResumeActions({ candidate, variant }: Props) {
               {he.resume.download}
             </Button>
             {isViewable(resume.mime_type) && (
-              <Button size="sm" variant="ghost" onClick={() => void actions.view(resume)}>
+              <Button size="sm" variant="ghost" onClick={() => actions.view(resume, name)}>
                 <Eye />
                 {he.resume.view}
               </Button>

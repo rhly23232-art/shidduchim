@@ -12,7 +12,15 @@ import { AuthProvider, useAuth } from '@/lib/auth'
 import { he } from '@/lib/strings.he'
 import LoginPage from '@/pages/Login'
 
-const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const AppShell = lazy(() =>
+  import('@/components/layout/AppShell').then((m) => ({ default: m.AppShell })),
+)
+const HomePage = lazy(() => import('@/pages/Home'))
+const CandidatesPage = lazy(() => import('@/pages/Candidates'))
+const ProposalsPage = lazy(() => import('@/pages/Proposals'))
+const MatchPage = lazy(() => import('@/pages/Match'))
+const IdeasPage = lazy(() => import('@/pages/Ideas'))
+const TasksPage = lazy(() => import('@/pages/Tasks'))
 
 /** Hash routing for static hosting without rewrites (VITE_HASH_ROUTER=true); clean URLs otherwise. */
 const Router = import.meta.env.VITE_HASH_ROUTER === 'true' ? HashRouter : BrowserRouter
@@ -68,7 +76,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 }
 
 export default function App() {
-  // Desktop: bottom-right (the start side in RTL) never covers the form sheet's save bar on the left.
+  // Top-center keeps toasts clear of dialog footers and the form's save bar.
   const isMobile = useIsMobile()
   return (
     <ErrorBoundary>
@@ -82,13 +90,19 @@ export default function App() {
                     <Routes>
                       <Route path="/login" element={<LoginPage />} />
                       <Route
-                        path="/"
                         element={
                           <Protected>
-                            <Dashboard />
+                            <AppShell />
                           </Protected>
                         }
-                      />
+                      >
+                        <Route index element={<HomePage />} />
+                        <Route path="candidates" element={<CandidatesPage />} />
+                        <Route path="proposals" element={<ProposalsPage />} />
+                        <Route path="match" element={<MatchPage />} />
+                        <Route path="ideas" element={<IdeasPage />} />
+                        <Route path="tasks" element={<TasksPage />} />
+                      </Route>
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </Suspense>
@@ -96,7 +110,7 @@ export default function App() {
               </Router>
               <Toaster
                 dir="rtl"
-                position={isMobile ? 'top-center' : 'bottom-right'}
+                position="top-center"
                 offset={isMobile ? 12 : 20}
                 closeButton
                 toastOptions={{

@@ -88,3 +88,77 @@ export interface SaveCandidatePayload {
   family: FamilyDetailsInput
   in_laws: InLawInput[]
 }
+
+// ---------------------------------------------------------------- matchmaker workspace
+export const PROPOSAL_STAGES = [
+  'idea',
+  'suggested',
+  'checking',
+  'meeting',
+  'engaged',
+  'closed',
+] as const
+export type ProposalStage = (typeof PROPOSAL_STAGES)[number]
+/** Stages that count as "in progress" (not yet closed either way). */
+export const ACTIVE_STAGES: ProposalStage[] = ['idea', 'suggested', 'checking', 'meeting']
+
+export const SIDE_RESPONSES = ['pending', 'interested', 'declined'] as const
+export type SideResponse = (typeof SIDE_RESPONSES)[number]
+
+export interface ProposalInput {
+  male_id: string
+  female_id: string
+  stage: ProposalStage
+  male_response: SideResponse
+  female_response: SideResponse
+  next_followup: string | null
+  notes: string | null
+  closed_reason: string | null
+}
+
+export interface Proposal extends ProposalInput {
+  id: string
+  owner_id: string
+  created_at: string
+  updated_at: string
+}
+
+export type ProposalEventKind = 'created' | 'stage' | 'response' | 'note'
+export interface ProposalEvent {
+  id: string
+  proposal_id: string
+  kind: ProposalEventKind
+  from_stage: ProposalStage | null
+  to_stage: ProposalStage | null
+  side: Gender | null
+  response: SideResponse | null
+  text: string | null
+  created_at: string
+}
+
+export interface IdeaInput {
+  title: string
+  body: string | null
+  male_id: string | null
+  female_id: string | null
+  pinned: boolean
+  done: boolean
+}
+export interface Idea extends IdeaInput {
+  id: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TaskInput {
+  title: string
+  due_date: string | null
+  done: boolean
+  candidate_id: string | null
+  proposal_id: string | null
+}
+export interface Task extends TaskInput {
+  id: string
+  created_at: string
+  updated_at: string
+}

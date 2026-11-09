@@ -88,6 +88,38 @@ const tooBig = await a.storage.from('resumes').upload(`${aId}/${targetId}/big.pd
 check('Bucket rejects file > 10MB', !!tooBig.error, tooBig.error?.message)
 await a.storage.from('resumes').remove([aPath])
 
+// Matchmaker workspace isolation
+const aProps = await a.from('proposals').select('id, male_id, female_id')
+check('A sees own proposals', (aProps.data?.length ?? 0) >= 7, `${aProps.data?.length} rows`)
+const bProps = await b.from('proposals').select('id')
+check('B sees none of A’s proposals', bProps.data?.length === 0)
+const bEvents = await b.from('proposal_events').select('id')
+check('B sees no proposal history', bEvents.data?.length === 0)
+const bIdeas = await b.from('ideas').select('id')
+check('B sees no ideas', bIdeas.data?.length === 0)
+const bTasks = await b.from('tasks').select('id')
+check('B sees no tasks', bTasks.data?.length === 0)
+const pA = aProps.data![0]!
+const bUpd = await b.from('proposals').update({ stage: 'closed' }).eq('id', pA.id).select()
+check('B cannot change A’s proposal', (bUpd.data?.length ?? 0) === 0)
+const bIns = await b.from('proposals').insert({ male_id: pA.male_id, female_id: pA.female_id })
+check('B cannot create a proposal with A’s candidates', !!bIns.error)
+const bNote = await b.from('proposal_events').insert({ proposal_id: pA.id, kind: 'note', text: 'x' })
+check('B cannot write into A’s proposal history', !!bNote.error)
+const bTask = await b.from('tasks').insert({ title: 'x', candidate_id: pA.male_id })
+check('B cannot link a task to A’s candidate', !!bTask.error)
+// pairing rule (two בחורים) is rejected even for the owner
+const males = (await a.from('candidates').select('id').eq('gender', 'male').limit(2)).data!
+const bad = await a.from('proposals').insert({ male_id: males[0]!.id, female_id: males[1]!.id })
+check('Proposal must pair בחור with בחורה', !!bad.error, bad.error?.message)
+// history trigger
+const before = (await a.from('proposal_events').select('id', { count: 'exact', head: true }).eq('proposal_id', pA.id)).count ?? 0
+const cur = (await a.from('proposals').select('stage').eq('id', pA.id).single()).data!.stage
+await a.from('proposals').update({ stage: cur === 'checking' ? 'meeting' : 'checking' }).eq('id', pA.id)
+const after = (await a.from('proposal_events').select('id', { count: 'exact', head: true }).eq('proposal_id', pA.id)).count ?? 0
+check('Stage change is logged to history automatically', after === before + 1)
+await a.from('proposals').update({ stage: cur }).eq('id', pA.id)
+
 // cleanup B's data
 await b.from('candidates').delete().eq('owner_id', bUid)
 

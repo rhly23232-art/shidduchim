@@ -3,6 +3,10 @@ import type { Database, Json } from '../database.types'
 import { env } from '../env'
 import { requireSupabase } from '../supabase'
 import type {
+  Idea,
+  Proposal,
+  ProposalEvent,
+  Task,
   CandidateFull,
   CandidateRow,
   CandidateStatus,
@@ -421,6 +425,125 @@ export const supabaseData: DataApi = {
       throw new Error(detail ?? he.email.serviceDown)
     }
     if (!data?.ok) throw new Error(data?.error ?? he.email.sendFailed)
+  },
+
+  async getResumeBlob(resume) {
+    const { data, error } = await requireSupabase()
+      .storage.from(BUCKET)
+      .download(resume.storage_path)
+    if (error) throw error
+    return data
+  },
+
+  async setCandidateStatus(id, status) {
+    const { error } = await requireSupabase().from('candidates').update({ status }).eq('id', id)
+    if (error) throw error
+  },
+
+  // ---------------- matchmaker workspace ----------------
+  async listProposals() {
+    const { data, error } = await requireSupabase()
+      .from('proposals')
+      .select('*')
+      .order('updated_at', { ascending: false })
+    if (error) throw error
+    return data as Proposal[]
+  },
+
+  async saveProposal(input, id) {
+    const sb = requireSupabase()
+    const q = id
+      ? sb.from('proposals').update(input).eq('id', id).select().single()
+      : sb.from('proposals').insert(input).select().single()
+    const { data, error } = await q
+    if (error) {
+      if (error.code === '23505') throw new Error(he.proposals.duplicate)
+      throw error
+    }
+    return data as Proposal
+  },
+
+  async deleteProposal(id) {
+    const { error } = await requireSupabase().from('proposals').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async listProposalEvents(proposalId) {
+    const { data, error } = await requireSupabase()
+      .from('proposal_events')
+      .select('*')
+      .eq('proposal_id', proposalId)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data as ProposalEvent[]
+  },
+
+  async listRecentEvents(limit) {
+    const { data, error } = await requireSupabase()
+      .from('proposal_events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw error
+    return data as ProposalEvent[]
+  },
+
+  async addProposalNote(proposalId, text) {
+    const { data, error } = await requireSupabase()
+      .from('proposal_events')
+      .insert({ proposal_id: proposalId, kind: 'note', text })
+      .select()
+      .single()
+    if (error) throw error
+    return data as ProposalEvent
+  },
+
+  async listIdeas() {
+    const { data, error } = await requireSupabase()
+      .from('ideas')
+      .select('*')
+      .order('pinned', { ascending: false })
+      .order('updated_at', { ascending: false })
+    if (error) throw error
+    return data as Idea[]
+  },
+
+  async saveIdea(input, id) {
+    const sb = requireSupabase()
+    const { data, error } = await (id
+      ? sb.from('ideas').update(input).eq('id', id).select().single()
+      : sb.from('ideas').insert(input).select().single())
+    if (error) throw error
+    return data as Idea
+  },
+
+  async deleteIdea(id) {
+    const { error } = await requireSupabase().from('ideas').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async listTasks() {
+    const { data, error } = await requireSupabase()
+      .from('tasks')
+      .select('*')
+      .order('done')
+      .order('due_date', { ascending: true, nullsFirst: false })
+    if (error) throw error
+    return data as Task[]
+  },
+
+  async saveTask(input, id) {
+    const sb = requireSupabase()
+    const { data, error } = await (id
+      ? sb.from('tasks').update(input).eq('id', id).select().single()
+      : sb.from('tasks').insert(input).select().single())
+    if (error) throw error
+    return data as Task
+  },
+
+  async deleteTask(id) {
+    const { error } = await requireSupabase().from('tasks').delete().eq('id', id)
+    if (error) throw error
   },
 }
 
