@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
 import { Switch } from '@/components/ui/switch'
 import { EdaPicker } from './EdaFilter'
 import { useSaveCandidate } from '@/hooks/useCandidates'
+import { isConflict } from '@/lib/api/errors'
 import { gregorianToHebrew } from '@/lib/hebrewDate'
 import { he } from '@/lib/strings.he'
 import { CANDIDATE_STATUSES, type CandidateFull, type Gender } from '@/lib/types'
@@ -195,18 +196,24 @@ export function CandidateForm({
     else onOpenChange(false)
   }
 
+  const [conflict, setConflict] = useState<CandidateFormValues | null>(null)
+  const persist = async (values: CandidateFormValues, force: boolean) => {
+    try {
+      const payload = formValuesToPayload(values, candidate?.id)
+      // the version this form was opened from — the save is refused if the card changed since
+      if (candidate && !force) payload.expected_updated_at = candidate.updated_at
+      const id = await save.mutateAsync(payload)
+      toast.success(candidate ? t.saved : t.created, { description: values.full_name.trim() })
+      reset(values)
+      onOpenChange(false)
+      onSaved(id, values.gender, !candidate)
+    } catch (e) {
+      if (isConflict(e)) setConflict(values)
+      else toast.error(t.saveFailed, { description: errorMessage(e) })
+    }
+  }
   const onSubmit = handleSubmit(
-    async (values) => {
-      try {
-        const id = await save.mutateAsync(formValuesToPayload(values, candidate?.id))
-        toast.success(candidate ? t.saved : t.created, { description: values.full_name.trim() })
-        reset(values)
-        onOpenChange(false)
-        onSaved(id, values.gender, !candidate)
-      } catch (e) {
-        toast.error(t.saveFailed, { description: errorMessage(e) })
-      }
-    },
+    (values) => persist(values, false),
     (errors) => {
       // Open the hidden part that holds the error so it can be seen.
       if (errors.family || errors.in_laws) {
@@ -284,7 +291,7 @@ export function CandidateForm({
           onInteractOutside={(e) => {
             e.preventDefault()
             const target = e.target as HTMLElement | null
-            if (target?.closest('[data-sonner-toaster]')) return
+            if (target?.closest('[data-sonner-toaster], [role=alertdialog]')) return
             requestClose()
           }}
         >
@@ -690,6 +697,20 @@ export function CandidateForm({
           </form>
         </SheetContent>
       </Sheet>
+      <ConfirmDialog
+        open={!!conflict}
+        onOpenChange={(o) => !o && setConflict(null)}
+        title={t.conflictTitle}
+        description={t.conflictText}
+        cancelLabel={t.conflictBack}
+        confirmLabel={t.conflictOverwrite}
+        destructive
+        onConfirm={() => {
+          const v = conflict
+          setConflict(null)
+          if (v) void persist(v, true)
+        }}
+      />
       <ConfirmDialog
         open={confirmDiscard}
         onOpenChange={setConfirmDiscard}

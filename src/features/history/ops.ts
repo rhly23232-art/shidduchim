@@ -78,5 +78,5 @@ export async function restoreIdea(e: JournalEntry) {
 export async function revertEdit(e: JournalEntry, current: CandidateFull) {
   const snap = e.data.snapshot
   if (!snap) throw new Error('missing snapshot')
-  await dataApi.saveCandidate(payloadOf(snap, current.id))
+  await dataApi.saveCandidate(payloadOf(snap, current.id, current.updated_at))
 }

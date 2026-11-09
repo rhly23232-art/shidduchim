@@ -192,7 +192,9 @@ export default function ImportPage() {
         if (r.duplicateOf && dupPolicy === 'update') {
           const full = await dataApi.getCandidate(r.duplicateOf.id)
           if (!full) throw new Error(he.detail.notFound)
-          await dataApi.saveCandidate(mergeIntoExisting(payloadOf(full, full.id), r.payload!))
+          await dataApi.saveCandidate(
+            mergeIntoExisting(payloadOf(full, full.id, full.updated_at), r.payload!),
+          )
           res.updated++
         } else {
           await dataApi.saveCandidate(r.payload!)

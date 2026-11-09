@@ -12,6 +12,7 @@ import type {
   ResumeMeta,
 } from '../types'
 import { he } from '../strings.he'
+import { ConflictError } from './errors'
 import type {
   AppUser,
   AuthApi,
@@ -414,6 +415,7 @@ export const supabaseData: DataApi = {
     const { data, error } = await requireSupabase().rpc('save_candidate', {
       payload: payload as unknown as Json,
     })
+    if (error?.code === 'P0409') throw new ConflictError()
     if (error) throw error
     return data
   },

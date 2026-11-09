@@ -189,6 +189,33 @@ check('Same idempotency key cannot be logged twice', eDup.error?.code === '23505
 const eSeeB = await jb.from('email_log').select('id')
 check('B sees none of A’s email log', (eSeeB.data?.length ?? 0) === 0)
 
+// Optimistic concurrency in save_candidate
+const { data: cur } = await a.from('candidates').select('*').eq('id', targetId).single()
+const basePayload = {
+  id: targetId,
+  candidate: { ...cur, city: 'בדיקת מקביליות' },
+  family: {},
+  in_laws: [],
+}
+const fresh = await a.rpc('save_candidate', {
+  payload: { ...basePayload, expected_updated_at: cur!.updated_at },
+})
+check('save with the current version succeeds', !fresh.error, fresh.error?.message)
+const stale = await a.rpc('save_candidate', {
+  payload: { ...basePayload, expected_updated_at: cur!.updated_at },
+})
+check(
+  'save with a stale version is refused (P0409)',
+  stale.error?.code === 'P0409',
+  stale.error?.code,
+)
+const legacy = await a.rpc('save_candidate', { payload: basePayload })
+check(
+  'save without a version keeps working (backward compatible)',
+  !legacy.error,
+  legacy.error?.message,
+)
+
 // cleanup B's data
 await b.from('candidates').delete().eq('owner_id', bUid)
 

@@ -12,6 +12,7 @@ import { he } from '../strings.he'
 import type { CandidateFull, CandidateRow, Idea, InLaw, ResumeMeta } from '../types'
 import { hebrewCollator, normalizeSearch } from '../utils'
 import { sampleResumeBlob, seedIdeas, seedRows, type StoredCandidate } from './demoApi'
+import { ConflictError } from './errors'
 import type { AppUser, AuthApi, DataApi, FacetRow, JournalEntry, JournalStore } from './types'
 
 // ---------- minimal typings of the host capabilities we use ----------------------------
@@ -410,6 +411,8 @@ export function createHostBackend(
         const snap = await guard(() => ref.get())
         if (!snap.exists) throw new Error(he.detail.notFound)
         const prev = snap.data() as StoredCandidate
+        if (payload.expected_updated_at && prev.updated_at !== payload.expected_updated_at)
+          throw new ConflictError()
         await guard(() =>
           ref.set(
             clean({

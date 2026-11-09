@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { qk } from '@/hooks/useCandidates'
 import { useRefreshAll } from '@/hooks/useWorkspace'
 import { dataApi } from '@/lib/api'
+import { isConflict } from '@/lib/api/errors'
 import { FIELD_LABELS } from '@/lib/api/journaled'
 import type { JournalEntry } from '@/lib/api/types'
 import { he } from '@/lib/strings.he'
@@ -106,7 +107,10 @@ export function HistoryButton({ candidate }: { candidate: CandidateFull | null }
       await refresh()
       toast.success(t.reverted)
     } catch (e) {
-      toast.error(he.common.unknownError, { description: errorMessage(e) })
+      if (isConflict(e)) {
+        toast.error(he.form.conflictTitle, { description: t.conflictRetry })
+        await qc.invalidateQueries({ queryKey: journalKey(candidate.id) })
+      } else toast.error(he.common.unknownError, { description: errorMessage(e) })
     }
   }
 

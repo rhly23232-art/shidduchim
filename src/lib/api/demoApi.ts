@@ -17,6 +17,7 @@ import type {
   SaveCandidatePayload,
 } from '../types'
 import { hebrewCollator, normalizeSearch, sleep } from '../utils'
+import { ConflictError } from './errors'
 import type { AppUser, AuthApi, DataApi, FacetRow, JournalEntry, JournalStore } from './types'
 
 export const DEMO_EMAIL = 'demo@shidduchim.local'
@@ -490,6 +491,8 @@ export const demoData: DataApi = {
       const idx = rows.findIndex((r) => r.id === payload.id)
       if (idx === -1) throw new Error(he.detail.notFound)
       const prev = rows[idx]!
+      if (payload.expected_updated_at && prev.updated_at !== payload.expected_updated_at)
+        throw new ConflictError()
       rows[idx] = {
         ...prev,
         ...payload.candidate,

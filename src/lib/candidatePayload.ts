@@ -52,9 +52,14 @@ export function candidateInputOf(c: CandidateFull | CandidateInput): CandidateIn
 }
 
 /** Full save payload that recreates a stored candidate exactly (used by update/restore). */
-export function payloadOf(c: CandidateFull, id?: string): SaveCandidatePayload {
+export function payloadOf(
+  c: CandidateFull,
+  id?: string,
+  expectedUpdatedAt?: string,
+): SaveCandidatePayload {
   return {
     id,
+    expected_updated_at: expectedUpdatedAt ?? null,
     candidate: candidateInputOf(c),
     family: { ...EMPTY_FAMILY, ...(c.family ?? {}) },
     in_laws: c.in_laws.map(({ relation, full_name, details }) => ({

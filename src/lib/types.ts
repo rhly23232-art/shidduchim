@@ -91,6 +91,11 @@ export interface CandidateFull extends CandidateRow {
 
 export interface SaveCandidatePayload {
   id?: string
+  /**
+   * Optimistic concurrency: the `updated_at` the editor started from. When set and the stored
+   * row changed since, the save is refused with ConflictError instead of overwriting.
+   */
+  expected_updated_at?: string | null
   candidate: CandidateInput
   family: FamilyDetailsInput
   in_laws: InLawInput[]
