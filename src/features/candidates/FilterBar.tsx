@@ -16,6 +16,7 @@ import type { CandidateRow, Gender } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { AgeFilter, AgeRangeControl, ageLabel } from './AgeFilter'
 import type { FacetOptions } from './filtering'
+import { EdaFilter, edaLabel } from './EdaFilter'
 import { MultiSelectFilter, type OptionGroup } from './MultiSelectFilter'
 
 interface Props {
@@ -64,14 +65,7 @@ function useGroups(api: FiltersApi, facets: FacetOptions) {
       selected: filters.institutions,
     },
   ]
-  const community: OptionGroup[] = [
-    {
-      key: 'communities',
-      options: merge(facets.communities, filters.communities),
-      selected: filters.communities,
-    },
-  ]
-  return { location, institution, community, instLabel: institutionLabel(gender) }
+  return { location, institution, instLabel: institutionLabel(gender) }
 }
 
 function useChips(api: FiltersApi): Chip[] {
@@ -96,7 +90,13 @@ function useChips(api: FiltersApi): Chip[] {
   add('cities', filters.cities)
   add('regions', filters.regions)
   add('institutions', filters.institutions)
-  add('communities', filters.communities)
+  const eda = edaLabel(filters.eda, filters.edaText)
+  if (eda)
+    chips.push({
+      id: 'eda',
+      label: `${he.filters.community}: ${eda}`,
+      remove: () => api.setEda(null, ''),
+    })
   return chips
 }
 
@@ -211,11 +211,7 @@ export function FilterBar(props: Props) {
         groups={groups.institution}
         onChange={api.setList}
       />
-      <MultiSelectFilter
-        label={he.filters.community}
-        groups={groups.community}
-        onChange={api.setList}
-      />
+      <EdaFilter eda={api.filters.eda} text={api.filters.edaText} onChange={api.setEda} />
     </>
   )
 
@@ -371,11 +367,7 @@ export function FilterBar(props: Props) {
                   groups={groups.institution}
                   onChange={api.setList}
                 />
-                <MultiSelectFilter
-                  label={he.filters.community}
-                  groups={groups.community}
-                  onChange={api.setList}
-                />
+                <EdaFilter eda={api.filters.eda} text={api.filters.edaText} onChange={api.setEda} />
               </div>
             </section>
             <section className="space-y-2">

@@ -39,7 +39,7 @@ export interface CandidateDataset {
   refetch: () => void
 }
 
-const EMPTY_FACETS: FacetOptions = { cities: [], regions: [], institutions: [], communities: [] }
+const EMPTY_FACETS: FacetOptions = { cities: [], regions: [], institutions: [] }
 
 /**
  * ≤ 5,000 rows: one cached list, filtered & sorted instantly on the client.

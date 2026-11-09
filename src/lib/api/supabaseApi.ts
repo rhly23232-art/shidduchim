@@ -211,7 +211,32 @@ export const supabaseData: DataApi = {
     ]
     if (loc.length) q = q.or(loc.join(','))
     if (f.institutions.length) q = q.in('institution', f.institutions)
-    if (f.communities.length) q = q.in('community', f.communities)
+    if (f.eda === 'chasidut') q = q.or('chassidut.ilike.*חסיד*,community.ilike.*חסיד*')
+    else if (f.eda === 'litai') q = q.or('chassidut.ilike.*ליטא*,community.ilike.*ליטא*')
+    else if (f.eda === 'mizrah')
+      q = q.or(
+        [
+          'ספרד',
+          'מזרח',
+          'תימנ',
+          'מרוק',
+          'עיראק',
+          'פרס',
+          'תוניס',
+          'לוב',
+          'כורד',
+          'בוכר',
+          'הודי',
+          'גרוזי',
+          'סורי',
+        ]
+          .map((w) => `community.ilike.*${w}*`)
+          .join(','),
+      )
+    if (f.eda && f.edaText.trim()) {
+      const t = orTerm(f.edaText.trim())
+      q = q.or(`community.ilike.${t},chassidut.ilike.${t}`)
+    }
     for (const term of f.q.split(/\s+/).filter(Boolean)) {
       const t = orTerm(term)
       q = q.or(

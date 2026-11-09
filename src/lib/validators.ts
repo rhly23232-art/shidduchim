@@ -67,13 +67,16 @@ export const inLawSchema = z.object({
 export const candidateFormSchema = z
   .object({
     gender: z.enum(['male', 'female']),
-    first_name: requiredText(60),
-    last_name: requiredText(60),
+    full_name: requiredText(120).refine(
+      (v) => v.trim().split(/\s+/).length >= 2,
+      v.fullNameTwoWords,
+    ),
     birth_date: birthDate,
     city: optionalText(60),
     region: optionalText(60),
     country_of_origin: optionalText(60),
     community: optionalText(60),
+    chassidut_on: z.boolean(),
     chassidut: optionalText(60),
     height_cm: intString(120, 230, v.heightRange),
     appearance: optionalText(200),
@@ -117,13 +120,13 @@ export type CandidateFormValues = z.infer<typeof candidateFormSchema>
 export function emptyFormValues(gender: Gender): CandidateFormValues {
   return {
     gender,
-    first_name: '',
-    last_name: '',
+    full_name: '',
     birth_date: '',
     city: '',
     region: '',
     country_of_origin: '',
     community: '',
+    chassidut_on: false,
     chassidut: '',
     height_cm: '',
     appearance: '',
@@ -158,13 +161,13 @@ const n = (x: number | null | undefined) => (x === null || x === undefined ? '' 
 export function candidateToFormValues(c: CandidateFull): CandidateFormValues {
   return {
     gender: c.gender,
-    first_name: c.first_name,
-    last_name: c.last_name,
+    full_name: `${c.first_name} ${c.last_name}`.trim(),
     birth_date: s(c.birth_date),
     city: s(c.city),
     region: s(c.region),
     country_of_origin: s(c.country_of_origin),
     community: s(c.community),
+    chassidut_on: !!c.chassidut?.trim(),
     chassidut: s(c.chassidut),
     height_cm: n(c.height_cm),
     appearance: s(c.appearance),
@@ -201,6 +204,12 @@ export function candidateToFormValues(c: CandidateFull): CandidateFormValues {
   }
 }
 
+/** "שם פרטי שם משפחה": the first word is the first name, the rest is the family name. */
+export function splitFullName(full: string): { first_name: string; last_name: string } {
+  const parts = full.trim().split(/\s+/)
+  return { first_name: parts[0] ?? '', last_name: parts.slice(1).join(' ') }
+}
+
 const num = (x: string) => (x.trim() === '' ? null : Number(x))
 
 export function formValuesToPayload(
@@ -212,15 +221,14 @@ export function formValuesToPayload(
     id,
     candidate: {
       gender: values.gender,
-      first_name: values.first_name.trim(),
-      last_name: values.last_name.trim(),
+      ...splitFullName(values.full_name),
       birth_date: birth,
       hebrew_birth_date: gregorianToHebrew(birth),
       city: emptyToNull(values.city),
       region: emptyToNull(values.region),
       country_of_origin: emptyToNull(values.country_of_origin),
       community: emptyToNull(values.community),
-      chassidut: emptyToNull(values.chassidut),
+      chassidut: values.chassidut_on ? emptyToNull(values.chassidut) : null,
       height_cm: num(values.height_cm),
       appearance: emptyToNull(values.appearance),
       institution: emptyToNull(values.institution),

@@ -1,3 +1,4 @@
+import { edaMatches } from '@/lib/eda'
 import type { CandidateFilters, FacetRow, SortState } from '@/lib/api'
 import { AGE_MAX, AGE_MIN } from '@/lib/age'
 import type { CandidateRow, Gender } from '@/lib/types'
@@ -32,7 +33,6 @@ export function filterCandidates(
   const cities = new Set(f.cities)
   const regions = new Set(f.regions)
   const inst = new Set(f.institutions)
-  const comm = new Set(f.communities)
   return rows.filter((r) => {
     if (r.gender !== gender) return false
     if (ageOn) {
@@ -42,7 +42,7 @@ export function filterCandidates(
     }
     if (loc && !cities.has(r.city ?? '') && !regions.has(r.region ?? '')) return false
     if (inst.size && !inst.has(r.institution ?? '')) return false
-    if (comm.size && !comm.has(r.community ?? '')) return false
+    if (!edaMatches(r, f.eda, f.edaText)) return false
     if (terms.length) {
       const h = haystack(r)
       for (const t of terms) if (!h.includes(t)) return false
@@ -78,7 +78,6 @@ export interface FacetOptions {
   cities: string[]
   regions: string[]
   institutions: string[]
-  communities: string[]
 }
 
 export function buildFacets(rows: FacetRow[]): FacetOptions {
@@ -90,6 +89,5 @@ export function buildFacets(rows: FacetRow[]): FacetOptions {
     cities: uniq((r) => r.city),
     regions: uniq((r) => r.region),
     institutions: uniq((r) => r.institution),
-    communities: uniq((r) => r.community),
   }
 }

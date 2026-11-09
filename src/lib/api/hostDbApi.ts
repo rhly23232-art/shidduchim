@@ -7,6 +7,7 @@
  * Identity comes from the signed-in claude.ai account (`user`), so there is no separate login.
  */
 import { ageFromBirthDate } from '../age'
+import { edaMatches } from '../eda'
 import { he } from '../strings.he'
 import type { CandidateFull, CandidateRow, Idea, InLaw, ResumeMeta } from '../types'
 import { hebrewCollator, normalizeSearch } from '../utils'
@@ -343,6 +344,7 @@ export function createHostBackend(
       const rows = (await allCandidates()).map(toRow).filter((r) => r.gender === gender)
       const terms = normalizeSearch(f.q).split(' ').filter(Boolean)
       const out = rows.filter((r) => {
+        if (!edaMatches(r, f.eda, f.edaText)) return false
         const hay = normalizeSearch(`${r.first_name} ${r.last_name} ${r.general_notes ?? ''}`)
         return terms.every((t) => hay.includes(t))
       })

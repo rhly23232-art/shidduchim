@@ -8,11 +8,12 @@ import { UserMenu } from './UserMenu'
 interface Props {
   title: string
   onMenu: () => void
+  menuOpen: boolean
   onSearch: () => void
   onAdd: () => void
 }
 
-export function Header({ title, onMenu, onSearch, onAdd }: Props) {
+export function Header({ title, onMenu, menuOpen, onSearch, onAdd }: Props) {
   const ref = useRef<HTMLElement>(null)
   useMeasureVar(ref, '--header-h')
   return (
@@ -23,10 +24,12 @@ export function Header({ title, onMenu, onSearch, onAdd }: Props) {
       <div className="flex h-16 items-center gap-3 px-4 md:px-6">
         <Button
           variant="ghost"
-          size="icon"
-          className="lg:hidden"
+          size="icon-sm"
           onClick={onMenu}
-          aria-label={he.nav.open}
+          aria-label={menuOpen ? he.nav.close : he.nav.open}
+          aria-expanded={menuOpen}
+          aria-controls="app-sidebar"
+          className="shrink-0"
         >
           <Menu className="!size-5" />
         </Button>
@@ -39,12 +42,6 @@ export function Header({ title, onMenu, onSearch, onAdd }: Props) {
         >
           <Search className="size-4" aria-hidden />
           <span className="hidden flex-1 text-start md:inline">{he.nav.quickFind}</span>
-          <kbd
-            className="hidden rounded border border-line bg-surface px-1.5 font-sans text-[11px] text-ink-muted md:inline"
-            dir="ltr"
-          >
-            Ctrl K
-          </kbd>
         </button>
         <Button
           variant="primary"

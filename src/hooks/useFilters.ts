@@ -1,3 +1,4 @@
+import { EDA_KEYS, type EdaKey } from '@/lib/eda'
 import { useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { CandidateFilters, SortKey, SortState } from '@/lib/api'
@@ -15,12 +16,11 @@ const clampAge = (raw: string | null, fallback: number) => {
 
 let openedViaPush = false
 
-export type ListKey = 'cities' | 'regions' | 'institutions' | 'communities'
+export type ListKey = 'cities' | 'regions' | 'institutions'
 const LIST_PARAM: Record<ListKey, string> = {
   cities: 'city',
   regions: 'region',
   institutions: 'inst',
-  communities: 'comm',
 }
 
 /**
@@ -45,7 +45,8 @@ export function useFilters() {
       cities: list('city'),
       regions: list('region'),
       institutions: list('inst'),
-      communities: list('comm'),
+      eda: EDA_KEYS.includes(params.get('eda') as EdaKey) ? (params.get('eda') as EdaKey) : null,
+      edaText: params.get('edaq') ?? '',
     }
   }, [params])
 
@@ -129,10 +130,23 @@ export function useFilters() {
     [update],
   )
 
+  const setEda = useCallback(
+    (eda: EdaKey | null, text: string) =>
+      update((p) => {
+        if (eda) p.set('eda', eda)
+        else p.delete('eda')
+        if (eda && text.trim()) p.set('edaq', text)
+        else p.delete('edaq')
+      }),
+    [update],
+  )
+
   const resetFilters = useCallback(
     () =>
       update((p) => {
-        ;['q', 'ageMin', 'ageMax', 'city', 'region', 'inst', 'comm'].forEach((k) => p.delete(k))
+        ;['q', 'ageMin', 'ageMax', 'city', 'region', 'inst', 'eda', 'edaq'].forEach((k) =>
+          p.delete(k),
+        )
       }),
     [update],
   )
@@ -178,7 +192,7 @@ export function useFilters() {
     filters.cities.length +
     filters.regions.length +
     filters.institutions.length +
-    filters.communities.length
+    (filters.eda ? 1 : 0)
 
   return {
     gender,
@@ -190,6 +204,7 @@ export function useFilters() {
     setQuery,
     setAge,
     setList,
+    setEda,
     setSort,
     resetFilters,
     openCandidate,

@@ -1,12 +1,9 @@
 import { motion } from 'framer-motion'
-import { Database, Lightbulb, Search, UserRound, Users } from 'lucide-react'
+import { Lightbulb, Search, UserRound, Users } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom'
-import { Badge } from '@/components/ui/badge'
 import { useAppActions } from '@/features/workspace/appActions'
 import { useCandidateIndex, useIdeas } from '@/hooks/useWorkspace'
-import { Tooltip } from '@/components/ui/tooltip'
-import { backendMode } from '@/lib/api'
 import { he } from '@/lib/strings.he'
 import type { Gender } from '@/lib/types'
 import { cn, fullName, hebrewCollator, normalizeSearch } from '@/lib/utils'
@@ -125,24 +122,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <Logo />
         </div>
       </div>
-      <div className="-mt-2 px-4 pb-3">
-        {backendMode() === 'demo' && (
-          <Tooltip content={he.app.demoTooltip}>
-            <Badge tone="gold" tabIndex={0} className="cursor-help">
-              {he.app.demoBadge}
-            </Badge>
-          </Tooltip>
-        )}
-        {backendMode() === 'host' && (
-          <Tooltip content={he.hostDb.connectedTooltip}>
-            <Badge tone="success" tabIndex={0} className="cursor-help">
-              <Database className="size-3" aria-hidden />
-              {he.hostDb.connected}
-            </Badge>
-          </Tooltip>
-        )}
-      </div>
-
       <div className="space-y-5 px-3">
         <div>
           <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-navy-200/70">

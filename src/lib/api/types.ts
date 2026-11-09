@@ -1,3 +1,4 @@
+import type { EdaKey } from '../eda'
 import type {
   Idea,
   IdeaInput,
@@ -47,7 +48,9 @@ export interface CandidateFilters {
   cities: string[]
   regions: string[]
   institutions: string[]
-  communities: string[]
+  /** עדה group filter + optional typed detail (מוצא / חסידות / חופשי). */
+  eda: EdaKey | null
+  edaText: string
 }
 
 /** Minimal columns used to build filter options. */

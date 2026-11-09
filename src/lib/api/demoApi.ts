@@ -5,6 +5,7 @@
 import { createStore, del as idbDel, get as idbGet, set as idbSet, type UseStore } from 'idb-keyval'
 import { SEED_CANDIDATES, SEED_IDEAS } from '@/data/seedData'
 import { ageFromBirthDate } from '../age'
+import { edaMatches } from '../eda'
 import { gregorianToHebrew } from '../hebrewDate'
 import { he } from '../strings.he'
 import type {
@@ -410,7 +411,7 @@ export const demoData: DataApi = {
       )
         return false
       if (f.institutions.length && !f.institutions.includes(r.institution ?? '')) return false
-      if (f.communities.length && !f.communities.includes(r.community ?? '')) return false
+      if (!edaMatches(r, f.eda, f.edaText)) return false
       const hay = normalizeSearch(`${r.first_name} ${r.last_name} ${r.general_notes ?? ''}`)
       return terms.every((t) => hay.includes(t))
     })
