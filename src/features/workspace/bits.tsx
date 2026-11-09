@@ -1,6 +1,5 @@
-import { Check, ChevronDown, CircleDashed, CircleCheck, CircleX } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Badge } from '@/components/ui/badge'
 import {
   Command,
   CommandEmpty,
@@ -10,91 +9,8 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { he } from '@/lib/strings.he'
-import type { CandidateRow, Gender, ProposalStage, SideResponse } from '@/lib/types'
+import type { CandidateRow, Gender } from '@/lib/types'
 import { cn, fullName, hebrewCollator } from '@/lib/utils'
-
-export const STAGE_TONE: Record<
-  ProposalStage,
-  'neutral' | 'navy' | 'gold' | 'success' | 'warning' | 'danger'
-> = {
-  idea: 'neutral',
-  suggested: 'navy',
-  checking: 'gold',
-  meeting: 'warning',
-  engaged: 'success',
-  closed: 'danger',
-}
-
-/** Solid dot color per stage, used in the pipeline bar and board headers. */
-export const STAGE_DOT: Record<ProposalStage, string> = {
-  idea: 'bg-navy-200',
-  suggested: 'bg-navy-700',
-  checking: 'bg-gold-500',
-  meeting: 'bg-warning',
-  engaged: 'bg-success',
-  closed: 'bg-danger/70',
-}
-
-export function StageBadge({ stage }: { stage: ProposalStage }) {
-  return <Badge tone={STAGE_TONE[stage]}>{he.stage[stage]}</Badge>
-}
-
-export function ResponseChip({ side, response }: { side: Gender; response: SideResponse }) {
-  const Icon =
-    response === 'interested' ? CircleCheck : response === 'declined' ? CircleX : CircleDashed
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 text-[12px]',
-        response === 'interested' && 'text-success',
-        response === 'declined' && 'text-danger',
-        response === 'pending' && 'text-ink-muted',
-      )}
-      title={`${side === 'male' ? he.proposals.maleResponse : he.proposals.femaleResponse}: ${he.response[response]}`}
-    >
-      <Icon className="size-3.5" aria-hidden />
-      <span className="sr-only">
-        {side === 'male' ? he.proposals.maleResponse : he.proposals.femaleResponse}:{' '}
-      </span>
-      {he.response[response]}
-    </span>
-  )
-}
-
-const DAY = 86_400_000
-export function todayIso(): string {
-  const d = new Date()
-  const p = (x: number) => String(x).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
-/** Whole days from today (negative = past). */
-export function daysFromToday(iso: string): number {
-  const [y, m, d] = iso.split('-').map(Number)
-  const t = new Date()
-  const a = Date.UTC(y!, m! - 1, d!)
-  const b = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())
-  return Math.round((a - b) / DAY)
-}
-
-export function relativeDay(iso: string): string {
-  const n = daysFromToday(iso)
-  if (n === 0) return he.proposals.today
-  if (n === 1) return he.proposals.tomorrow
-  if (n > 1) return he.proposals.inDays(n)
-  return he.proposals.daysAgo(-n)
-}
-
-export function DueBadge({ date, done }: { date: string | null; done?: boolean }) {
-  if (!date) return null
-  const n = daysFromToday(date)
-  const tone = done ? 'neutral' : n < 0 ? 'danger' : n === 0 ? 'gold' : 'neutral'
-  return (
-    <Badge tone={tone} className="tabular">
-      {!done && n < 0 ? `${he.proposals.overdue} · ` : ''}
-      {relativeDay(date)}
-    </Badge>
-  )
-}
 
 export function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -159,7 +75,7 @@ export function CandidatePicker({
       </PopoverTrigger>
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-64 p-2">
         <Command loop>
-          <CommandInput placeholder={he.match.pickPlaceholder} />
+          <CommandInput placeholder={he.nav.quickFind} />
           <CommandList>
             <CommandEmpty>{he.filters.noOptions}</CommandEmpty>
             {allowNone && (

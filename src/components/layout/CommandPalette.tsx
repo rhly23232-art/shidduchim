@@ -1,22 +1,11 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Command as CommandPrimitive } from 'cmdk'
-import {
-  HeartHandshake,
-  LayoutDashboard,
-  Lightbulb,
-  ListChecks,
-  Plus,
-  Search,
-  Sparkles,
-  UserRound,
-  Users,
-} from 'lucide-react'
+import { Lightbulb, Plus, Search, UserRound, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DialogOverlay } from '@/components/ui/dialog'
 import { useAppActions } from '@/features/workspace/appActions'
-import { StageBadge } from '@/features/workspace/bits'
-import { useCandidateIndex, useProposals } from '@/hooks/useWorkspace'
+import { useCandidateIndex } from '@/hooks/useWorkspace'
 import { useReturnFocus } from '@/hooks/useReturnFocus'
 import { he } from '@/lib/strings.he'
 import { fullName } from '@/lib/utils'
@@ -33,8 +22,7 @@ export function CommandPalette({
   open: boolean
   onOpenChange: (o: boolean) => void
 }) {
-  const { rows, byId } = useCandidateIndex()
-  const proposals = useProposals()
+  const { rows } = useCandidateIndex()
   const actions = useAppActions()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
@@ -62,19 +50,11 @@ export function CommandPalette({
   }
 
   const candidates = useMemo(() => (q.trim() ? rows : rows.slice(0, 6)), [rows, q])
-  const props = useMemo(
-    () => (q.trim() ? (proposals.data ?? []) : (proposals.data ?? []).slice(0, 4)),
-    [proposals.data, q],
-  )
 
   const pages = [
-    { to: '/', label: he.nav.dashboard, icon: <LayoutDashboard /> },
-    { to: '/proposals', label: he.nav.proposals, icon: <HeartHandshake /> },
-    { to: '/match', label: he.nav.match, icon: <Sparkles /> },
-    { to: '/ideas', label: he.nav.ideas, icon: <Lightbulb /> },
-    { to: '/tasks', label: he.nav.tasks, icon: <ListChecks /> },
     { to: '/candidates?tab=male', label: he.tabs.male, icon: <UserRound /> },
     { to: '/candidates?tab=female', label: he.tabs.female, icon: <Users /> },
+    { to: '/ideas', label: he.nav.ideas, icon: <Lightbulb /> },
   ]
 
   return (
@@ -120,30 +100,6 @@ export function CommandPalette({
                   </CommandPrimitive.Item>
                 ))}
               </CommandPrimitive.Group>
-              {props.length > 0 && (
-                <CommandPrimitive.Group heading={he.palette.proposals} className={group}>
-                  {props.map((p) => {
-                    const m = byId.get(p.male_id)
-                    const f = byId.get(p.female_id)
-                    if (!m || !f) return null
-                    return (
-                      <CommandPrimitive.Item
-                        key={p.id}
-                        value={`p:${p.id}`}
-                        keywords={[fullName(m), fullName(f), he.stage[p.stage]]}
-                        onSelect={() => run(() => actions.openProposal(p.id))}
-                        className={item}
-                      >
-                        <HeartHandshake />
-                        <span className="flex-1 truncate">
-                          {he.proposals.pair(fullName(m), fullName(f))}
-                        </span>
-                        <StageBadge stage={p.stage} />
-                      </CommandPrimitive.Item>
-                    )
-                  })}
-                </CommandPrimitive.Group>
-              )}
               <CommandPrimitive.Group heading={he.palette.actions} className={group}>
                 <CommandPrimitive.Item
                   value="a:new-candidate"
@@ -154,15 +110,7 @@ export function CommandPalette({
                   <Plus />
                   {he.palette.newCandidate}
                 </CommandPrimitive.Item>
-                <CommandPrimitive.Item
-                  value="a:new-proposal"
-                  keywords={[he.palette.newProposal]}
-                  onSelect={() => run(() => actions.newProposal())}
-                  className={item}
-                >
-                  <HeartHandshake />
-                  {he.palette.newProposal}
-                </CommandPrimitive.Item>
+
                 {pages.map((pg) => (
                   <CommandPrimitive.Item
                     key={pg.to}

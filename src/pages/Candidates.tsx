@@ -1,5 +1,6 @@
 import { CandidatesTable } from '@/features/candidates/CandidatesTable'
 import { CANDIDATES_PANEL_ID, FilterBar, tabId } from '@/features/candidates/FilterBar'
+import { SampleDataBanner } from '@/features/candidates/SampleData'
 import { useAppActions } from '@/features/workspace/appActions'
 import { useCandidateDataset } from '@/hooks/useCandidates'
 import { useFilters } from '@/hooks/useFilters'
@@ -26,6 +27,7 @@ export default function CandidatesPage() {
         rows={data.rows}
       />
       <main id="main" className="px-4 pb-16 pt-4 md:px-6 md:pt-5">
+        <SampleDataBanner />
         <div id={CANDIDATES_PANEL_ID} role="tabpanel" aria-labelledby={tabId(gender)}>
           <CandidatesTable
             gender={gender}

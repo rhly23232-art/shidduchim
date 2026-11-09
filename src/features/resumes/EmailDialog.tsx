@@ -36,6 +36,9 @@ interface Props {
 type Route = 'gmail' | 'server' | 'none'
 
 function gmailErrorText(err: unknown): string {
+  const raw = errorMessage(err)
+  // The connected Gmail may only have read access (no compose/send permission).
+  if (/permission|scope|insufficient|forbidden|403/i.test(raw)) return he.email.gmailNoPermission
   switch (hostErrorCode(err)) {
     case 'server_not_connected':
     case 'server_not_found':
@@ -55,7 +58,7 @@ function gmailErrorText(err: unknown): string {
     case 'cancelled':
       return he.email.gmailUnclear
     default:
-      return errorMessage(err)
+      return raw
   }
 }
 
@@ -132,7 +135,7 @@ export function EmailDialog({ open, onOpenChange, candidate, defaultTo = '' }: P
     } catch (err) {
       toast.error(he.email.sendFailed, {
         description: route === 'gmail' ? gmailErrorText(err) : errorMessage(err),
-        duration: 9000,
+        duration: 15000,
       })
     } finally {
       setSending(false)

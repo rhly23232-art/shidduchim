@@ -20,7 +20,6 @@ import {
   ResumeActions,
 } from '@/features/resumes/ResumeActions'
 import { useCandidateDetail } from '@/hooks/useCandidates'
-import { CandidateWorkspace } from '@/features/workspace/CandidateWorkspace'
 import { formatGregorian } from '@/lib/hebrewDate'
 import { he } from '@/lib/strings.he'
 import type { CandidateFull, CandidateRow } from '@/lib/types'
@@ -293,9 +292,6 @@ export function CandidateDetailModal({ id, preview, onClose, onEdit, onDelete }:
             </DialogHeader>
             <DialogBody>
               <DetailSections c={c} full={full} />
-              <div className="mt-6">
-                <CandidateWorkspace c={c} />
-              </div>
               <div className="mt-6 border-t border-line pt-5">
                 <h3 className="mb-3 text-[17px] font-bold text-navy-900">{he.resume.label}</h3>
                 <ResumeActions candidate={c} variant="full" />

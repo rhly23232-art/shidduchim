@@ -4,7 +4,7 @@
  * Creates a demo matchmaker account (demo@shidduchim.local / shidduch123) and its 20 candidates.
  */
 import { writeFileSync } from 'node:fs'
-import { SEED_CANDIDATES, SEED_IDEAS, SEED_PROPOSALS, SEED_TASKS } from '../src/data/seedData.ts'
+import { SEED_CANDIDATES, SEED_IDEAS } from '../src/data/seedData.ts'
 import { gregorianToHebrew } from '../src/lib/hebrewDate.ts'
 
 const DEMO_USER_ID = '11111111-1111-4111-8111-111111111111'
@@ -105,43 +105,12 @@ SEED_CANDIDATES.forEach((s, i) => {
 })
 
 const cid = (i: number) => `22222222-2222-4222-8222-${String(i + 1).padStart(12, '0')}`
-const pid = (i: number) => `33333333-3333-4333-8333-${String(i + 1).padStart(12, '0')}`
-const day = (n: number | null) => (n === null ? 'null' : `current_date + ${n}`)
-lines.push('-- Matchmaker workspace')
-SEED_PROPOSALS.forEach((p, i) => {
-  lines.push(
-    `insert into public.proposals (id, owner_id, male_id, female_id, stage, male_response, female_response, next_followup, notes, closed_reason, created_at) values (${q(pid(i))}, ${q(DEMO_USER_ID)}, ${q(cid(p.male))}, ${q(cid(p.female))}, ${q(p.stage)}, ${q(p.male_response)}, ${q(p.female_response)}, ${day(p.followupInDays)}, ${q(p.notes)}, ${q(p.closed_reason)}, now() - interval '${(SEED_PROPOSALS.length - i) * 3} days');`,
-  )
-  p.log.forEach((t, j) =>
-    lines.push(
-      `insert into public.proposal_events (proposal_id, kind, text, created_at) values (${q(pid(i))}, 'note', ${q(t)}, now() - interval '${p.log.length - j} days');`,
-    ),
-  )
-})
+lines.push('-- Sample ideas')
 SEED_IDEAS.forEach((d) =>
   lines.push(
     `insert into public.ideas (owner_id, title, body, male_id, female_id, pinned) values (${q(DEMO_USER_ID)}, ${q(d.title)}, ${q(d.body)}, ${d.male === null ? 'null' : q(cid(d.male))}, ${d.female === null ? 'null' : q(cid(d.female))}, ${d.pinned});`,
   ),
 )
-SEED_TASKS.forEach((t) =>
-  lines.push(
-    `insert into public.tasks (owner_id, title, due_date, done, candidate_id, proposal_id) values (${q(DEMO_USER_ID)}, ${q(t.title)}, ${day(t.dueInDays)}, ${t.done}, ${t.candidate === null ? 'null' : q(cid(t.candidate))}, ${t.proposal === null ? 'null' : q(pid(t.proposal))});`,
-  ),
-)
-// Keep statuses and history timestamps consistent with the sample pipeline.
-SEED_PROPOSALS.forEach((p) => {
-  const status = p.stage === 'engaged' ? 'engaged' : p.stage === 'checking' || p.stage === 'meeting' ? 'in_process' : null
-  if (status) lines.push(`update public.candidates set status = '${status}' where id in (${q(cid(p.male))}, ${q(cid(p.female))});`)
-})
-lines.push(
-  "update public.proposal_events e set created_at = p.created_at from public.proposals p where e.proposal_id = p.id and e.kind = 'created';",
-)
-SEED_PROPOSALS.forEach((p, i) => {
-  if (p.stage !== 'idea')
-    lines.push(
-      `insert into public.proposal_events (proposal_id, kind, from_stage, to_stage, text, created_at) values (${q(pid(i))}, 'stage', 'idea', ${q(p.stage)}, ${q(p.closed_reason)}, now() - interval '${i + 1} hours');`,
-    )
-})
 lines.push('')
 
 writeFileSync(new URL('../supabase/seed.sql', import.meta.url), lines.join('\n'))

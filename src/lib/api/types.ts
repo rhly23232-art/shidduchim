@@ -1,12 +1,6 @@
 import type {
-  CandidateStatus,
   Idea,
   IdeaInput,
-  Proposal,
-  ProposalEvent,
-  ProposalInput,
-  Task,
-  TaskInput,
   CandidateFull,
   CandidateRow,
   Gender,
@@ -112,20 +106,13 @@ export interface DataApi {
   sendResumeEmail(input: SendEmailInput): Promise<void>
   /** Reads the stored resume bytes (in-app viewer, Gmail attachment, downloads). */
   getResumeBlob(resume: ResumeMeta): Promise<Blob>
-  setCandidateStatus(id: string, status: CandidateStatus): Promise<void>
+  /** Adds the 20 sample candidates (+ ideas, sample resumes). Resolves how many were added. */
+  loadSampleData?(): Promise<number>
+  /** Removes every sample candidate. Resolves how many were removed. */
+  clearSampleData?(): Promise<number>
 
-  // ---- matchmaker workspace ----
-  listProposals(): Promise<Proposal[]>
-  saveProposal(input: ProposalInput, id?: string): Promise<Proposal>
-  deleteProposal(id: string): Promise<void>
-  listProposalEvents(proposalId: string): Promise<ProposalEvent[]>
-  /** Recent history across all proposals (dashboard feed). */
-  listRecentEvents(limit: number): Promise<ProposalEvent[]>
-  addProposalNote(proposalId: string, text: string): Promise<ProposalEvent>
+  // ---- ideas ----
   listIdeas(): Promise<Idea[]>
   saveIdea(input: IdeaInput, id?: string): Promise<Idea>
   deleteIdea(id: string): Promise<void>
-  listTasks(): Promise<Task[]>
-  saveTask(input: TaskInput, id?: string): Promise<Task>
-  deleteTask(id: string): Promise<void>
 }

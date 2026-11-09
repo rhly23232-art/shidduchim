@@ -6,15 +6,24 @@ React Hook Form + Zod · Supabase (Postgres, Auth, Storage, Edge Functions) · f
 
 ## מה במערכת
 
-- **לוח בקרה** — מדדים, מצב ההצעות לפי שלב, "לטיפול היום" (משימות ומעקבים באיחור/להיום), פעילות אחרונה ומועמדים שממתינים להצעה.
-- **סרגל צד** — ניווט לכל אזורי הניהול, ספירות חיות, ורשימת כל המועמדים עם חיפוש וסינון בחור/בחורה.
-- **הצעות** — לוח לפי שלבים (רעיון → הוצע למשפחות → בבירורים → בפגישות → מזל טוב / לא התקדם) עם גרירה,
-  תצוגת רשימה, תשובת כל צד, תאריך מעקב, הערות והיסטוריה אוטומטית. מעבר שלב מעדכן את סטטוס המועמדים.
-- **התאמה חכמה** — דירוג שקוף לפי פער גילאים, עדה, חוג, עיר/אזור, גובה וזמינות, עם נימוקים ויצירת הצעה בלחיצה.
-- **רעיונות** — פנקס רעיונות עם הצמדה, קישור למועמדים והפיכה להצעה.
-- **משימות ותזכורות** — כולל מעקבי ההצעות, מקובצות לפי באיחור / היום / בהמשך.
-- **חיפוש מהיר (Ctrl+K)** — מועמדים, הצעות ופעולות מכל מקום.
-- **רזומה** — צפייה בתוך האפליקציה (PDF, תמונה, Word), הורדה, שליחה במייל עם קובץ מצורף, ייצוא רשימה לאקסל (CSV).
+- **טבלאות בחורים ובחורות** — סינון משולב (גיל, עיר/אזור, ישיבה/סמינר, עדה) שנשמר בכתובת, מיון, חיפוש חופשי וייצוא לאקסל.
+- **כרטיס מועמד** — 4 חלקים, עריכה ומחיקה, ניהול רזומה (צפייה בתוך האפליקציה ל-PDF, תמונה ו-Word; הורדה; שליחה במייל עם קובץ מצורף).
+- **סרגל צד** — מעבר בין הטבלאות, פנל רעיונות ורשימת כל המועמדים עם חיפוש.
+- **פנל רעיונות** — רשימות חופשיות עם הצמדה, סימון כטופל וקישור למועמדים.
+- **חיפוש מהיר (Ctrl+K)** — מועמדים ופעולות מכל מקום.
+
+## מסד הנתונים — שלוש אפשרויות (נבחרת אוטומטית בעלייה)
+
+1. **Supabase** — כשמוגדרים `VITE_SUPABASE_URL` ו-`VITE_SUPABASE_ANON_KEY` (הוראות למטה).
+2. **מסד הנתונים של claude.ai** — כשהאפליקציה מפורסמת כ-Artifact: הנתונים נשמרים בחשבון claude.ai של המשתמש
+   (אזור פרטי — `data/users/<id>/profile/{candidates,ideas}`), קבצי רזומה באחסון הקבצים של הדף.
+   הזיהוי הוא חשבון claude.ai עצמו, ולכן אין מסך כניסה. מסד ריק מציע "טעינת נתוני דוגמה" שניתנים להסרה בלחיצה.
+3. **הדגמה מקומית** — בכל מצב אחר, בדפדפן בלבד (IndexedDB).
+
+### שליחת מייל בתוך claude.ai
+
+השליחה עוברת דרך חיבור ה-Gmail של המשתמש. החיבור חייב לכלול הרשאת שליחה: אם Gmail חובר בהרשאת קריאה בלבד,
+יש לנתק ולחבר אותו מחדש בהגדרות claude.ai ← Connectors ולאשר את כל ההרשאות.
 
 ## הרצה מהירה
 
@@ -57,11 +66,6 @@ npm run db:seed             # יצירה מחדש של supabase/seed.sql מתו�
 npm run verify:rls          # בדיקת RLS עם שני חשבונות (דורש .env.local)
 ```
 
-### כשהאפליקציה מוצגת בתוך claude.ai
-
-בתוך המסגרת של claude.ai אין הורדות ישירות, לשוניות חדשות וקישורי mailto. האפליקציה מזהה זאת ועוברת לשירותי המסגרת:
-הורדה דרך חלון השמירה של claude.ai, ושליחת מייל דרך חשבון ה-Gmail של המשתמש (באישורו) עם הקובץ מצורף.
-
 ## סקריפטים
 
 | פקודה | תיאור |
@@ -69,7 +73,7 @@ npm run verify:rls          # בדיקת RLS עם שני חשבונות (דור�
 | `npm run dev` | שרת פיתוח |
 | `npm run build` | בדיקת טיפוסים + build לייצור |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
-| `npm run verify:rls` | 33 בדיקות בידוד בין חשבונות (מועמדים, הצעות, היסטוריה, רעיונות, משימות, RPC ו-Storage) |
+| `npm run verify:rls` | 23 בדיקות בידוד בין חשבונות (מועמדים, משפחה, מחותנים, רעיונות, RPC ו-Storage) |
 
 לאירוח סטטי ללא rewrites (למשל GitHub Pages) בנו עם `VITE_HASH_ROUTER=true`.
 
@@ -79,11 +83,11 @@ npm run verify:rls          # בדיקת RLS עם שני חשבונות (דור�
 src/
   components/ui/          רכיבי shadcn (Button, Dialog, Sheet, Popover, Command, Slider…)
   components/layout/      Header, SearchBox, UserMenu, Logo
-  features/candidates/    CandidatesTable, columns.male.tsx, columns.female.tsx, FilterBar,
+  features/candidates/    CandidatesTable, columns.male.tsx, columns.female.tsx, FilterBar, SampleData,
                           CandidateDetailModal, CandidateForm, filtering.ts
   features/resumes/       ResumeActions, EmailDialog, uploadResume.ts, sendResumeEmail.ts
   hooks/                  useCandidates, useFilters (מסונכרן ל-URL), useDebounced, …
-  lib/                    supabase.ts, api/ (Supabase + מצב הדגמה), hebrewDate.ts, age.ts,
+  lib/                    supabase.ts, api/ (Supabase / מסד claude.ai / הדגמה), hebrewDate.ts, age.ts,
                           validators.ts, strings.he.ts (כל מחרוזות הממשק)
   pages/                  Login, Dashboard
 supabase/

@@ -28,6 +28,7 @@ import type { CandidateRow, Gender } from '@/lib/types'
 import { cn, fullName } from '@/lib/utils'
 import { femaleColumns } from './columns.female'
 import { maleColumns } from './columns.male'
+import { LoadSamplesButton } from './SampleData'
 import { StatusBadge } from './StatusBadge'
 
 const VIRTUALIZE_AFTER = 100
@@ -107,9 +108,12 @@ export function CandidatesTable(props: Props) {
         title={he.table.emptyTitle(props.gender)}
         text={he.table.emptyText}
         action={
-          <Button variant="primary" onClick={props.onAdd}>
-            {he.header.addCandidate}
-          </Button>
+          <div className="flex flex-col items-center gap-4">
+            <Button variant="primary" onClick={props.onAdd}>
+              {he.header.addCandidate}
+            </Button>
+            <LoadSamplesButton />
+          </div>
         }
       />
     )

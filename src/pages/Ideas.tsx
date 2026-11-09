@@ -1,14 +1,4 @@
-import {
-  CheckCircle2,
-  HeartHandshake,
-  Lightbulb,
-  Pencil,
-  Pin,
-  PinOff,
-  Plus,
-  RotateCcw,
-  Trash2,
-} from 'lucide-react'
+import { CheckCircle2, Lightbulb, Pencil, Pin, PinOff, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
@@ -258,23 +248,6 @@ export default function IdeasPage() {
                   <span className="tabular me-auto text-[12px] text-ink-muted">
                     {relativeTime(i.updated_at)}
                   </span>
-                  {m && f && !i.done && (
-                    <Button
-                      size="sm"
-                      variant="subtle"
-                      onClick={() =>
-                        actions.newProposal({
-                          male_id: m.id,
-                          female_id: f.id,
-                          notes: i.body ?? i.title,
-                          ideaId: i.id,
-                        })
-                      }
-                    >
-                      <HeartHandshake />
-                      {he.ideas.toProposal}
-                    </Button>
-                  )}
                   <Tooltip content={i.pinned ? he.ideas.unpin : he.ideas.pin}>
                     <Button
                       size="icon-sm"

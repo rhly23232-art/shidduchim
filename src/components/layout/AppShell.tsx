@@ -8,13 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CandidateDetailModal } from '@/features/candidates/CandidateDetailModal'
 import { CandidateForm, type FormSuggestions } from '@/features/candidates/CandidateForm'
 import { ResumeViewer } from '@/features/resumes/ResumeViewer'
-import {
-  AppActionsContext,
-  type AppActions,
-  type NewProposalPrefill,
-} from '@/features/workspace/appActions'
-import { NewProposalDialog } from '@/features/workspace/NewProposalDialog'
-import { ProposalDrawer } from '@/features/workspace/ProposalDrawer'
+import { AppActionsContext, type AppActions } from '@/features/workspace/appActions'
 import { qk, useDeleteCandidate } from '@/hooks/useCandidates'
 import { useOverlayParam } from '@/hooks/useOverlayParam'
 import { useCandidateIndex, wk } from '@/hooks/useWorkspace'
@@ -32,13 +26,8 @@ const uniqSorted = (values: (string | null)[]) =>
 
 function usePageTitle(): string {
   const { pathname, search } = useLocation()
-  if (pathname.startsWith('/proposals')) return he.nav.proposals
-  if (pathname.startsWith('/match')) return he.nav.match
   if (pathname.startsWith('/ideas')) return he.nav.ideas
-  if (pathname.startsWith('/tasks')) return he.nav.tasks
-  if (pathname.startsWith('/candidates'))
-    return new URLSearchParams(search).get('tab') === 'female' ? he.tabs.female : he.tabs.male
-  return he.nav.dashboard
+  return new URLSearchParams(search).get('tab') === 'female' ? he.tabs.female : he.tabs.male
 }
 
 export function AppShell() {
@@ -46,7 +35,6 @@ export function AppShell() {
   const location = useLocation()
   const { rows, byId } = useCandidateIndex()
   const [candidateId, openCandidateParam, closeCandidate] = useOverlayParam('c')
-  const [proposalId, openProposalParam, closeProposal] = useOverlayParam('p')
   const [form, setForm] = useState<{
     open: boolean
     candidate: CandidateFull | null
@@ -57,7 +45,6 @@ export function AppShell() {
     gender: 'male',
   })
   const [toDelete, setToDelete] = useState<CandidateRow | null>(null)
-  const [newProposal, setNewProposal] = useState<NewProposalPrefill | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const del = useDeleteCandidate()
@@ -100,11 +87,9 @@ export function AppShell() {
       newCandidate: (g) => setForm({ open: true, candidate: null, gender: g ?? currentTab }),
       editCandidate: (c) => void editCandidate(c),
       deleteCandidate: setToDelete,
-      openProposal: openProposalParam,
-      newProposal: (prefill) => setNewProposal(prefill ?? {}),
       openPalette: () => setPaletteOpen(true),
     }),
-    [openCandidateParam, openProposalParam, editCandidate, currentTab],
+    [openCandidateParam, editCandidate, currentTab],
   )
 
   const preview = candidateId ? (byId.get(candidateId) ?? null) : null
@@ -132,11 +117,7 @@ export function AppShell() {
     try {
       await del.mutateAsync(target.id)
       if (candidateId === target.id) closeCandidate()
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: wk.proposals }),
-        qc.invalidateQueries({ queryKey: wk.ideas }),
-        qc.invalidateQueries({ queryKey: wk.tasks }),
-      ])
+      await qc.invalidateQueries({ queryKey: wk.ideas })
       toast.success(he.form.deleted(fullName(target)))
     } catch (e) {
       toast.error(he.form.deleteFailed, { description: errorMessage(e) })
@@ -209,15 +190,6 @@ export function AppShell() {
         confirmLabel={he.form.deleteConfirm}
         destructive
         onConfirm={() => void confirmDelete()}
-      />
-      <ProposalDrawer id={proposalId} onClose={closeProposal} />
-      <NewProposalDialog
-        prefill={newProposal}
-        onClose={() => setNewProposal(null)}
-        onCreated={(id) => {
-          setNewProposal(null)
-          openProposalParam(id)
-        }}
       />
       <ResumeViewer />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />

@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { backendMode } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { he } from '@/lib/strings.he'
 
@@ -15,7 +16,7 @@ export function UserMenu() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   if (!user) return null
-  const display = user.fullName || user.email
+  const display = user.fullName || user.email || 'החשבון שלי'
   const initial = display.trim().charAt(0).toUpperCase()
   return (
     <DropdownMenu dir="rtl">
@@ -34,16 +35,18 @@ export function UserMenu() {
             </span>
           )}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => {
-            // Explicit logout: next login starts clean (no previous filters in the URL).
-            void signOut().then(() => navigate('/login', { replace: true }))
-          }}
-        >
-          <LogOut />
-          {he.auth.logout}
-        </DropdownMenuItem>
+        {backendMode() !== 'host' && <DropdownMenuSeparator />}
+        {backendMode() !== 'host' && (
+          <DropdownMenuItem
+            onSelect={() => {
+              // Explicit logout: next login starts clean (no previous filters in the URL).
+              void signOut().then(() => navigate('/login', { replace: true }))
+            }}
+          >
+            <LogOut />
+            {he.auth.logout}
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

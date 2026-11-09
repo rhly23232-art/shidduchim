@@ -1,23 +1,14 @@
 import { motion } from 'framer-motion'
-import {
-  HeartHandshake,
-  LayoutDashboard,
-  Lightbulb,
-  ListChecks,
-  Search,
-  Sparkles,
-  UserRound,
-  Users,
-} from 'lucide-react'
+import { Database, Lightbulb, Search, UserRound, Users } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { useAppActions } from '@/features/workspace/appActions'
-import { daysFromToday } from '@/features/workspace/bits'
-import { useCandidateIndex, useIdeas, useProposals, useTasks } from '@/hooks/useWorkspace'
-import { isDemoMode } from '@/lib/env'
+import { useCandidateIndex, useIdeas } from '@/hooks/useWorkspace'
+import { Tooltip } from '@/components/ui/tooltip'
+import { backendMode } from '@/lib/api'
 import { he } from '@/lib/strings.he'
-import { ACTIVE_STAGES, type Gender } from '@/lib/types'
+import type { Gender } from '@/lib/types'
 import { cn, fullName, hebrewCollator, normalizeSearch } from '@/lib/utils'
 import { Logo } from './Logo'
 
@@ -98,8 +89,6 @@ function NavItem({
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { rows } = useCandidateIndex()
-  const proposals = useProposals()
-  const tasks = useTasks()
   const ideas = useIdeas()
   const actions = useAppActions()
   const location = useLocation()
@@ -112,20 +101,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     for (const r of rows) if (r.gender === 'male') male++
     return { male, female: rows.length - male }
   }, [rows])
-  const activeProposals = proposals.data?.filter((p) => ACTIVE_STAGES.includes(p.stage)).length ?? 0
-  const dueTasks =
-    (tasks.data?.filter((t) => !t.done && t.due_date && daysFromToday(t.due_date) <= 0).length ??
-      0) +
-    (proposals.data?.filter(
-      (p) =>
-        ACTIVE_STAGES.includes(p.stage) && p.next_followup && daysFromToday(p.next_followup) <= 0,
-    ).length ?? 0)
-  const overdue =
-    tasks.data?.some((t) => !t.done && t.due_date && daysFromToday(t.due_date) < 0) ||
-    proposals.data?.some(
-      (p) =>
-        ACTIVE_STAGES.includes(p.stage) && p.next_followup && daysFromToday(p.next_followup) < 0,
-    )
   const openIdeas = ideas.data?.filter((i) => !i.done).length ?? 0
 
   const list = useMemo(() => {
@@ -149,52 +124,26 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <div className="rounded-xl bg-surface px-2.5 py-2">
           <Logo />
         </div>
-        {isDemoMode && (
-          <Badge tone="gold" className="ms-auto">
-            {he.app.demoBadge}
-          </Badge>
+      </div>
+      <div className="-mt-2 px-4 pb-3">
+        {backendMode() === 'demo' && (
+          <Tooltip content={he.app.demoTooltip}>
+            <Badge tone="gold" tabIndex={0} className="cursor-help">
+              {he.app.demoBadge}
+            </Badge>
+          </Tooltip>
+        )}
+        {backendMode() === 'host' && (
+          <Tooltip content={he.hostDb.connectedTooltip}>
+            <Badge tone="success" tabIndex={0} className="cursor-help">
+              <Database className="size-3" aria-hidden />
+              {he.hostDb.connected}
+            </Badge>
+          </Tooltip>
         )}
       </div>
 
       <div className="space-y-5 px-3">
-        <div>
-          <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-navy-200/70">
-            {he.nav.sectionWork}
-          </p>
-          <div className="space-y-0.5">
-            <NavItem
-              to="/"
-              end
-              icon={<LayoutDashboard />}
-              label={he.nav.dashboard}
-              onNavigate={onNavigate}
-            />
-            <NavItem
-              to="/proposals"
-              icon={<HeartHandshake />}
-              label={he.nav.proposals}
-              badge={activeProposals}
-              onNavigate={onNavigate}
-            />
-            <NavItem to="/match" icon={<Sparkles />} label={he.nav.match} onNavigate={onNavigate} />
-            <NavItem
-              to="/ideas"
-              icon={<Lightbulb />}
-              label={he.nav.ideas}
-              badge={openIdeas}
-              onNavigate={onNavigate}
-            />
-            <NavItem
-              to="/tasks"
-              icon={<ListChecks />}
-              label={he.nav.tasks}
-              badge={dueTasks}
-              badgeTone={overdue ? 'danger' : 'gold'}
-              onNavigate={onNavigate}
-            />
-          </div>
-        </div>
-
         <div>
           <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-navy-200/70">
             {he.nav.sectionPool}
@@ -217,6 +166,18 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               onNavigate={onNavigate}
             />
           </div>
+        </div>
+        <div>
+          <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-navy-200/70">
+            {he.nav.sectionWork}
+          </p>
+          <NavItem
+            to="/ideas"
+            icon={<Lightbulb />}
+            label={he.nav.ideas}
+            badge={openIdeas}
+            onNavigate={onNavigate}
+          />
         </div>
       </div>
 
@@ -243,11 +204,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   g === k ? 'bg-surface text-navy-900' : 'text-navy-100/80 hover:text-surface',
                 )}
               >
-                {k === 'all'
-                  ? he.proposals.filterAll
-                  : k === 'male'
-                    ? he.nav.males
-                    : he.nav.females}
+                {k === 'all' ? he.nav.all : k === 'male' ? he.nav.males : he.nav.females}
               </button>
             ))}
           </div>

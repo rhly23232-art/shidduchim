@@ -3,7 +3,7 @@
  * Active only when Supabase env vars are not configured.
  */
 import { createStore, del as idbDel, get as idbGet, set as idbSet, type UseStore } from 'idb-keyval'
-import { SEED_CANDIDATES, SEED_IDEAS, SEED_PROPOSALS, SEED_TASKS } from '@/data/seedData'
+import { SEED_CANDIDATES, SEED_IDEAS } from '@/data/seedData'
 import { ageFromBirthDate } from '../age'
 import { gregorianToHebrew } from '../hebrewDate'
 import { he } from '../strings.he'
@@ -12,11 +12,8 @@ import type {
   CandidateRow,
   Idea,
   InLaw,
-  Proposal,
-  ProposalEvent,
   ResumeMeta,
   SaveCandidatePayload,
-  Task,
 } from '../types'
 import { hebrewCollator, normalizeSearch, sleep } from '../utils'
 import type { AppUser, AuthApi, DataApi, FacetRow } from './types'
@@ -28,7 +25,7 @@ interface DemoUser extends AppUser {
   salt: string
   hash: string
 }
-type StoredCandidate = Omit<CandidateFull, 'age'>
+export type StoredCandidate = Omit<CandidateFull, 'age'>
 
 /**
  * IndexedDB when available; transparent in-memory fallback when the browser blocks it
@@ -130,7 +127,7 @@ async function requireUserId(): Promise<string> {
   return u.id
 }
 
-function seedRows(ownerId: string): StoredCandidate[] {
+export function seedRows(ownerId: string): StoredCandidate[] {
   const base = Date.now()
   return SEED_CANDIDATES.map((s, i) => {
     const ts = new Date(base - i * 3_600_000).toISOString()
@@ -142,104 +139,35 @@ function seedRows(ownerId: string): StoredCandidate[] {
       created_at: ts,
       updated_at: ts,
       resume: null,
+      is_sample: true,
       family: s.family,
       in_laws: s.in_laws.map((l) => ({ ...l, id: uid() })),
     }
   })
 }
 
-// ---------------- matchmaker workspace storage ----------------
+// ---------------- ideas storage ----------------
 interface Workspace {
   version: number
-  proposals: Proposal[]
-  events: ProposalEvent[]
   ideas: Idea[]
-  tasks: Task[]
 }
-const WS_VERSION = 1
-const emptyWs = (): Workspace => ({
-  version: WS_VERSION,
-  proposals: [],
-  events: [],
-  ideas: [],
-  tasks: [],
-})
+const WS_VERSION = 2
 async function setWs(userId: string, ws: Workspace) {
   await set(`ws:${userId}`, ws)
 }
-const isoDay = (offset: number) => {
-  const d = new Date()
-  d.setDate(d.getDate() + offset)
-  const p = (x: number) => String(x).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
-const event = (
-  proposalId: string,
-  e: Partial<ProposalEvent> & Pick<ProposalEvent, 'kind'>,
-  at = now(),
-): ProposalEvent => ({
-  id: uid(),
-  proposal_id: proposalId,
-  from_stage: null,
-  to_stage: null,
-  side: null,
-  response: null,
-  text: null,
-  created_at: at,
-  ...e,
-})
 
-/** Sample proposals/ideas/tasks for the demo account, linked to its candidates by name. */
-function seedWorkspace(rows: StoredCandidate[]): Workspace {
+/** Sample ideas for the demo account, linked to its candidates by name. */
+export function seedIdeas(rows: StoredCandidate[]): Idea[] {
   const byIndex = (i: number) => {
     const c = SEED_CANDIDATES[i]!.candidate
     return (
       rows.find((r) => r.first_name === c.first_name && r.last_name === c.last_name)?.id ?? null
     )
   }
-  const ws = emptyWs()
   const day = 86_400_000
-  SEED_PROPOSALS.forEach((sp, i) => {
-    const male = byIndex(sp.male)
-    const female = byIndex(sp.female)
-    if (!male || !female) return
-    const created = new Date(Date.now() - (SEED_PROPOSALS.length - i) * 3 * day).toISOString()
-    const p: Proposal = {
-      id: uid(),
-      owner_id: rows[0]?.owner_id ?? '',
-      male_id: male,
-      female_id: female,
-      stage: sp.stage,
-      male_response: sp.male_response,
-      female_response: sp.female_response,
-      next_followup: sp.followupInDays === null ? null : isoDay(sp.followupInDays),
-      notes: sp.notes,
-      closed_reason: sp.closed_reason,
-      created_at: created,
-      updated_at: new Date(Date.now() - i * 3_600_000).toISOString(),
-    }
-    ws.proposals.push(p)
-    ws.events.push(event(p.id, { kind: 'created', to_stage: 'idea' }, created))
-    if (sp.stage !== 'idea')
-      ws.events.push(
-        event(
-          p.id,
-          { kind: 'stage', from_stage: 'idea', to_stage: sp.stage, text: sp.closed_reason },
-          p.updated_at,
-        ),
-      )
-    sp.log.forEach((t, j) =>
-      ws.events.push(
-        event(
-          p.id,
-          { kind: 'note', text: t },
-          new Date(Date.now() - (sp.log.length - j) * day).toISOString(),
-        ),
-      ),
-    )
-  })
-  SEED_IDEAS.forEach((d, i) =>
-    ws.ideas.push({
+  return SEED_IDEAS.map((d, i) => {
+    const at = new Date(Date.now() - (i + 1) * day).toISOString()
+    return {
       id: uid(),
       title: d.title,
       body: d.body,
@@ -247,54 +175,27 @@ function seedWorkspace(rows: StoredCandidate[]): Workspace {
       female_id: d.female === null ? null : byIndex(d.female),
       pinned: d.pinned,
       done: false,
-      created_at: new Date(Date.now() - (i + 1) * day).toISOString(),
-      updated_at: new Date(Date.now() - (i + 1) * day).toISOString(),
-    }),
-  )
-  SEED_TASKS.forEach((t) =>
-    ws.tasks.push({
-      id: uid(),
-      title: t.title,
-      due_date: t.dueInDays === null ? null : isoDay(t.dueInDays),
-      done: t.done,
-      candidate_id: t.candidate === null ? null : byIndex(t.candidate),
-      proposal_id: t.proposal === null ? null : (ws.proposals[t.proposal]?.id ?? null),
-      created_at: now(),
-      updated_at: now(),
-    }),
-  )
-  return ws
+      created_at: at,
+      updated_at: at,
+    }
+  })
 }
 
 async function getWs(userId: string): Promise<Workspace> {
-  const ws = await get<Workspace>(`ws:${userId}`)
-  if (ws) return ws
-  // First use (also upgrades demo data created before the workspace existed).
+  const stored = await get<Workspace & { ideas?: Idea[] }>(`ws:${userId}`)
+  if (stored?.version === WS_VERSION) return stored
+  // First use, or upgrading the earlier workspace format: keep existing ideas only.
   const user = (await getUsers()).find((u) => u.id === userId)
   const isDemo = user?.email === DEMO_EMAIL
   if (isDemo) await seedSampleResumes(userId)
-  const rows = await getData(userId)
-  const fresh = isDemo ? seedWorkspace(rows) : emptyWs()
-  if (isDemo) {
-    // Statuses follow the sample pipeline (בתהליך / מאורס/ת).
-    for (const p of fresh.proposals) {
-      const status =
-        p.stage === 'engaged'
-          ? 'engaged'
-          : p.stage === 'checking' || p.stage === 'meeting'
-            ? 'in_process'
-            : null
-      if (!status) continue
-      for (const r of rows) if (r.id === p.male_id || r.id === p.female_id) r.status = status
-    }
-    await setData(userId, rows)
-  }
+  const ideas = stored?.ideas ?? (isDemo ? seedIdeas(await getData(userId)) : [])
+  const fresh: Workspace = { version: WS_VERSION, ideas }
   await setWs(userId, fresh)
   return fresh
 }
 
 /** A friendly generated "resume" image so the demo's view/download/email work out of the box. */
-async function sampleResumeBlob(c: StoredCandidate): Promise<Blob | null> {
+export async function sampleResumeBlob(c: StoredCandidate): Promise<Blob | null> {
   try {
     const canvas = document.createElement('canvas')
     canvas.width = 1240
@@ -484,7 +385,7 @@ export const demoData: DataApi = {
 
   async listCandidates(maxRows) {
     const userId = await requireUserId()
-    await getWs(userId) // first visit: sample workspace also aligns candidate statuses
+    await getWs(userId) // first visit: sample ideas and resumes for the demo account
     const rows = await getData(userId)
     await sleep(LATENCY)
     if (rows.length > maxRows) return { rows: [], overLimit: true }
@@ -576,14 +477,6 @@ export const demoData: DataApi = {
     if (!c) throw new Error(he.detail.notFound)
     if (c.resume) await del(`file:${c.resume.id}`)
     const ws = await getWs(userId)
-    const gone = new Set(
-      ws.proposals.filter((p) => p.male_id === id || p.female_id === id).map((p) => p.id),
-    )
-    ws.proposals = ws.proposals.filter((p) => !gone.has(p.id))
-    ws.events = ws.events.filter((e) => !gone.has(e.proposal_id))
-    ws.tasks = ws.tasks
-      .filter((t) => !t.proposal_id || !gone.has(t.proposal_id))
-      .map((t) => (t.candidate_id === id ? { ...t, candidate_id: null } : t))
     ws.ideas = ws.ideas.map((d) => ({
       ...d,
       male_id: d.male_id === id ? null : d.male_id,
@@ -658,103 +551,36 @@ export const demoData: DataApi = {
     return blob
   },
 
-  async setCandidateStatus(id, status) {
-    const userId = await requireUserId()
-    const rows = await getData(userId)
-    const c = rows.find((r) => r.id === id)
-    if (!c) throw new Error(he.detail.notFound)
-    c.status = status
-    c.updated_at = now()
-    await setData(userId, rows)
-  },
-
   // ---------------- matchmaker workspace ----------------
-  async listProposals() {
-    const ws = await getWs(await requireUserId())
-    await sleep(LATENCY / 2)
-    return [...ws.proposals].sort((a, b) => b.updated_at.localeCompare(a.updated_at))
-  },
 
-  async saveProposal(input, id) {
+  async loadSampleData() {
     const userId = await requireUserId()
-    const ws = await getWs(userId)
     const rows = await getData(userId)
-    const male = rows.find((r) => r.id === input.male_id && r.gender === 'male')
-    const female = rows.find((r) => r.id === input.female_id && r.gender === 'female')
-    if (!male || !female) throw new Error(he.detail.notFound)
-    const dup = ws.proposals.find(
-      (p) => p.male_id === input.male_id && p.female_id === input.female_id && p.id !== id,
+    if (rows.some((r) => r.is_sample)) return 0
+    const samples = seedRows(userId)
+    await setData(userId, [...samples, ...rows])
+    const ws = await getWs(userId)
+    ws.ideas = [...seedIdeas(samples), ...ws.ideas]
+    await setWs(userId, ws)
+    return samples.length
+  },
+
+  async clearSampleData() {
+    const userId = await requireUserId()
+    const rows = await getData(userId)
+    const samples = rows.filter((r) => r.is_sample)
+    for (const r of samples) if (r.resume) await del(`file:${r.resume.id}`)
+    await setData(
+      userId,
+      rows.filter((r) => !r.is_sample),
     )
-    if (dup) throw new Error(he.proposals.duplicate)
-    await sleep(LATENCY)
-    if (id) {
-      const idx = ws.proposals.findIndex((p) => p.id === id)
-      if (idx === -1) throw new Error(he.detail.notFound)
-      const prev = ws.proposals[idx]!
-      const next: Proposal = { ...prev, ...input, updated_at: now() }
-      if (prev.stage !== next.stage)
-        ws.events.push(
-          event(id, {
-            kind: 'stage',
-            from_stage: prev.stage,
-            to_stage: next.stage,
-            text: next.stage === 'closed' ? next.closed_reason : null,
-          }),
-        )
-      if (prev.male_response !== next.male_response)
-        ws.events.push(event(id, { kind: 'response', side: 'male', response: next.male_response }))
-      if (prev.female_response !== next.female_response)
-        ws.events.push(
-          event(id, { kind: 'response', side: 'female', response: next.female_response }),
-        )
-      ws.proposals[idx] = next
-      await setWs(userId, ws)
-      return next
-    }
-    const p: Proposal = {
-      ...input,
-      id: uid(),
-      owner_id: userId,
-      created_at: now(),
-      updated_at: now(),
-    }
-    ws.proposals.unshift(p)
-    ws.events.push(event(p.id, { kind: 'created', to_stage: p.stage }))
-    await setWs(userId, ws)
-    return p
-  },
-
-  async deleteProposal(id) {
-    const userId = await requireUserId()
+    const gone = new Set(samples.map((r) => r.id))
     const ws = await getWs(userId)
-    ws.proposals = ws.proposals.filter((p) => p.id !== id)
-    ws.events = ws.events.filter((e) => e.proposal_id !== id)
-    ws.tasks = ws.tasks.filter((t) => t.proposal_id !== id)
+    ws.ideas = ws.ideas.filter(
+      (i) => !(i.male_id && gone.has(i.male_id)) && !(i.female_id && gone.has(i.female_id)),
+    )
     await setWs(userId, ws)
-  },
-
-  async listProposalEvents(proposalId) {
-    const ws = await getWs(await requireUserId())
-    return ws.events
-      .filter((e) => e.proposal_id === proposalId)
-      .sort((a, b) => b.created_at.localeCompare(a.created_at))
-  },
-
-  async listRecentEvents(limit) {
-    const ws = await getWs(await requireUserId())
-    return [...ws.events].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, limit)
-  },
-
-  async addProposalNote(proposalId, text) {
-    const userId = await requireUserId()
-    const ws = await getWs(userId)
-    const p = ws.proposals.find((x) => x.id === proposalId)
-    if (!p) throw new Error(he.detail.notFound)
-    const e = event(proposalId, { kind: 'note', text })
-    ws.events.push(e)
-    p.updated_at = now()
-    await setWs(userId, ws)
-    return e
+    return samples.length
   },
 
   async listIdeas() {
@@ -784,34 +610,6 @@ export const demoData: DataApi = {
     const userId = await requireUserId()
     const ws = await getWs(userId)
     ws.ideas = ws.ideas.filter((x) => x.id !== id)
-    await setWs(userId, ws)
-  },
-
-  async listTasks() {
-    const ws = await getWs(await requireUserId())
-    return [...ws.tasks]
-  },
-
-  async saveTask(input, id) {
-    const userId = await requireUserId()
-    const ws = await getWs(userId)
-    if (id) {
-      const idx = ws.tasks.findIndex((x) => x.id === id)
-      if (idx === -1) throw new Error(he.detail.notFound)
-      ws.tasks[idx] = { ...ws.tasks[idx]!, ...input, updated_at: now() }
-      await setWs(userId, ws)
-      return ws.tasks[idx]!
-    }
-    const t: Task = { ...input, id: uid(), created_at: now(), updated_at: now() }
-    ws.tasks.unshift(t)
-    await setWs(userId, ws)
-    return t
-  },
-
-  async deleteTask(id) {
-    const userId = await requireUserId()
-    const ws = await getWs(userId)
-    ws.tasks = ws.tasks.filter((x) => x.id !== id)
     await setWs(userId, ws)
   },
 }
