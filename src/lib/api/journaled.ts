@@ -1,4 +1,5 @@
 import { payloadOf } from '../candidatePayload'
+import { logError } from '../log'
 import type { CandidateFull, SaveCandidatePayload } from '../types'
 import type { DataApi, FieldChange } from './types'
 
@@ -95,7 +96,7 @@ export function journaled(base: DataApi): DataApi {
     try {
       await fn()
     } catch (e) {
-      console.warn('journal', e)
+      logError('journal.write', e)
     }
   }
   return new Proxy(base, {

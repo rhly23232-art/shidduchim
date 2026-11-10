@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { DirectionProvider } from '@radix-ui/react-direction'
 import { MotionConfig } from 'framer-motion'
 import { Component, lazy, Suspense, type ReactNode } from 'react'
@@ -9,6 +9,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useIsMobile } from '@/hooks/useMediaQuery'
 import { AuthProvider, useAuth } from '@/lib/auth'
+import { installGlobalHandlers, logError } from '@/lib/log'
 import { he } from '@/lib/strings.he'
 import LoginPage from '@/pages/Login'
 
@@ -28,7 +29,15 @@ const BackupPage = lazy(() => import('@/pages/Backup'))
 /** Hash routing for static hosting without rewrites (VITE_HASH_ROUTER=true); clean URLs otherwise. */
 const Router = import.meta.env.VITE_HASH_ROUTER === 'true' ? HashRouter : BrowserRouter
 
+installGlobalHandlers()
+
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (err, query) => logError('query', err, { key: query.queryKey.slice(0, 2) }),
+  }),
+  mutationCache: new MutationCache({
+    onError: (err) => logError('mutation', err),
+  }),
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 30_000 },
     mutations: { retry: 0 },
@@ -60,6 +69,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   override state = { error: null as Error | null }
   static getDerivedStateFromError(error: Error) {
     return { error }
+  }
+  override componentDidCatch(error: Error, info: { componentStack?: string | null }) {
+    logError('render', error, {
+      component: info.componentStack?.split('\n').slice(0, 4).join('\n'),
+    })
   }
   override render() {
     if (!this.state.error) return this.props.children

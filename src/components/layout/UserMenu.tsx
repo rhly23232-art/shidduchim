@@ -1,4 +1,8 @@
-import { LogOut, Palette } from 'lucide-react'
+import { LifeBuoy, LogOut, Palette } from 'lucide-react'
+import { toast } from 'sonner'
+import { downloadSupportReport } from '@/features/support/supportReport'
+import { APP_VERSION } from '@/lib/log'
+import { errorMessage } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
 import {
   DropdownMenu,
@@ -35,11 +39,25 @@ export function UserMenu() {
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={() => {
+            const id = toast.loading(he.support.preparing)
+            downloadSupportReport()
+              .then((name) => toast.success(he.support.ready, { id, description: name }))
+              .catch((e) => toast.error(he.support.failed, { id, description: errorMessage(e) }))
+          }}
+        >
+          <LifeBuoy />
+          {he.support.menu}
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/design-system')}>
           <Palette />
           {he.ds.menu}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className="tabular py-1 text-caption" dir="ltr">
+          {he.support.version(APP_VERSION)}
+        </DropdownMenuLabel>
         {
           <DropdownMenuItem
             onSelect={() => {
