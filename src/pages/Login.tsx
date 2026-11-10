@@ -16,6 +16,7 @@ import { authApi, backendMode } from '@/lib/api'
 import { he } from '@/lib/strings.he'
 import { errorMessage } from '@/lib/utils'
 import { loginSchema, signupSchema, type LoginValues, type SignupValues } from '@/lib/validators'
+import { safeRedirect } from '@/lib/safeRedirect'
 
 type Mode = 'login' | 'signup'
 
@@ -181,7 +182,7 @@ export default function LoginPage() {
   }, [])
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/'
+  const from = safeRedirect((location.state as { from?: string } | null)?.from)
 
   if (!loading && user) return <Navigate to={from} replace />
   const done = () => navigate(from, { replace: true })
