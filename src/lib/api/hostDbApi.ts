@@ -263,6 +263,16 @@ export function createHostBackend(
       writeSession(null)
       emit()
     },
+    async deleteAccount(password) {
+      if (!session) throw new Error(he.auth.sessionExpired)
+      if ((await hashPassword(password, session.salt)) !== session.hash)
+        throw new Error(he.account.wrongPassword)
+      await wipeWorkspace()
+      await guard(() => accounts.doc(session!.id).delete())
+      session = null
+      writeSession(null)
+      emit()
+    },
     async hasAccounts() {
       const any = await accounts
         .limit(1)
@@ -354,10 +364,28 @@ export function createHostBackend(
     },
   }
 
+  /** Removes every document and file of the signed-in workspace. */
+  async function wipeWorkspace() {
+    for (const c of await guard(() => readAll<StoredCandidate>(candidates))) {
+      if (c.resume) await dropFile(c.resume.storage_path)
+      await guard(() => candidates.doc(c.id).delete())
+    }
+    for (const i of await guard(() => readAll<{ id: string }>(ideas)))
+      await guard(() => ideas.doc(i.id).delete())
+    for (const e of await guard(() => readAll<JournalEntry>(journalColl))) {
+      if (e.data.file) await dropFile(e.data.file.path)
+      await guard(() => journalColl.doc(e.id).delete())
+    }
+  }
+
   const data: DataApi = {
     supportsServerEmail: false,
     supportsShareLinks: false,
     journal,
+
+    async deleteAllMyData() {
+      await wipeWorkspace()
+    },
 
     async countCandidates() {
       const rows = await allCandidates()

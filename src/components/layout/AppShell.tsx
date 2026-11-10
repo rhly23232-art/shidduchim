@@ -35,6 +35,7 @@ function usePageTitle(): string {
   if (pathname.startsWith('/resume-table')) return he.resumeTable.title
   if (pathname.startsWith('/import')) return he.importer.title
   if (pathname.startsWith('/backup')) return he.backup.title
+  if (pathname.startsWith('/account')) return he.account.title
   const tab = new URLSearchParams(search).get('tab')
   return tab === 'female' ? he.tabs.female : tab === 'all' ? he.tabs.allTitle : he.tabs.male
 }

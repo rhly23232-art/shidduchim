@@ -1,4 +1,4 @@
-import { LifeBuoy, LogOut, Palette } from 'lucide-react'
+import { LifeBuoy, LogOut, Palette, UserCog } from 'lucide-react'
 import { toast } from 'sonner'
 import { downloadSupportReport } from '@/features/support/supportReport'
 import { APP_VERSION } from '@/lib/log'
@@ -39,6 +39,10 @@ export function UserMenu() {
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => navigate('/account')}>
+          <UserCog />
+          {he.account.menu}
+        </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={() => {
             const id = toast.loading(he.support.preparing)

@@ -190,3 +190,32 @@ describe('backup', () => {
     await expect(readBackup(new Blob(['nope']))).rejects.toThrow()
   })
 })
+
+describe('erasure (right to be forgotten)', () => {
+  it('deletes all data of the account, including recycle-bin files', async () => {
+    const id = await dataApi.saveCandidate(newCandidate('למחיקה'))
+    const c = (await dataApi.getCandidate(id))!
+    await dataApi.uploadResume(
+      { id, owner_id: c.owner_id, resume: null },
+      new File(['%PDF-1.4'], 'r.pdf', { type: 'application/pdf' }),
+      'application/pdf',
+      () => {},
+    )
+    await dataApi.deleteCandidate(id) // its resume goes to the recycle bin
+    await dataApi.deleteAllMyData()
+    expect((await dataApi.listCandidates(5000)).rows).toHaveLength(0)
+    expect(await dataApi.listIdeas()).toHaveLength(0)
+    expect(await dataApi.journal.list()).toHaveLength(0)
+  })
+
+  it('deletes an account only with its password; afterwards it cannot sign in', async () => {
+    await authApi.signUp('erase@example.com', 'secret-123', 'חשבון למחיקה')
+    await authApi.signIn('erase@example.com', 'secret-123')
+    await dataApi.saveCandidate(newCandidate('שייך'))
+    await expect(authApi.deleteAccount('wrong-pass')).rejects.toThrow('הסיסמה שגויה')
+    expect(await authApi.getUser()).not.toBeNull()
+    await authApi.deleteAccount('secret-123')
+    expect(await authApi.getUser()).toBeNull()
+    await expect(authApi.signIn('erase@example.com', 'secret-123')).rejects.toThrow()
+  })
+})

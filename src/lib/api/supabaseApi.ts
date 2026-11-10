@@ -170,6 +170,18 @@ export const supabaseAuth: AuthApi = {
   async signOut() {
     await requireSupabase().auth.signOut()
   },
+  async deleteAccount(password) {
+    const sb = requireSupabase()
+    const { data: u } = await sb.auth.getUser()
+    if (!u.user?.email) throw new Error(he.auth.sessionExpired)
+    // re-authenticate: deleting an account always requires the password
+    const check = await sb.auth.signInWithPassword({ email: u.user.email, password })
+    if (check.error) throw new Error(he.account.wrongPassword)
+    await removeAllFiles(u.user.id)
+    const { error } = await sb.rpc('delete_my_account' as never)
+    if (error) throw error
+    await sb.auth.signOut()
+  },
 }
 
 // ---------- data ------------------------------------------------------------------
@@ -257,8 +269,45 @@ const supabaseJournal: JournalStore = {
   },
 }
 
+/** Removes every stored file of the user (resumes + files kept in the recycle bin). */
+async function removeAllFiles(uid: string) {
+  const sb = requireSupabase()
+  const { data: res, error } = await sb.from('resumes').select('storage_path')
+  if (error) throw error
+  const journal = await supabaseJournal.list({ kinds: ['delete'], limit: 10_000 })
+  const groups: [string, string[]][] = [
+    [BUCKET, (res ?? []).map((r) => r.storage_path)],
+    [JOURNAL_BUCKET, journal.flatMap((e) => (e.data.file ? [e.data.file.path] : []))],
+  ]
+  for (const [bucket, paths] of groups) {
+    const mine = paths.filter((p) => p.startsWith(`${uid}/`))
+    for (let i = 0; i < mine.length; i += 100) {
+      const { error: rmErr } = await sb.storage.from(bucket).remove(mine.slice(i, i + 100))
+      if (rmErr) throw rmErr
+    }
+  }
+}
+
 export const supabaseData: DataApi = {
   journal: supabaseJournal,
+
+  async deleteAllMyData() {
+    const sb = requireSupabase()
+    const { data: u } = await sb.auth.getUser()
+    if (!u.user) throw new Error(he.auth.sessionExpired)
+    await removeAllFiles(u.user.id)
+    // candidates cascade to family / in-laws / resumes rows
+    for (const table of ['ideas', 'candidates', 'journal'] as const) {
+      const { error } = await (
+        sb.from(table as 'ideas') as unknown as {
+          delete(): { eq(c: string, v: string): Promise<{ error: Error | null }> }
+        }
+      )
+        .delete()
+        .eq('owner_id', u.user.id)
+      if (error) throw error
+    }
+  },
   supportsServerEmail: true,
   supportsShareLinks: true,
 

@@ -25,6 +25,7 @@ const ResumeEditorPage = lazy(() => import('@/pages/ResumeEditor'))
 const ResumeTablePage = lazy(() => import('@/pages/ResumeTable'))
 const ImportPage = lazy(() => import('@/pages/Import'))
 const BackupPage = lazy(() => import('@/pages/Backup'))
+const AccountPage = lazy(() => import('@/pages/Account'))
 
 /** Hash routing for static hosting without rewrites (VITE_HASH_ROUTER=true); clean URLs otherwise. */
 const Router = import.meta.env.VITE_HASH_ROUTER === 'true' ? HashRouter : BrowserRouter
@@ -121,6 +122,7 @@ export default function App() {
                         <Route path="resume-table" element={<ResumeTablePage />} />
                         <Route path="import" element={<ImportPage />} />
                         <Route path="backup" element={<BackupPage />} />
+                        <Route path="account" element={<AccountPage />} />
                         <Route path="design-system" element={<DesignSystemPage />} />
                       </Route>
                       <Route path="*" element={<Navigate to="/" replace />} />

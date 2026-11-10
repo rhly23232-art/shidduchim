@@ -216,6 +216,33 @@ check(
   legacy.error?.message,
 )
 
+// Account deletion: only the caller's own account; everything owned goes with it
+const anon = client()
+const anonDel = await anon.rpc('delete_my_account' as never)
+check('anonymous caller cannot run delete_my_account', !!anonDel.error)
+const cUser = client()
+const emailC = `erase-${Date.now()}@shidduchim.local`
+const { error: cErr } = await cUser.auth.signUp({ email: emailC, password: 'Test-12345' })
+check('temporary account C created', !cErr, cErr?.message)
+const cId = (await cUser.auth.getUser()).data.user!.id
+const cSave = await cUser.rpc('save_candidate', {
+  payload: {
+    candidate: { gender: 'male', first_name: 'מחיקה', last_name: 'בדיקה', status: 'active', education_history: [] },
+    family: {},
+    in_laws: [],
+  },
+})
+check('C owns a candidate', !cSave.error, cSave.error?.message)
+const cIdea = await cUser.from('ideas').insert({ title: 'רעיון של C' })
+check('C owns an idea', !cIdea.error, cIdea.error?.message)
+const cDel = await cUser.rpc('delete_my_account' as never)
+check('C can delete own account', !cDel.error, cDel.error?.message)
+const cLogin = await client().auth.signInWithPassword({ email: emailC, password: 'Test-12345' })
+check('deleted account cannot sign in', !!cLogin.error)
+const aStill = await a.from('candidates').select('id').eq('owner_id', aId)
+check('other accounts are untouched', (aStill.data?.length ?? 0) >= 20, `${aStill.data?.length} rows`)
+void cId
+
 // cleanup B's data
 await b.from('candidates').delete().eq('owner_id', bUid)
 

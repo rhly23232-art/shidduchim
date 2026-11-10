@@ -371,6 +371,31 @@ export const demoAuth: AuthApi = {
     writeSession(null)
     await emit()
   },
+  async deleteAccount(password) {
+    const user = await currentUser()
+    if (!user) throw new Error(he.auth.sessionExpired)
+    const full = (await getUsers()).find((u) => u.id === user.id)
+    if (!full || (await hashPassword(password, full.salt)) !== full.hash)
+      throw new Error(he.account.wrongPassword)
+    await wipeUserData(user.id)
+    await set(
+      'users',
+      (await getUsers()).filter((u) => u.id !== user.id),
+    )
+    if (user.email === DEMO_EMAIL) demoReady = null
+    writeSession(null)
+    await emit()
+  },
+}
+
+/** Removes every stored item of a user: cards, resume files, ideas, history and its files. */
+async function wipeUserData(userId: string) {
+  for (const c of await getData(userId)) if (c.resume) await del(`file:${c.resume.id}`)
+  for (const e of (await get<JournalEntry[]>(`journal:${userId}`)) ?? [])
+    if (e.data.file) await del(e.data.file.path)
+  await setData(userId, [])
+  await setWs(userId, { version: WS_VERSION, ideas: [] })
+  await set(`journal:${userId}`, [])
 }
 
 // ---------- history / recycle bin -----------------------------------------------
@@ -421,6 +446,10 @@ export const demoData: DataApi = {
   supportsServerEmail: false,
   supportsShareLinks: false,
   journal: demoJournal,
+
+  async deleteAllMyData() {
+    await wipeUserData(await requireUserId())
+  },
 
   async countCandidates() {
     const rows = await getData(await requireUserId())

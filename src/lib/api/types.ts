@@ -28,6 +28,11 @@ export interface AuthApi {
   signOut(): Promise<void>
   /** Database mode: whether any matchmaker account exists yet (first visit → sign-up). */
   hasAccounts?(): Promise<boolean>
+  /**
+   * Permanently deletes the signed-in account and all of its data (right to erasure).
+   * The password is checked first. Signs out on success.
+   */
+  deleteAccount(password: string): Promise<void>
 }
 
 export interface CandidateCounts {
@@ -146,6 +151,11 @@ export interface DataApi {
   ): Promise<ServerQueryResult>
   listFacets(gender: TabKey): Promise<FacetRow[]>
   getCandidate(id: string): Promise<CandidateFull | null>
+  /**
+   * Permanently deletes everything in the account — candidates, resume files, ideas,
+   * history and the recycle bin. The account itself stays (used by "delete my data").
+   */
+  deleteAllMyData(): Promise<void>
   /** Every candidate with family and in-laws in a few bulk reads (backup / export). */
   listCandidatesFull(): Promise<CandidateFull[]>
   saveCandidate(payload: SaveCandidatePayload): Promise<string>
