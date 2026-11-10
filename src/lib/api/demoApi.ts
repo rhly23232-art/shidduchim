@@ -480,6 +480,10 @@ export const demoData: DataApi = {
     return c ? withAge(c) : null
   },
 
+  async listCandidatesFull() {
+    return (await getData(await requireUserId())).map(withAge)
+  },
+
   async saveCandidate(payload: SaveCandidatePayload) {
     const userId = await requireUserId()
     const rows = await getData(userId)

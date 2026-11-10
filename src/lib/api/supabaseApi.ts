@@ -11,6 +11,7 @@ import type {
   TabKey,
   ResumeMeta,
 } from '../types'
+import { edaServerFilter } from '../eda'
 import { he } from '../strings.he'
 import { ConflictError } from './errors'
 import type {
@@ -28,6 +29,8 @@ import type {
 type ViewRow = Database['public']['Views']['candidates_view']['Row']
 
 const BUCKET = 'resumes'
+/** PostgREST returns at most 1000 rows per request. */
+const PAGE = 1000
 
 // ---------- mapping ----------------------------------------------------------------
 function toEducation(json: Json | null): EducationEntry[] {
@@ -272,21 +275,106 @@ export const supabaseData: DataApi = {
 
   async listCandidates(maxRows) {
     const sb = requireSupabase()
-    const PAGE = 1000
-    const rows: CandidateRow[] = []
-    for (let from = 0; ; from += PAGE) {
-      const { data, error, count } = await sb
+    const page = (from: number, count: boolean) =>
+      sb
         .from('candidates_view')
-        .select('*', { count: from === 0 ? 'exact' : undefined })
+        .select('*', { count: count ? 'exact' : undefined })
         .order('created_at', { ascending: false })
         .order('id')
         .range(from, from + PAGE - 1)
-      if (error) throw error
-      if (from === 0 && (count ?? 0) > maxRows) return { rows: [], overLimit: true }
-      rows.push(...data.map(mapRow))
-      if (data.length < PAGE) break
+    // first page tells the total; the rest are fetched in parallel
+    const first = await page(0, true)
+    if (first.error) throw first.error
+    const total = first.count ?? first.data.length
+    if (total > maxRows) return { rows: [], overLimit: true }
+    const rest = await Promise.all(
+      Array.from({ length: Math.max(0, Math.ceil(total / PAGE) - 1) }, (_, i) =>
+        page((i + 1) * PAGE, false),
+      ),
+    )
+    const rows: CandidateRow[] = first.data.map(mapRow)
+    for (const r of rest) {
+      if (r.error) throw r.error
+      rows.push(...r.data.map(mapRow))
     }
     return { rows, overLimit: false }
+  },
+
+  async listCandidatesFull() {
+    const sb = requireSupabase()
+    // 3 tables, each paged in parallel — a handful of requests instead of 3 per candidate
+    const all = async <T>(
+      fetchPage: (
+        from: number,
+      ) => PromiseLike<{ data: T[] | null; error: unknown; count?: number | null }>,
+    ) => {
+      const first = await fetchPage(0)
+      if (first.error) throw first.error
+      const total = first.count ?? first.data?.length ?? 0
+      const rest = await Promise.all(
+        Array.from({ length: Math.max(0, Math.ceil(total / PAGE) - 1) }, (_, i) =>
+          fetchPage((i + 1) * PAGE),
+        ),
+      )
+      const out = [...(first.data ?? [])]
+      for (const r of rest) {
+        if (r.error) throw r.error
+        out.push(...(r.data ?? []))
+      }
+      return out
+    }
+    const [rows, fams, laws] = await Promise.all([
+      all((from) =>
+        sb
+          .from('candidates_view')
+          .select('*', { count: 'exact' })
+          .order('id')
+          .range(from, from + PAGE - 1),
+      ),
+      all((from) =>
+        sb
+          .from('family_details')
+          .select('*', { count: 'exact' })
+          .order('candidate_id')
+          .range(from, from + PAGE - 1),
+      ),
+      all((from) =>
+        sb
+          .from('in_laws')
+          .select('*', { count: 'exact' })
+          .order('candidate_id')
+          .order('sort_order')
+          .range(from, from + PAGE - 1),
+      ),
+    ])
+    const famBy = new Map(fams.map((f) => [f.candidate_id, f]))
+    const lawsBy = new Map<string, typeof laws>()
+    for (const l of laws) lawsBy.set(l.candidate_id, [...(lawsBy.get(l.candidate_id) ?? []), l])
+    return rows.map((r): CandidateFull => {
+      const row = mapRow(r)
+      const f = famBy.get(row.id)
+      return {
+        ...row,
+        family: f
+          ? {
+              father_name: f.father_name,
+              father_occupation: f.father_occupation,
+              mother_name: f.mother_name,
+              mother_occupation: f.mother_occupation,
+              mother_maiden_name: f.mother_maiden_name,
+              lineage: f.lineage,
+              siblings_count: f.siblings_count,
+              birth_order: f.birth_order,
+            }
+          : null,
+        in_laws: (lawsBy.get(row.id) ?? []).map((l) => ({
+          id: l.id,
+          relation: l.relation,
+          full_name: l.full_name,
+          details: l.details,
+        })),
+      }
+    })
   },
 
   async queryCandidates(gender: TabKey, f: CandidateFilters, sort: SortState, limit: number) {
@@ -301,28 +389,7 @@ export const supabaseData: DataApi = {
     ]
     if (loc.length) q = q.or(loc.join(','))
     if (f.institutions.length) q = q.in('institution', f.institutions)
-    if (f.eda === 'chasidut') q = q.or('chassidut.ilike.*חסיד*,community.ilike.*חסיד*')
-    else if (f.eda === 'litai') q = q.or('chassidut.ilike.*ליטא*,community.ilike.*ליטא*')
-    else if (f.eda === 'mizrah')
-      q = q.or(
-        [
-          'ספרד',
-          'מזרח',
-          'תימנ',
-          'מרוק',
-          'עיראק',
-          'פרס',
-          'תוניס',
-          'לוב',
-          'כורד',
-          'בוכר',
-          'הודי',
-          'גרוזי',
-          'סורי',
-        ]
-          .map((w) => `community.ilike.*${w}*`)
-          .join(','),
-      )
+    if (f.eda) q = q.or(edaServerFilter(f.eda))
     if (f.eda && f.edaText.trim()) {
       const t = orTerm(f.edaText.trim())
       q = q.or(`community.ilike.${t},chassidut.ilike.${t}`)

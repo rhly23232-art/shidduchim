@@ -402,6 +402,10 @@ export function createHostBackend(
       return snap.exists ? withAge(snap.data() as StoredCandidate) : null
     },
 
+    async listCandidatesFull() {
+      return (await allCandidates()).map(withAge)
+    },
+
     async saveCandidate(payload) {
       const inLaws: InLaw[] = payload.in_laws
         .filter((l) => l.full_name.trim() !== '')

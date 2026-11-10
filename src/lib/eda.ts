@@ -13,8 +13,34 @@ const normalizeSearch = (text: string) =>
 export const EDA_KEYS = ['litai', 'mizrah', 'chasidut', 'other'] as const
 export type EdaKey = (typeof EDA_KEYS)[number]
 
-const MIZRAH =
-  /ספרד|מזרח|תימנ|מרוק|עיראק|בבל|פרס|תוניס|לוב|כורד|בוכר|אלג|הודי|גרוזי|קווקז|טורק|תורכ|סורי|חלב|מצרי|לבנונ|תימן|ג׳רב|גרב/
+/** Eastern origins (עדות מזרח) — one list for the client test and the server filter. */
+const MIZRAH_WORDS = [
+  'ספרד',
+  'מזרח',
+  'תימנ',
+  'מרוק',
+  'עיראק',
+  'בבל',
+  'פרס',
+  'תוניס',
+  'לוב',
+  'כורד',
+  'בוכר',
+  'אלג',
+  'הודי',
+  'גרוזי',
+  'קווקז',
+  'טורק',
+  'תורכ',
+  'סורי',
+  'חלב',
+  'מצרי',
+  'לבנונ',
+  'תימן',
+  'ג׳רב',
+  'גרב',
+]
+const MIZRAH = new RegExp(MIZRAH_WORDS.join('|'))
 
 /**
  * Derives the group from the free-text עדה and חסידות fields:
@@ -65,3 +91,32 @@ export function edaDetail(
 export const hasEda = (
   r: Pick<CandidateRow, 'community' | 'chassidut'> & { eda?: EdaKey | null },
 ) => !!(r.eda || r.community?.trim() || r.chassidut?.trim())
+
+/**
+ * Server-side twin of `edaOf` (lib/eda.ts): the stored `eda` column wins; cards saved before
+ * it existed are classified from their free text, in the same order of precedence
+ * (חסידות → עדות מזרח → ליטא → אחר).
+ */
+export function edaServerFilter(eda: EdaKey): string {
+  const any = (col: 'community' | 'chassidut', words: string[]) =>
+    words.map((w) => `${col}.ilike.*${w}*`)
+  const none = (col: 'community' | 'chassidut', words: string[]) =>
+    words.map((w) => `or(${col}.is.null,${col}.not.ilike.*${w}*)`)
+  const chas = [...any('chassidut', ['חסיד']), ...any('community', ['חסיד'])]
+  const notChas = [...none('chassidut', ['חסיד']), ...none('community', ['חסיד'])]
+  const miz = [...any('community', MIZRAH_WORDS), ...any('chassidut', MIZRAH_WORDS)]
+  const notMiz = [...none('community', MIZRAH_WORDS), ...none('chassidut', MIZRAH_WORDS)]
+  const lit = [...any('chassidut', ['ליטא']), ...any('community', ['ליטא'])]
+  const notLit = [...none('chassidut', ['ליטא']), ...none('community', ['ליטא'])]
+  const legacy = (cond: string) => `and(eda.is.null,${cond})`
+  switch (eda) {
+    case 'chasidut':
+      return `eda.eq.chasidut,${legacy(`or(${chas.join(',')})`)}`
+    case 'mizrah':
+      return `eda.eq.mizrah,${legacy(`and(${notChas.join(',')}),or(${miz.join(',')})`)}`
+    case 'litai':
+      return `eda.eq.litai,${legacy(`and(${[...notChas, ...notMiz].join(',')}),or(${lit.join(',')})`)}`
+    case 'other':
+      return `eda.eq.other,${legacy([...notChas, ...notMiz, ...notLit].join(','))}`
+  }
+}

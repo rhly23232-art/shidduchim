@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { EmptyState } from '@/components/ui/empty-state'
 import { fieldBase } from '@/components/ui/input'
+import { Pagination } from '@/components/ui/pagination'
 import { Segmented } from '@/components/ui/segmented'
 import { Skeleton } from '@/components/ui/skeleton'
 import { exportCandidatesExcel } from '@/features/candidates/exportExcel'
@@ -19,6 +20,7 @@ import type { CandidateRow, TabKey } from '@/lib/types'
 import { cn, formatBytes, fullName, hebrewCollator, normalizeSearch } from '@/lib/utils'
 
 const t = he.resumeTable
+const PAGE_SIZE = 100
 
 function ResumeCell({ r }: { r: CandidateRow }) {
   if (!r.resume) return <span className="text-muted-foreground">{t.none}</span>
@@ -76,6 +78,7 @@ export default function ResumeTablePage() {
   const [scope, setScope] = useState<TabKey>('all')
   const [q, setQ] = useState('')
   const [onlyWith, setOnlyWith] = useState(false)
+  const [page, setPage] = useState(0)
 
   const list = useMemo(() => {
     const terms = normalizeSearch(q).split(' ').filter(Boolean)
@@ -90,6 +93,14 @@ export default function ResumeTablePage() {
       .sort((a, b) => hebrewCollator.compare(fullName(a), fullName(b)))
   }, [rows, scope, q, onlyWith])
   const withResume = rows.filter((r) => r.resume).length
+  // back to the first page whenever the result set changes
+  const [lastKey, setLastKey] = useState('')
+  const key = `${scope}|${q}|${onlyWith}`
+  if (key !== lastKey) {
+    setLastKey(key)
+    setPage(0)
+  }
+  const pageRows = list.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <main id="main" className="space-y-4 px-4 pb-16 pt-6 md:px-8">
@@ -158,7 +169,7 @@ export default function ResumeTablePage() {
         </Card>
       ) : isMobile ? (
         <ul className="space-y-3">
-          {list.map((r) => (
+          {pageRows.map((r) => (
             <li key={r.id}>
               <Card className="space-y-3 p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -213,7 +224,7 @@ export default function ResumeTablePage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((r) => (
+              {pageRows.map((r) => (
                 <tr
                   key={r.id}
                   className="group transition-colors duration-fast hover:bg-secondary/60"
@@ -247,6 +258,18 @@ export default function ResumeTablePage() {
             </tbody>
           </table>
         </div>
+      )}
+      {!isLoading && (
+        <Pagination
+          page={page}
+          pageSize={PAGE_SIZE}
+          total={list.length}
+          onPage={(p) => {
+            setPage(p)
+            window.scrollTo({ top: 0 })
+          }}
+          label={t.title}
+        />
       )}
     </main>
   )

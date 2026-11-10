@@ -58,13 +58,17 @@ const extOf = (name: string) =>
 export async function buildBackup(
   onProgress: (done: number, total: number) => void,
 ): Promise<Blob> {
-  const { rows } = await dataApi.listCandidates(Number.MAX_SAFE_INTEGER)
+  const all = await dataApi.listCandidatesFull()
   const ideas = await dataApi.listIdeas()
   const files: ZipEntry[] = []
   const candidates: BackupCandidate[] = []
-  for (let i = 0; i < rows.length; i++) {
-    const full = await dataApi.getCandidate(rows[i]!.id)
-    if (full) {
+  // resumes: a few downloads in parallel (bounded, so the browser and the server stay responsive)
+  const CONCURRENCY = 6
+  let next = 0
+  let done = 0
+  const worker = async () => {
+    while (next < all.length) {
+      const full = all[next++]!
       const c: BackupCandidate = { ...full }
       if (full.resume) {
         try {
@@ -77,9 +81,11 @@ export async function buildBackup(
         }
       }
       candidates.push(c)
+      onProgress(++done, all.length)
     }
-    onProgress(i + 1, rows.length)
   }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, all.length) }, worker))
+  if (!all.length) onProgress(0, 0)
   const backup: Backup = {
     format: BACKUP_FORMAT,
     version: 1,

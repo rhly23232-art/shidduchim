@@ -146,6 +146,8 @@ export interface DataApi {
   ): Promise<ServerQueryResult>
   listFacets(gender: TabKey): Promise<FacetRow[]>
   getCandidate(id: string): Promise<CandidateFull | null>
+  /** Every candidate with family and in-laws in a few bulk reads (backup / export). */
+  listCandidatesFull(): Promise<CandidateFull[]>
   saveCandidate(payload: SaveCandidatePayload): Promise<string>
   deleteCandidate(id: string): Promise<void>
   uploadResume(

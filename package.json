@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:e2e": "node tests/e2e/run.cjs",
     "verify:email": "node scripts/verify-email-function.ts",
-    "check": "tsc -b && eslint . && vitest run"
+    "check": "tsc -b && eslint . && vitest run",
+    "verify:filters": "node scripts/verify-server-filters.ts"
   },
   "dependencies": {
     "@hebcal/core": "6.15.0",

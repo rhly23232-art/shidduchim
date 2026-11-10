@@ -77,6 +77,8 @@ jobs:
           cat .env.local | sed 's/=.*/=…/'
       - name: RLS isolation checks
         run: set -a && . ./.env.local && set +a && npm run verify:rls
+      - name: Server-side filter parity (עדה)
+        run: set -a && . ./.env.local && set +a && npm run verify:filters
       - run: npx playwright install --with-deps chromium
       - name: Start app (Supabase mode)
         run: |
