@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck · lint · unit/integration tests · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_SUPABASE_URL: ''
+          VITE_SUPABASE_ANON_KEY: ''
+
+  e2e-demo:
+    name: End-to-end (local backend)
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start app (demo mode)
+        run: |
+          VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= npx vite --port 5175 --strictPort &
+          npx --yes wait-on@8.0.3 http://127.0.0.1:5175 --timeout 60000
+      - run: npm run test:e2e
+        env:
+          E2E_BASE_URL: http://127.0.0.1:5175
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-demo-artifacts
+          path: tests/e2e/.artifacts
+
+  supabase:
+    name: Database security (RLS) + end-to-end on Supabase
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Start Supabase (local) and apply migrations + seed
+        run: |
+          npx supabase start -x edge-runtime,studio,realtime,logflare,vector,imgproxy,supavisor,postgres-meta
+          npx supabase db reset
+          npx supabase status -o env \
+            | sed -n -e 's/^API_URL=/VITE_SUPABASE_URL=/p' -e 's/^ANON_KEY=/VITE_SUPABASE_ANON_KEY=/p' \
+            | tr -d '"' > .env.local
+          cat .env.local | sed 's/=.*/=…/'
+      - name: RLS isolation checks
+        run: set -a && . ./.env.local && set +a && npm run verify:rls
+      - run: npx playwright install --with-deps chromium
+      - name: Start app (Supabase mode)
+        run: |
+          npx supabase db reset
+          npx vite --port 5173 --strictPort &
+          npx --yes wait-on@8.0.3 http://127.0.0.1:5173 --timeout 60000
+      - run: npm run test:e2e
+        env:
+          E2E_BASE_URL: http://127.0.0.1:5173
+          E2E_BACKEND: supabase
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-supabase-artifacts
+          path: tests/e2e/.artifacts

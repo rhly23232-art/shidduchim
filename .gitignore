@@ -7,3 +7,6 @@ supabase/.branches
 *.log
 dist-demo
 *.zip
+
+# e2e artifacts
+tests/e2e/.artifacts/
