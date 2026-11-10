@@ -21,6 +21,9 @@ React Hook Form + Zod · Supabase (Postgres, Auth, Storage, Edge Functions) · f
 - **סל מחזור** — מועמד או רעיון שנמחקו נשמרים 30 יום ומשוחזרים בלחיצה, כולל קובץ הרזומה והקישורים מהרעיונות.
 - **גיבוי ושחזור** — קובץ גיבוי מלא (‎.zip: כל הכרטיסים, המשפחה, המחותנים, הרעיונות והרזומות), תזכורת שבועית,
   ושחזור מקובץ שמוסיף רק את מה שחסר.
+- **החשבון שלי** — ייצוא מלא, מחיקת כל הנתונים ומחיקת החשבון (עם הקלדת "מחיקה" וסיסמה).
+- **עריכה מקבילה מוגנת** — שמירה על כרטיס שהשתנה בינתיים בחלון אחר מתריעה ולא דורסת.
+- **דוח תקלות לתמיכה** — בדיקות תקינות חיות ושגיאות אחרונות, ללא פרטי מועמדים.
 - **מערכת עיצוב (Calm Productivity)** — tokens, ספריית רכיבים ותיעוד: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md); עמוד הדגמה חי ב-`/design-system`.
 
 ## מסד הנתונים — שלוש אפשרויות (נבחרת אוטומטית בעלייה)
@@ -53,7 +56,7 @@ npm run dev
    VITE_SUPABASE_URL=https://<project>.supabase.co
    VITE_SUPABASE_ANON_KEY=<anon key>
    ```
-2. החילו את המיגרציה (טבלאות, אינדקסים, GRANT, RLS, View, RPC, bucket ומדיניות Storage):
+2. החילו את המיגרציות — הוראות מלאות לייצור ב-[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) (טבלאות, אינדקסים, GRANT, RLS, View, RPC, bucket ומדיניות Storage):
    ```bash
    npx supabase link --project-ref <project>
    npx supabase db push
@@ -84,7 +87,11 @@ npm run verify:rls          # בדיקת RLS עם שני חשבונות (דור�
 | `npm run dev` | שרת פיתוח |
 | `npm run build` | בדיקת טיפוסים + build לייצור |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
-| `npm run verify:rls` | 31 בדיקות בידוד בין חשבונות (מועמדים, משפחה, מחותנים, רעיונות, היסטוריה, RPC ו-Storage) |
+| `npm test` | בדיקות יחידה ואינטגרציה (Vitest) |
+| `npm run test:e2e` | בדיקות E2E ונגישות (Playwright + axe) — דורש שרת פעיל, ראו `docs/TESTING.md` |
+| `npm run verify:rls` | 48 בדיקות בידוד בין חשבונות (כל הטבלאות, View, ‏RPC, ‏Storage, יומן, מיילים, מחיקת חשבון) |
+| `npm run verify:filters` | שוויון בין סינון בצד השרת לסינון בצד הלקוח |
+| `npm run verify:email` | בדיקות פונקציית המייל מול ספק מדומה |
 
 לאירוח סטטי ללא rewrites (למשל GitHub Pages) בנו עם `VITE_HASH_ROUTER=true`.
 
@@ -104,12 +111,19 @@ src/
                           validators.ts, strings.he.ts (כל מחרוזות הממשק)
   pages/                  Login, Home, Candidates, Ideas, DesignSystem (Showcase)
 docs/
+  ARCHITECTURE.md         ארכיטקטורה, מסד, אינטגרציות
+  DEPLOYMENT.md           פריסה לייצור, משתני סביבה, סודות, rollback
+  TESTING.md              סוגי הבדיקות, הרצה ו-CI
+  OPERATIONS.md           רישום שגיאות, דוח תמיכה, תפעול
+  AUDIT.md                ביקורת המערכת וממצאיה
+  RELEASE_READINESS.md    דוח מוכנות לשחרור
   DESIGN_SYSTEM.md        עקרונות, tokens, רכיבים, RTL ונגישות
 supabase/
   migrations/             הסכמה המלאה
   functions/send-resume-email/   שליחת רזומה כקובץ מצורף (Resend)
   seed.sql                נוצר אוטומטית מ-src/data/seedData.ts
-scripts/                  generate-seed.ts, verify-rls.ts
+scripts/                  generate-seed.ts, verify-rls.ts, verify-email-function.ts, verify-server-filters.ts
+tests/                    unit/, integration/ (Vitest), e2e/ (Playwright)
 ```
 
 ## החלטות עיקריות

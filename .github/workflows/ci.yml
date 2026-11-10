@@ -42,6 +42,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Python validators for generated Word/Excel files
+        run: pip install python-docx==1.2.0 openpyxl==3.1.5
       - name: Start app (demo mode)
         run: |
           VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= npx vite --host 127.0.0.1 --port 5175 --strictPort &
@@ -80,6 +82,8 @@ jobs:
       - name: Server-side filter parity (עדה)
         run: set -a && . ./.env.local && set +a && npm run verify:filters
       - run: npx playwright install --with-deps chromium
+      - name: Python validators for generated Word/Excel files
+        run: pip install python-docx==1.2.0 openpyxl==3.1.5
       - name: Start app (Supabase mode)
         run: |
           npx supabase db reset
