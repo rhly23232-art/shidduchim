@@ -44,7 +44,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Start app (demo mode)
         run: |
-          VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= npx vite --port 5175 --strictPort &
+          VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= npx vite --host 127.0.0.1 --port 5175 --strictPort &
           npx --yes wait-on@8.0.3 http://127.0.0.1:5175 --timeout 60000
       - run: npm run test:e2e
         env:
@@ -83,7 +83,7 @@ jobs:
       - name: Start app (Supabase mode)
         run: |
           npx supabase db reset
-          npx vite --port 5173 --strictPort &
+          npx vite --host 127.0.0.1 --port 5173 --strictPort &
           npx --yes wait-on@8.0.3 http://127.0.0.1:5173 --timeout 60000
       - run: npm run test:e2e
         env:
