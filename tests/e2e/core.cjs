@@ -275,12 +275,10 @@ const ok = (cond, s) => {
   await axe('palette', '[role=dialog]')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(300)
-  await page.getByRole('button', { name: 'סגירת תפריט' }).click()
-  await page.waitForTimeout(400)
-  await page.screenshot({ path: art('rail.png') })
-  await axe('icon rail')
-  await page.getByRole('button', { name: 'פתיחת תפריט' }).click()
-  await page.waitForTimeout(300)
+  // desktop: the sidebar is pinned open — no collapse button, full width with labels
+  ok(!(await page.getByRole('button', { name: /פתיחת תפריט|סגירת תפריט/ }).isVisible()), 'desktop: no collapse button')
+  const sideW = (await page.locator('#app-sidebar').boundingBox()).width
+  ok(sideW > 250 && (await page.locator('#app-sidebar').innerText()).includes('בחורות'), 'desktop: sidebar pinned open with labels (' + Math.round(sideW) + 'px)')
   await page.getByRole('button', { name: 'תפריט משתמש' }).click()
   await page.waitForTimeout(300)
   ok(!(await page.getByRole('menuitem', { name: /מערכת העיצוב/ }).count()), 'user menu no longer lists the design system')

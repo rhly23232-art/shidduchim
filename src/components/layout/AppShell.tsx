@@ -10,14 +10,13 @@ import { CandidateForm, type FormSuggestions } from '@/features/candidates/Candi
 import { ResumeViewer } from '@/features/resumes/ResumeViewer'
 import { AppActionsContext, type AppActions } from '@/features/workspace/appActions'
 import { qk, useDeleteCandidate } from '@/hooks/useCandidates'
-import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useOverlayParam } from '@/hooks/useOverlayParam'
 import { useCandidateIndex, wk } from '@/hooks/useWorkspace'
 import { dataApi } from '@/lib/api'
 import { hostDownloads, hostMcp } from '@/lib/hostBridge'
 import { he } from '@/lib/strings.he'
 import type { CandidateFull, CandidateRow, Gender } from '@/lib/types'
-import { cn, errorMessage, fullName, hebrewCollator } from '@/lib/utils'
+import { errorMessage, fullName, hebrewCollator } from '@/lib/utils'
 import { CommandPalette } from './CommandPalette'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
@@ -57,26 +56,9 @@ export function AppShell() {
   const [toDelete, setToDelete] = useState<CandidateRow | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
-  // Desktop sidebar can be collapsed with the burger button; remembered per browser.
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    try {
-      return localStorage.getItem('shidduchim-sidebar') !== 'closed'
-    } catch {
-      return true
-    }
-  })
-  const isDesktop = useMediaQuery('(min-width: 1024px)')
-  const toggleMenu = () => {
-    if (!isDesktop) return setNavOpen(true)
-    setSidebarOpen((o) => {
-      try {
-        localStorage.setItem('shidduchim-sidebar', o ? 'closed' : 'open')
-      } catch {
-        /* not persisted */
-      }
-      return !o
-    })
-  }
+  // Desktop: the sidebar is pinned open (no collapsing). Below 1024px the menu button opens
+  // it as a drawer.
+  const toggleMenu = () => setNavOpen(true)
   const del = useDeleteCandidate()
   const title = usePageTitle()
 
@@ -156,15 +138,7 @@ export function AppShell() {
 
   return (
     <AppActionsContext.Provider value={actions}>
-      <div
-        className={cn(
-          'min-h-[100dvh] lg:grid',
-          'lg:transition-[grid-template-columns] lg:duration-base lg:ease-out',
-          sidebarOpen
-            ? 'lg:grid-cols-[17.5rem_minmax(0,1fr)]'
-            : 'lg:grid-cols-[4.5rem_minmax(0,1fr)]',
-        )}
-      >
+      <div className="min-h-[100dvh] lg:grid lg:grid-cols-[17.5rem_minmax(0,1fr)]">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-[80] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
@@ -172,7 +146,7 @@ export function AppShell() {
           {he.app.skipToContent}
         </a>
         <aside id="app-sidebar" className="sticky top-0 hidden h-[100dvh] overflow-hidden lg:block">
-          <Sidebar collapsed={!sidebarOpen} />
+          <Sidebar />
         </aside>
         <Sheet open={navOpen} onOpenChange={setNavOpen}>
           <SheetContent side="start" className="max-w-[300px] border-0 p-0">
@@ -186,7 +160,7 @@ export function AppShell() {
           <Header
             title={title}
             onMenu={toggleMenu}
-            menuOpen={isDesktop ? sidebarOpen : navOpen}
+            menuOpen={navOpen}
             onSearch={() => setPaletteOpen(true)}
             onAdd={() => actions.newCandidate()}
           />

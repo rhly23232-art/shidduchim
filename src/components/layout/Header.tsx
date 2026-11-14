@@ -25,8 +25,7 @@ export function Header({ title, onMenu, menuOpen, onSearch, onAdd }: Props) {
           onClick={onMenu}
           aria-label={menuOpen ? he.nav.close : he.nav.open}
           aria-expanded={menuOpen}
-          aria-controls="app-sidebar"
-          className="shrink-0"
+          className="shrink-0 lg:hidden"
         >
           <Menu className="size-5" />
         </Button>
