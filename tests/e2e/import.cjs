@@ -182,9 +182,10 @@ const ok = (c, s) => {
     .getByRole('button', { name: /לפרטים המלאים/ })
     .click()
   await page.waitForSelector('[role=dialog] >> text=מידע אישי מורחב')
+  const detailText = await page.locator('[role=dialog]').innerText()
   ok(
-    (await page.locator('[role=dialog]').innerText()).includes('גיל בקובץ המקורי: 24'),
-    'age-only kept as note (no invented date)',
+    /גיל\s*\n?\s*24/.test(detailText) && !/תאריך לידה לועזי\s*\n?\s*\d/.test(detailText),
+    'age-only row → stored as age 24, no invented birth date',
   )
   // bad file types
   fs.writeFileSync(art('old.xls'), 'x')

@@ -9,9 +9,9 @@
 | בידוד במסד | `npm run verify:rls` | 48 בדיקות: שני חשבונות, כל הטבלאות, View, ‏RPC, ‏Storage, יומן, email_log, עריכה מקבילה, מחיקת חשבון |
 | שוויון סינון שרת/לקוח | `npm run verify:filters` | סינון עדה בצד השרת מחזיר בדיוק את מה שמחזיר `edaOf` |
 | Edge Function | `npm run verify:email` | ‏16 בדיקות מול ספק מדומה מקומי: הגבלת קצב, idempotency, timeout, ניסיון חוזר, שגיאות |
-| E2E ‏(Playwright + axe-core) | `npm run test:e2e` | ‏7 סוויטות, 154 בדיקות, כולל נגישות WCAG 2.1 AA |
+| E2E ‏(Playwright + axe-core) | `npm run test:e2e` | ‏11 סוויטות, כולל נגישות WCAG 2.1 AA |
 
-סוויטות E2E (`tests/e2e`): ‏`core`, ‏`documents`, ‏`import`, ‏`history`, ‏`concurrency`, ‏`support`, ‏`account` (האחרונה מוחקת נתונים, ולכן רצה אחרונה).
+סוויטות E2E (`tests/e2e`): ‏`core`, ‏`documents`, ‏`import`, ‏`history`, ‏`concurrency`, ‏`support`, ‏`ideas-resume`, ‏`age`, ‏`move`, ‏`profile`, ‏`account` (האחרונה מוחקת נתונים, ולכן רצה אחרונה).
 להרצת סוויטה אחת: `node tests/e2e/run.cjs account`.
 
 ## 2. הרצה מקומית

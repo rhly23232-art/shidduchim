@@ -17,6 +17,8 @@
 | `VITE_SUPABASE_ANON_KEY` | כן | מפתח anon (ציבורי; ההגנה היא RLS) |
 | `VITE_ERROR_ENDPOINT` | לא | כתובת שאליה נשלחות שגיאות (JSON, ‏sendBeacon). מידע אישי מוסר לפני השליחה |
 | `VITE_HASH_ROUTER` | לא | `true` לאירוח ללא rewrites |
+| `VITE_SUPPORT_EMAIL` | לא | כתובת לפניות תמיכה (חלון "תמיכה ועזרה"). בלעדיה מוצגים רק השאלות הנפוצות ודוח התקלות |
+| `VITE_PUBLIC_URL` | לא | הכתובת הציבורית של האפליקציה להזמנת חבר. ברירת מחדל: כתובת האתר עצמו |
 
 אין להכניס ל-build מפתח `service_role` או סודות אחרים.
 
@@ -56,7 +58,7 @@ npx supabase secrets set ALLOWED_ORIGINS=https://your-app-domain
    ```bash
    npx supabase functions deploy send-resume-email
    ```
-   בדיקה: בקשת GET לפונקציה מחזירה `{"ok":true,"configured":true}`. הבדיקה זמינה גם מתוך האפליקציה: תפריט משתמש ← "דוח תקלות לתמיכה".
+   בדיקה: בקשת GET לפונקציה מחזירה `{"ok":true,"configured":true}`. הבדיקה זמינה גם מתוך האפליקציה: תפריט משתמש ← "תמיכה ועזרה" ← "הורדת דוח תקלות".
 5. **build ופרסום:**
    ```bash
    npm ci && npm run build

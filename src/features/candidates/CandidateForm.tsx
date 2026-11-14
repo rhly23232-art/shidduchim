@@ -376,6 +376,7 @@ export function CandidateForm({
                     {(id, aria) =>
                       birthDate ? (
                         <Input
+                          key="age-computed"
                           id={id}
                           {...aria}
                           readOnly
@@ -385,6 +386,7 @@ export function CandidateForm({
                         />
                       ) : (
                         <Input
+                          key="age-typed"
                           id={id}
                           {...aria}
                           inputMode="numeric"

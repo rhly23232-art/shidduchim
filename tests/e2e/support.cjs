@@ -20,7 +20,10 @@ const ok = (c, s) => {
   )
   const [d] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('menuitem', { name: 'דוח תקלות לתמיכה' }).click(),
+    (async () => {
+      await page.getByRole('menuitem', { name: 'תמיכה ועזרה' }).click()
+      await page.getByRole('button', { name: 'הורדת דוח תקלות' }).click()
+    })(),
   ])
   const p = art('support-report.json')
   await d.saveAs(p)

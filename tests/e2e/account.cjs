@@ -17,7 +17,8 @@ const ok = (c, s) => { console.log(c ? '✓' : '✗', s); if (!c) fails++ }
   }
   await login(page)
   await page.getByRole('button', { name: 'תפריט משתמש' }).click()
-  await page.getByRole('menuitem', { name: 'החשבון שלי' }).click()
+  await page.getByRole('menuitem', { name: 'תמיכה ועזרה' }).click()
+  await page.getByRole('button', { name: /ניהול החשבון/ }).click()
   await page.waitForSelector('text=אזור מחיקה')
   ok((await page.locator('main').innerText()).includes('demo@shidduchim.local'), 'account page shows the account')
   await axe('account page')

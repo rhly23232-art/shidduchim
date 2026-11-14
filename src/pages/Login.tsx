@@ -17,15 +17,16 @@ import { he } from '@/lib/strings.he'
 import { errorMessage } from '@/lib/utils'
 import { loginSchema, signupSchema, type LoginValues, type SignupValues } from '@/lib/validators'
 import { safeRedirect } from '@/lib/safeRedirect'
+import { peekLoginIntent, setLoginIntent } from '@/lib/recentAccounts'
 
 type Mode = 'login' | 'signup'
 
-function LoginForm({ onDone }: { onDone: () => void }) {
+function LoginForm({ onDone, initialEmail }: { onDone: () => void; initialEmail?: string }) {
   const { signIn } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: initialEmail ?? '', password: '' },
   })
   const submit = form.handleSubmit(async (v) => {
     setError(null)
@@ -54,7 +55,7 @@ function LoginForm({ onDone }: { onDone: () => void }) {
             dir="ltr"
             className="text-start"
             autoComplete="email"
-            autoFocus
+            autoFocus={!initialEmail}
             {...form.register('email')}
           />
         )}
@@ -68,6 +69,7 @@ function LoginForm({ onDone }: { onDone: () => void }) {
             dir="ltr"
             className="text-start"
             autoComplete="current-password"
+            autoFocus={!!initialEmail}
             {...form.register('password')}
           />
         )}
@@ -168,7 +170,12 @@ function SignupForm({ onDone }: { onDone: () => void }) {
 
 export default function LoginPage() {
   const { user, loading } = useAuth()
-  const [mode, setMode] = useState<Mode>('login')
+  const location = useLocation()
+  const routeState = location.state as { from?: string } | null
+  // "switch account" → open on that account (or on sign-up)
+  const [intent] = useState(peekLoginIntent)
+  useEffect(() => setLoginIntent(null), [])
+  const [mode, setMode] = useState<Mode>(intent?.signup ? 'signup' : 'login')
   const [firstVisit, setFirstVisit] = useState(false)
   // Database mode, first visit: no account yet → open on "create account".
   useEffect(() => {
@@ -181,8 +188,8 @@ export default function LoginPage() {
     })
   }, [])
   const navigate = useNavigate()
-  const location = useLocation()
-  const from = safeRedirect((location.state as { from?: string } | null)?.from)
+  const from = safeRedirect(routeState?.from)
+  const switchEmail = intent?.email
 
   if (!loading && user) return <Navigate to={from} replace />
   const done = () => navigate(from, { replace: true })
@@ -219,7 +226,11 @@ export default function LoginPage() {
               <p className="mb-6 mt-1 text-body text-muted-foreground">
                 {mode === 'login' ? he.auth.loginSubtitle : he.auth.signupSubtitle}
               </p>
-              {mode === 'login' ? <LoginForm onDone={done} /> : <SignupForm onDone={done} />}
+              {mode === 'login' ? (
+                <LoginForm onDone={done} initialEmail={switchEmail} />
+              ) : (
+                <SignupForm onDone={done} />
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

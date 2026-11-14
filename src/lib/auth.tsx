@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { authApi, type AppUser } from './api'
+import { rememberAccount } from './recentAccounts'
 
 interface AuthState {
   user: AppUser | null
@@ -36,6 +37,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsubscribe()
     }
   }, [queryClient])
+
+  // remembered on this device for "switch account"
+  useEffect(() => {
+    if (user) rememberAccount(user.email, user.fullName)
+  }, [user])
 
   const value = useMemo<AuthState>(
     () => ({
