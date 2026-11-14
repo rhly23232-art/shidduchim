@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { useRef, type DOMAttributes, type KeyboardEvent } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface SegmentedItem<T extends string> {
@@ -21,6 +21,7 @@ export function Segmented<T extends string>({
   role = 'tablist',
   size = 'md',
   className,
+  itemProps,
 }: {
   items: SegmentedItem<T>[]
   value: T
@@ -29,6 +30,8 @@ export function Segmented<T extends string>({
   role?: 'tablist' | 'radiogroup'
   size?: 'sm' | 'md'
   className?: string
+  /** Extra handlers / classes per item (e.g. drop targets). */
+  itemProps?: (v: T) => DOMAttributes<HTMLButtonElement> & { className?: string }
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const onKeyDown = (e: KeyboardEvent) => {
@@ -58,8 +61,10 @@ export function Segmented<T extends string>({
     >
       {items.map((item) => {
         const on = item.value === value
+        const { className: extraClass, ...extra } = itemProps?.(item.value) ?? {}
         return (
           <button
+            {...extra}
             key={item.value}
             id={item.id}
             data-seg
@@ -76,6 +81,7 @@ export function Segmented<T extends string>({
               on
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground',
+              extraClass,
             )}
           >
             {item.label}

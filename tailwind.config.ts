@@ -86,8 +86,16 @@ export default {
       transitionTimingFunction: { out: 'cubic-bezier(0.22, 1, 0.36, 1)' },
       keyframes: {
         shimmer: { '100%': { transform: 'translateX(-100%)' } },
+        // a target that just received a dragged candidate
+        'drop-flash': {
+          '0%': { backgroundColor: 'hsl(var(--success-soft))', transform: 'scale(1.06)' },
+          '100%': { backgroundColor: 'transparent', transform: 'scale(1)' },
+        },
       },
-      animation: { shimmer: 'shimmer 1.4s infinite' },
+      animation: {
+        shimmer: 'shimmer 1.4s infinite',
+        'drop-flash': 'drop-flash 1.2s ease-out',
+      },
     },
   },
   plugins: [animate],

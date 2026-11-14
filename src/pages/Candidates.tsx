@@ -1,6 +1,7 @@
 import { CandidatesTable } from '@/features/candidates/CandidatesTable'
 import { CANDIDATES_PANEL_ID, FilterBar, tabId } from '@/features/candidates/FilterBar'
 import { SampleDataBanner } from '@/features/candidates/SampleData'
+import { otherGender, useMoveCandidate } from '@/features/candidates/moveGender'
 import { useAppActions } from '@/features/workspace/appActions'
 import { useCandidateDataset } from '@/hooks/useCandidates'
 import { useFilters } from '@/hooks/useFilters'
@@ -10,6 +11,7 @@ export default function CandidatesPage() {
   const { gender, filters, sort, activeCount } = filtersApi
   const data = useCandidateDataset(gender, filters, sort)
   const actions = useAppActions()
+  const { move } = useMoveCandidate()
 
   return (
     <>
@@ -44,6 +46,7 @@ export default function CandidatesPage() {
             onOpen={(r) => actions.openCandidate(r.id)}
             onEdit={(r) => actions.editCandidate(r)}
             onDelete={actions.deleteCandidate}
+            onMove={(r) => void move(r, otherGender(r.gender))}
           />
         </div>
       </main>

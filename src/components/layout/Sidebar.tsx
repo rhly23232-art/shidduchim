@@ -14,6 +14,8 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom'
 import { useLastBackup } from '@/features/history/backup'
 import { useAppActions } from '@/features/workspace/appActions'
+import { dropClasses, useGenderDropTarget } from '@/features/candidates/moveGender'
+import type { Gender } from '@/lib/types'
 import { useCandidateIndex } from '@/hooks/useWorkspace'
 import { he } from '@/lib/strings.he'
 import { cn, fullName, hebrewCollator, normalizeSearch } from '@/lib/utils'
@@ -26,6 +28,22 @@ const STATUS_DOT = {
   engaged: 'bg-info',
   paused: 'bg-input-hover',
 } as const
+
+/** A sidebar item that also accepts a dragged candidate of the other gender. */
+function GenderDrop({ gender, children }: { gender: Gender; children: ReactNode }) {
+  const { props, state } = useGenderDropTarget(gender)
+  return (
+    <div
+      {...props}
+      className={cn(
+        'rounded-md transition-[background-color,box-shadow,transform,outline-color] duration-base',
+        dropClasses[state],
+      )}
+    >
+      {children}
+    </div>
+  )
+}
 
 function NavItem({
   to,
@@ -168,22 +186,26 @@ export function Sidebar({
         <div>
           <SectionLabel collapsed={collapsed}>{he.nav.sectionPool}</SectionLabel>
           <div className="space-y-1">
-            <NavItem
-              to="/candidates?tab=male"
-              icon={<UserRound />}
-              label={he.nav.males}
-              active={onCandidates && tab === 'male'}
-              onNavigate={onNavigate}
-              collapsed={collapsed}
-            />
-            <NavItem
-              to="/candidates?tab=female"
-              icon={<Users />}
-              label={he.nav.females}
-              active={onCandidates && tab === 'female'}
-              onNavigate={onNavigate}
-              collapsed={collapsed}
-            />
+            <GenderDrop gender="male">
+              <NavItem
+                to="/candidates?tab=male"
+                icon={<UserRound />}
+                label={he.nav.males}
+                active={onCandidates && tab === 'male'}
+                onNavigate={onNavigate}
+                collapsed={collapsed}
+              />
+            </GenderDrop>
+            <GenderDrop gender="female">
+              <NavItem
+                to="/candidates?tab=female"
+                icon={<Users />}
+                label={he.nav.females}
+                active={onCandidates && tab === 'female'}
+                onNavigate={onNavigate}
+                collapsed={collapsed}
+              />
+            </GenderDrop>
             <NavItem
               to="/candidates?tab=all"
               icon={<UsersRound />}

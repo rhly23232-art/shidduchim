@@ -1,5 +1,5 @@
 import { createColumnHelper, type RowData } from '@tanstack/react-table'
-import { ChevronLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { ArrowRightLeft, ChevronLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -22,6 +22,8 @@ declare module '@tanstack/react-table' {
     onOpen: (row: CandidateRow) => void
     onEdit: (row: CandidateRow) => void
     onDelete: (row: CandidateRow) => void
+    /** Move to the opposite table (wrong gender). */
+    onMove: (row: CandidateRow) => void
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -129,6 +131,10 @@ export const actionsColumn = col.display({
             <DropdownMenuItem onSelect={() => meta.onEdit(r)}>
               <Pencil />
               {he.common.edit}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => meta.onMove(r)}>
+              <ArrowRightLeft />
+              {he.move.to(r.gender === 'male' ? 'female' : 'male')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem destructive onSelect={() => meta.onDelete(r)}>

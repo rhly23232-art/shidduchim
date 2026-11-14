@@ -33,6 +33,7 @@ import { femaleColumns } from './columns.female'
 import { maleColumns } from './columns.male'
 import { LoadSamplesButton } from './SampleData'
 import { StatusBadge } from './StatusBadge'
+import { rowDragProps } from './moveGender'
 
 const VIRTUALIZE_AFTER = 100
 const ROW_H = 60
@@ -53,6 +54,8 @@ interface Props {
   onOpen: (r: CandidateRow) => void
   onEdit: (r: CandidateRow) => void
   onDelete: (r: CandidateRow) => void
+  /** Move to the opposite table (row menu; dragging does it too). */
+  onMove: (r: CandidateRow) => void
 }
 
 /** Ignore clicks on controls and on portaled content (menus/dialogs rendered elsewhere). */
@@ -140,6 +143,7 @@ function DesktopTable({
   onOpen,
   onEdit,
   onDelete,
+  onMove,
 }: Props) {
   const columns = (
     gender === 'male' ? maleColumns : gender === 'female' ? femaleColumns : allColumns
@@ -155,7 +159,7 @@ function DesktopTable({
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
     state: { sorting },
-    meta: { onOpen, onEdit, onDelete },
+    meta: { onOpen, onEdit, onDelete, onMove },
   })
 
   const bodyRef = useRef<HTMLTableSectionElement>(null)
@@ -272,6 +276,7 @@ function DesktopTable({
               {visible.map((row, i) => (
                 <tr
                   key={row.id}
+                  {...rowDragProps(row.original)}
                   data-index={virtual ? items[i]!.index : undefined}
                   ref={virtual ? virtualizer.measureElement : undefined}
                   onClick={(e) => isRowActivation(e) && onOpen(row.original)}
@@ -374,6 +379,7 @@ function CandidateCard({
   const name = fullName(r)
   return (
     <article
+      {...rowDragProps(r)}
       onClick={(e) => isRowActivation(e) && onOpen(r)}
       className="cursor-pointer rounded-lg border border-border bg-card p-4 transition-[border-color,box-shadow] duration-base hover:border-input-hover hover:shadow-sm"
       aria-label={name}

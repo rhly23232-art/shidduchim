@@ -20,6 +20,8 @@ import { AgeFilter, AgeRangeControl, ageLabel } from './AgeFilter'
 import type { FacetOptions } from './filtering'
 import { EdaFilter, edaLabel } from './EdaFilter'
 import { MultiSelectFilter, type OptionGroup } from './MultiSelectFilter'
+import { dropClasses, useGenderDropTarget } from './moveGender'
+import { cn } from '@/lib/utils'
 
 interface Props {
   api: FiltersApi
@@ -117,8 +119,21 @@ const TAB_ORDER = ['male', 'female', 'all'] as const
 
 /** View switch בחורים / בחורות / הכל — WAI-ARIA tabs via the shared Segmented control. */
 function GenderTabs({ gender, onChange }: { gender: TabKey; onChange: (g: TabKey) => void }) {
+  // the opposite tab accepts a dragged row (candidate entered in the wrong table)
+  const drop = { male: useGenderDropTarget('male'), female: useGenderDropTarget('female') }
   return (
     <Segmented
+      itemProps={(g) =>
+        g === 'all'
+          ? {}
+          : {
+              ...drop[g].props,
+              className: cn(
+                'transition-[background-color,color,box-shadow,transform,outline-color] duration-base',
+                dropClasses[drop[g].state],
+              ),
+            }
+      }
       label={he.tabs.ariaLabel}
       value={gender}
       onChange={onChange}
