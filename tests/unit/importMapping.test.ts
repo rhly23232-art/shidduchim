@@ -84,10 +84,11 @@ describe('parseRows', () => {
     expect(rows[4]!.payload).toBeNull()
     expect(rows[4]!.errors[0]).toMatch(/לא צוין/)
   })
-  it('never invents a birth date from an age; flags invalid height', () => {
+  it('keeps an age as age (no invented birth date); flags invalid height', () => {
     const r = rows[5]!
     expect(r.payload!.candidate.birth_date).toBeNull()
-    expect(r.payload!.candidate.general_notes).toContain('גיל בקובץ המקורי: 24')
+    expect(r.payload!.candidate.age_years).toBe(24)
+    expect(r.payload!.candidate.age_recorded_on).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     expect(r.payload!.candidate.height_cm).toBeNull()
     expect(r.warnings.join()).toMatch(/גובה/)
     expect(r.warnings.join()).toMatch(/חסר שם משפחה/)

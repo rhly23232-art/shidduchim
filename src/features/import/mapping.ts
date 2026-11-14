@@ -1,4 +1,5 @@
 import { HDate } from '@hebcal/core'
+import { todayIso } from '@/lib/age'
 import { EMPTY_FAMILY } from '@/lib/candidatePayload'
 import type { EdaKey } from '@/lib/eda'
 import { excelSerialToIso, type SheetCell } from '@/lib/files/readSheet'
@@ -248,7 +249,13 @@ export function parseRows(
         if (!birth) warnings.push(`תאריך עברי לא זוהה — נשמר כטקסט: "${h}"`)
       }
     }
-    if (!birth && val.age !== undefined) notes.push(`גיל בקובץ המקורי: ${str(val.age)}`)
+    // No birth date: a plain age is kept as the candidate's age (it grows with time).
+    let ageYears: number | null = null
+    if (!birth && val.age !== undefined) {
+      const a = Number(String(val.age).replace(/[^\d.]/g, ''))
+      if (Number.isInteger(a) && a >= 16 && a <= 70) ageYears = a
+      else warnings.push(`גיל לא תקין: "${str(val.age)}"`)
+    }
 
     // height
     let height: number | null = null
@@ -271,6 +278,8 @@ export function parseRows(
       last_name: last,
       birth_date: birth,
       hebrew_birth_date: birth ? gregorianToHebrew(birth) : hebrewText,
+      age_years: ageYears,
+      age_recorded_on: ageYears === null ? null : todayIso(),
       city: nul(str(val.city ?? null)),
       region: nul(str(val.region ?? null)),
       country_of_origin: null,
@@ -329,6 +338,11 @@ export function mergeIntoExisting(
     if (k === 'gender' || k === 'status' || k === 'education_history') continue
     if (v !== null && v !== '') (c as Record<string, unknown>)[k] = v
   }
+  // A birth date always wins over a typed age (age is then computed from it).
+  if (c.birth_date) {
+    c.age_years = null
+    c.age_recorded_on = null
+  }
   if (incoming.candidate.general_notes && existing.candidate.general_notes) {
     c.general_notes = existing.candidate.general_notes.includes(incoming.candidate.general_notes)
       ? existing.candidate.general_notes
@@ -346,6 +360,7 @@ export const TEMPLATE_HEADERS = [
   'בחור / בחורה',
   'תאריך לידה',
   'תאריך לידה עברי',
+  'גיל',
   'עיר',
   'אזור',
   'עדה / חסידות',

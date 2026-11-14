@@ -19,6 +19,10 @@ export interface CandidateInput {
   last_name: string
   birth_date: string | null
   hebrew_birth_date: string | null
+  /** Age typed without an exact birth date (grows by itself from `age_recorded_on`). */
+  age_years: number | null
+  /** The day `age_years` was typed (yyyy-mm-dd); null together with `age_years`. */
+  age_recorded_on: string | null
   city: string | null
   region: string | null
   country_of_origin: string | null

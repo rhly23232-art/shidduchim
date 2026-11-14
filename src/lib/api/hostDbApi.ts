@@ -6,7 +6,7 @@
  *    holds the asset id.
  * Identity comes from the signed-in claude.ai account (`user`), so there is no separate login.
  */
-import { ageFromBirthDate } from '../age'
+import { effectiveAge } from '../age'
 import { edaMatches } from '../eda'
 import { he } from '../strings.he'
 import type { CandidateFull, CandidateRow, Idea, InLaw, ResumeMeta } from '../types'
@@ -284,7 +284,7 @@ export function createHostBackend(
 
   const withAge = (c: StoredCandidate): CandidateFull => ({
     ...c,
-    age: ageFromBirthDate(c.birth_date),
+    age: effectiveAge(c),
   })
   const toRow = (c: StoredCandidate): CandidateRow => {
     const { family: _f, in_laws: _l, ...rest } = withAge(c)

@@ -22,6 +22,8 @@ const INPUT_KEYS: (keyof CandidateInput)[] = [
   'last_name',
   'birth_date',
   'hebrew_birth_date',
+  'age_years',
+  'age_recorded_on',
   'city',
   'region',
   'country_of_origin',

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ageFromBirthDate } from './age'
+import { ageFromBirthDate, effectiveAge, todayIso } from './age'
 import { edaDetail, edaOf, hasEda, type EdaKey } from './eda'
 import { gregorianToHebrew } from './hebrewDate'
 import { he } from './strings.he'
@@ -72,6 +72,8 @@ export const candidateFormSchema = z
       (v) => v.trim().split(/\s+/).length >= 2,
       v.fullNameTwoWords,
     ),
+    /** Typed age — used only when there is no birth date (then it is computed). */
+    age: intString(16, 70, v.ageRange),
     birth_date: birthDate,
     city: optionalText(60),
     region: optionalText(60),
@@ -121,6 +123,7 @@ export function emptyFormValues(gender: Gender): CandidateFormValues {
   return {
     gender,
     full_name: '',
+    age: '',
     birth_date: '',
     city: '',
     region: '',
@@ -161,6 +164,7 @@ export function candidateToFormValues(c: CandidateFull): CandidateFormValues {
   return {
     gender: c.gender,
     full_name: `${c.first_name} ${c.last_name}`.trim(),
+    age: c.birth_date ? '' : n(effectiveAge(c)),
     birth_date: s(c.birth_date),
     city: s(c.city),
     region: s(c.region),
@@ -229,9 +233,40 @@ export function splitFullName(full: string): { first_name: string; last_name: st
 
 const num = (x: string) => (x.trim() === '' ? null : Number(x))
 
+/**
+ * Typed age → stored pair. A birth date always wins (age is then computed from it).
+ * An unchanged age keeps its original recording day, so it keeps growing from then.
+ */
+export function ageFields(
+  birth: string | null,
+  typedAge: string,
+  original?: {
+    birth_date: string | null
+    age_years: number | null
+    age_recorded_on: string | null
+  },
+): { age_years: number | null; age_recorded_on: string | null } {
+  if (birth || typedAge.trim() === '') return { age_years: null, age_recorded_on: null }
+  const age = Number(typedAge)
+  if (
+    original &&
+    !original.birth_date &&
+    original.age_years != null &&
+    original.age_recorded_on &&
+    effectiveAge(original) === age
+  )
+    return { age_years: original.age_years, age_recorded_on: original.age_recorded_on }
+  return { age_years: age, age_recorded_on: todayIso() }
+}
+
 export function formValuesToPayload(
   values: CandidateFormValues,
   id?: string,
+  original?: {
+    birth_date: string | null
+    age_years: number | null
+    age_recorded_on: string | null
+  },
 ): SaveCandidatePayload {
   const birth = emptyToNull(values.birth_date)
   return {
@@ -241,6 +276,7 @@ export function formValuesToPayload(
       ...splitFullName(values.full_name),
       birth_date: birth,
       hebrew_birth_date: gregorianToHebrew(birth),
+      ...ageFields(birth, values.age, original),
       city: emptyToNull(values.city),
       region: emptyToNull(values.region),
       country_of_origin: emptyToNull(values.country_of_origin),

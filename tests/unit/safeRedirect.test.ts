@@ -7,7 +7,16 @@ describe('safeRedirect', () => {
     expect(safeRedirect('/')).toBe('/')
   })
   it('falls back to home for anything else', () => {
-    for (const bad of [undefined, '', 'https://evil.example', '//evil.example', '/\\evil.example', '\\\\evil', 'javascript:alert(1)', '/a\nb'])
+    for (const bad of [
+      undefined,
+      '',
+      'https://evil.example',
+      '//evil.example',
+      '/\\evil.example',
+      '\\\\evil',
+      'javascript:alert(1)',
+      '/a\nb',
+    ])
       expect(safeRedirect(bad)).toBe('/')
   })
 })

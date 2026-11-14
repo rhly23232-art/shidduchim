@@ -227,7 +227,13 @@ check('temporary account C created', !cErr, cErr?.message)
 const cId = (await cUser.auth.getUser()).data.user!.id
 const cSave = await cUser.rpc('save_candidate', {
   payload: {
-    candidate: { gender: 'male', first_name: 'מחיקה', last_name: 'בדיקה', status: 'active', education_history: [] },
+    candidate: {
+      gender: 'male',
+      first_name: 'מחיקה',
+      last_name: 'בדיקה',
+      status: 'active',
+      education_history: [],
+    },
     family: {},
     in_laws: [],
   },
@@ -240,7 +246,11 @@ check('C can delete own account', !cDel.error, cDel.error?.message)
 const cLogin = await client().auth.signInWithPassword({ email: emailC, password: 'Test-12345' })
 check('deleted account cannot sign in', !!cLogin.error)
 const aStill = await a.from('candidates').select('id').eq('owner_id', aId)
-check('other accounts are untouched', (aStill.data?.length ?? 0) >= 20, `${aStill.data?.length} rows`)
+check(
+  'other accounts are untouched',
+  (aStill.data?.length ?? 0) >= 20,
+  `${aStill.data?.length} rows`,
+)
 void cId
 
 // cleanup B's data

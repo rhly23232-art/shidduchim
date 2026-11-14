@@ -36,6 +36,8 @@ export type Database = {
     Tables: {
       candidates: {
         Row: {
+          age_recorded_on: string | null
+          age_years: number | null
           appearance: string | null
           birth_date: string | null
           character_description: string | null
@@ -66,6 +68,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          age_recorded_on?: string | null
+          age_years?: number | null
           appearance?: string | null
           birth_date?: string | null
           character_description?: string | null
@@ -96,6 +100,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          age_recorded_on?: string | null
+          age_years?: number | null
           appearance?: string | null
           birth_date?: string | null
           character_description?: string | null
@@ -124,6 +130,45 @@ export type Database = {
           special_requirements?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      email_log: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          idempotency_key: string
+          kind: string
+          owner_id: string
+          provider_id: string | null
+          recipient_domain: string
+          status: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          idempotency_key: string
+          kind: string
+          owner_id?: string
+          provider_id?: string | null
+          recipient_domain: string
+          status?: string
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          idempotency_key?: string
+          kind?: string
+          owner_id?: string
+          provider_id?: string | null
+          recipient_domain?: string
+          status?: string
         }
         Relationships: []
       }
@@ -288,6 +333,36 @@ export type Database = {
           },
         ]
       }
+      journal: {
+        Row: {
+          at: string
+          candidate_id: string | null
+          data: Json
+          id: string
+          kind: string
+          owner_id: string
+          title: string
+        }
+        Insert: {
+          at?: string
+          candidate_id?: string | null
+          data?: Json
+          id?: string
+          kind: string
+          owner_id?: string
+          title: string
+        }
+        Update: {
+          at?: string
+          candidate_id?: string | null
+          data?: Json
+          id?: string
+          kind?: string
+          owner_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       resumes: {
         Row: {
           candidate_id: string
@@ -338,6 +413,8 @@ export type Database = {
       candidates_view: {
         Row: {
           age: number | null
+          age_recorded_on: string | null
+          age_years: number | null
           appearance: string | null
           birth_date: string | null
           character_description: string | null
@@ -377,6 +454,10 @@ export type Database = {
       }
     }
     Functions: {
+      delete_my_account: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       owns_candidate: {
         Args: {
           cid: string

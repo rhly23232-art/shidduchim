@@ -49,6 +49,7 @@
 | `20261113000000_email_log` | רישום שליחות מייל (הגבלת קצב ו-idempotency), ‏revoke מפורש והרשאות לפי עמודה |
 | `20261114000000_concurrency` | `save_candidate` עם בדיקת `expected_updated_at` |
 | `20261115000000_account_deletion` | `delete_my_account()` ‏(SECURITY DEFINER, ‏authenticated בלבד) |
+| `20261116000000_manual_age` | גיל ללא תאריך לידה: `age_years` + `age_recorded_on`. הגיל ב-View מחושב מתאריך הלידה, ואם אין, מהגיל שהוזן ועוד השנים שעברו מאז |
 
 עקרונות:
 

@@ -1,4 +1,14 @@
-import { CheckCircle2, Lightbulb, Link2, Pencil, Pin, PinOff, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import {
+  CheckCircle2,
+  Lightbulb,
+  Link2,
+  Pencil,
+  Pin,
+  PinOff,
+  Plus,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'

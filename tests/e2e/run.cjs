@@ -5,7 +5,7 @@
 const { spawnSync } = require('child_process')
 const path = require('path')
 
-const ALL = ['core', 'documents', 'import', 'history', 'concurrency', 'support', 'ideas-resume', 'account']
+const ALL = ['core', 'documents', 'import', 'history', 'concurrency', 'support', 'ideas-resume', 'age', 'account']
 const suites = process.argv.slice(2).length ? process.argv.slice(2) : ALL
 let failed = 0
 const t0 = Date.now()

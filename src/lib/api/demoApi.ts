@@ -4,7 +4,7 @@
  */
 import { createStore, del as idbDel, get as idbGet, set as idbSet, type UseStore } from 'idb-keyval'
 import { SEED_CANDIDATES, SEED_IDEAS } from '@/data/seedData'
-import { ageFromBirthDate } from '../age'
+import { effectiveAge } from '../age'
 import { edaMatches, edaOf } from '../eda'
 import { gregorianToHebrew } from '../hebrewDate'
 import { he } from '../strings.he'
@@ -137,6 +137,8 @@ export function seedRows(ownerId: string): StoredCandidate[] {
       ...s.candidate,
       eda: edaOf(s.candidate),
       hebrew_birth_date: gregorianToHebrew(s.candidate.birth_date),
+      age_years: null,
+      age_recorded_on: null,
       id: uid(),
       owner_id: ownerId,
       created_at: ts,
@@ -308,7 +310,7 @@ function ensureDemoAccount(): Promise<void> {
 
 const withAge = (c: StoredCandidate): CandidateFull => ({
   ...c,
-  age: ageFromBirthDate(c.birth_date),
+  age: effectiveAge(c),
 })
 const toRow = (c: StoredCandidate): CandidateRow => {
   const { family, in_laws, ...rest } = withAge(c)

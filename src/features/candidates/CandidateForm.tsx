@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { EdaPicker } from './EdaFilter'
 import { useSaveCandidate } from '@/hooks/useCandidates'
 import { isConflict } from '@/lib/api/errors'
+import { ageFromBirthDate } from '@/lib/age'
 import { gregorianToHebrew } from '@/lib/hebrewDate'
 import { he } from '@/lib/strings.he'
 import { CANDIDATE_STATUSES, type CandidateFull, type Gender } from '@/lib/types'
@@ -146,7 +147,8 @@ export function CandidateForm({
     defaultValues: emptyFormValues(defaultGender),
     mode: 'onTouched',
   })
-  const { register, control, formState, handleSubmit, reset, getFieldState, setValue } = form
+  const { register, control, formState, handleSubmit, reset, getFieldState, setValue, getValues } =
+    form
   const education = useFieldArray({ control, name: 'education_history' })
   const inLaws = useFieldArray({ control, name: 'in_laws' })
   const [extraOn, setExtraOn] = useState(false)
@@ -187,6 +189,12 @@ export function CandidateForm({
   const eda = edaRaw === '' ? null : edaRaw
   const edaDetailValue = useWatch({ control, name: 'eda_detail' })
   const hebrewDate = useMemo(() => gregorianToHebrew(birthDate), [birthDate])
+  const ageFromDate = useMemo(() => ageFromBirthDate(birthDate), [birthDate])
+  // A birth date replaces a typed age (the age is then computed from the date).
+  useEffect(() => {
+    if (birthDate && getValues('age') !== '')
+      setValue('age', '', { shouldDirty: true, shouldValidate: true })
+  }, [birthDate, getValues, setValue])
   const err = (name: FieldPath<CandidateFormValues>) =>
     getFieldState(name, formState).error?.message
 
@@ -199,7 +207,7 @@ export function CandidateForm({
   const [conflict, setConflict] = useState<CandidateFormValues | null>(null)
   const persist = async (values: CandidateFormValues, force: boolean) => {
     try {
-      const payload = formValuesToPayload(values, candidate?.id)
+      const payload = formValuesToPayload(values, candidate?.id, candidate ?? undefined)
       // the version this form was opened from — the save is refused if the card changed since
       if (candidate && !force) payload.expected_updated_at = candidate.updated_at
       const id = await save.mutateAsync(payload)
@@ -359,7 +367,35 @@ export function CandidateForm({
                   required: true,
                   placeholder: t.fullNamePlaceholder,
                 })}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-[7rem_minmax(0,1fr)_minmax(0,1fr)]">
+                  <Field
+                    label={t.age}
+                    error={birthDate ? undefined : err('age')}
+                    hint={birthDate ? t.ageFromDate : t.ageHint}
+                  >
+                    {(id, aria) =>
+                      birthDate ? (
+                        <Input
+                          id={id}
+                          {...aria}
+                          readOnly
+                          tabIndex={-1}
+                          value={ageFromDate ?? ''}
+                          className="tabular bg-secondary text-center"
+                        />
+                      ) : (
+                        <Input
+                          id={id}
+                          {...aria}
+                          inputMode="numeric"
+                          maxLength={2}
+                          placeholder="—"
+                          className="tabular text-center"
+                          {...register('age')}
+                        />
+                      )
+                    }
+                  </Field>
                   <div className="flex flex-col gap-2">
                     <span className="text-label text-foreground" id="heb-date-label">
                       {t.hebrewBirthDate}

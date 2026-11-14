@@ -8,6 +8,7 @@ export const FIELD_LABELS: Record<string, string> = {
   gender: 'בחור / בחורה',
   first_name: 'שם פרטי',
   last_name: 'שם משפחה',
+  age_years: 'גיל (ללא תאריך לידה)',
   birth_date: 'תאריך לידה',
   city: 'עיר',
   region: 'אזור',

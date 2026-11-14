@@ -57,6 +57,8 @@ function mapRow(r: ViewRow): CandidateRow {
     last_name: r.last_name ?? '',
     birth_date: r.birth_date,
     hebrew_birth_date: r.hebrew_birth_date,
+    age_years: r.age_years ?? null,
+    age_recorded_on: r.age_recorded_on ?? null,
     city: r.city,
     region: r.region,
     country_of_origin: r.country_of_origin,
@@ -122,14 +124,6 @@ function storageFileName(original: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 40)
   return `${Date.now()}-${stem || 'resume'}.${ext}`
-}
-
-function isoDateYearsAgo(years: number, extraDays = 0): string {
-  const d = new Date()
-  d.setFullYear(d.getFullYear() - years)
-  d.setDate(d.getDate() + extraDays)
-  const p = (x: number) => String(x).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
 
 /** Escape a user term for a PostgREST `or=(...)` ilike filter. */
@@ -430,8 +424,9 @@ export const supabaseData: DataApi = {
     const sb = requireSupabase()
     let q = sb.from('candidates_view').select('*', { count: 'exact' })
     if (gender !== 'all') q = q.eq('gender', gender)
-    if (f.ageMin > 18) q = q.lte('birth_date', isoDateYearsAgo(f.ageMin))
-    if (f.ageMax < 45) q = q.gt('birth_date', isoDateYearsAgo(f.ageMax + 1))
+    // `age` is computed in the view (birth date, or typed age that grows with time)
+    if (f.ageMin > 18) q = q.gte('age', f.ageMin)
+    if (f.ageMax < 45) q = q.lte('age', f.ageMax)
     const loc = [
       ...f.cities.map((c) => `city.eq.${JSON.stringify(c)}`),
       ...f.regions.map((r) => `region.eq.${JSON.stringify(r)}`),
@@ -454,8 +449,8 @@ export const supabaseData: DataApi = {
       case 'name':
         q = q.order('first_name', { ascending: asc }).order('last_name', { ascending: asc })
         break
-      case 'age': // older age = earlier birth date
-        q = q.order('birth_date', { ascending: !asc, nullsFirst: false })
+      case 'age':
+        q = q.order('age', { ascending: asc, nullsFirst: false })
         break
       case 'city':
         q = q.order('city', { ascending: asc, nullsFirst: false })
