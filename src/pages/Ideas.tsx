@@ -1,4 +1,4 @@
-import { CheckCircle2, Lightbulb, Pencil, Pin, PinOff, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { CheckCircle2, Lightbulb, Link2, Pencil, Pin, PinOff, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useAppActions } from '@/features/workspace/appActions'
 import { CandidatePicker } from '@/features/workspace/CandidatePicker'
+import { ResumeActions } from '@/features/resumes/ResumeActions'
 import { relativeTime } from '@/lib/time'
 import { useCandidateIndex, useDeleteIdea, useIdeas, useSaveIdea } from '@/hooks/useWorkspace'
 import { he } from '@/lib/strings.he'
@@ -238,19 +239,48 @@ export default function IdeasPage() {
                     {i.body}
                   </p>
                 )}
-                {(m || f) && (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                {m || f ? (
+                  <ul
+                    className="mt-3 divide-y divide-border rounded-md border border-border bg-card"
+                    aria-label={he.ideas.resumesFor(i.title)}
+                  >
                     {[m, f].filter(Boolean).map((c) => (
-                      <button
-                        key={c!.id}
-                        type="button"
-                        onClick={() => actions.openCandidate(c!.id)}
-                        className="rounded-full border border-border bg-card px-3 py-1 text-body-sm font-medium text-primary transition-colors duration-fast hover:border-input-hover hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {fullName(c!)}
-                      </button>
+                      <li key={c!.id} className="flex min-h-11 items-center gap-2 px-3 py-1.5">
+                        <button
+                          type="button"
+                          onClick={() => actions.openCandidate(c!.id)}
+                          className="min-w-0 truncate rounded-sm text-start text-body-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          {fullName(c!)}
+                        </button>
+                        {c!.resume ? (
+                          <span
+                            className="hidden min-w-0 flex-1 truncate text-caption text-muted-foreground sm:block"
+                            dir="auto"
+                            title={c!.resume.file_name}
+                          >
+                            {c!.resume.file_name}
+                          </span>
+                        ) : (
+                          <span className="flex-1 text-caption text-muted-foreground">
+                            {he.ideas.noResume}
+                          </span>
+                        )}
+                        <div className="ms-auto shrink-0">
+                          <ResumeActions candidate={c!} variant="compact" />
+                        </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditing({ open: true, idea: i })}
+                    className="mt-3 flex items-center gap-2 rounded-md border border-dashed border-input px-3 py-2 text-start text-caption text-muted-foreground transition-colors duration-fast hover:border-input-hover hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Link2 className="size-4 shrink-0" aria-hidden />
+                    {he.ideas.linkForResume}
+                  </button>
                 )}
                 <div className="mt-auto flex items-center gap-1 pt-4">
                   <span className="tabular me-auto text-caption text-muted-foreground">

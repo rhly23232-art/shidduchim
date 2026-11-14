@@ -712,6 +712,11 @@ export const he = {
     showDone: 'הצגת רעיונות שטופלו',
     pinned: 'מוצמד',
     doneBadge: 'טופל',
+    resumes: 'רזומות',
+    resumesFor: (title: string) => `רזומות המועמדים ברעיון: ${title}`,
+    noResume: 'אין רזומה',
+    linkForResume: 'קשרו בחור או בחורה לרעיון כדי לצרף רזומה',
+    linkNow: 'קישור מועמד',
   },
   viewer: {
     title: (name: string) => `רזומה — ${name}`,

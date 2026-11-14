@@ -52,6 +52,10 @@ export function useResumeActions() {
       qc.setQueryData<CandidateFull | null>(qk.detail(candidateId), (old) =>
         old ? { ...old, resume } : old,
       )
+      // Large accounts (> 5,000): the sidebar / ideas index is a separate full list.
+      qc.setQueryData<CandidateRow[]>(['candidates', 'index'], (old) =>
+        old ? old.map((r) => (r.id === candidateId ? { ...r, resume } : r)) : old,
+      )
       void qc.invalidateQueries({ queryKey: ['candidates', 'server'] })
     },
     [qc],
