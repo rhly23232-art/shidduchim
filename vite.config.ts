@@ -84,6 +84,9 @@ export default defineConfig({
               'docx',
               /node_modules\/(mammoth|jszip|pako|lop|dingbat-to-unicode|bluebird|underscore|xmlbuilder|@xmldom|base64-js|option|path-is-absolute|lie|immediate|setimmediate|readable-stream|inherits|core-util-is|isarray|process-nextick-args|safe-buffer|string_decoder|util-deprecate|argparse|sprintf-js)\//,
             ],
+            // Photo decoders load only when a HEIC / TIFF photo is chosen.
+            ['heic', /node_modules\/heic2any\//],
+            ['tiff', /node_modules\/(utif2|pako)\//],
           ]
           return groups.find(([, re]) => re.test(id))?.[0] ?? 'vendor'
         },
