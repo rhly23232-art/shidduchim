@@ -82,6 +82,8 @@ export interface SendEmailInput {
   attachment?: { filename: string; mime: string; base64: string }
   /** Same key = same email: the server never sends it twice. */
   idempotencyKey?: string
+  /** With candidateId: also attach the candidate's photo (when there is one). */
+  includePhoto?: boolean
 }
 
 export interface UploadTarget {
@@ -191,6 +193,8 @@ export interface DataApi {
   ): Promise<PhotoMeta>
   deletePhoto(photo: PhotoMeta): Promise<void>
   getPhotoBlob(photo: PhotoMeta): Promise<Blob>
+  /** Long-lived (7 days) signed link to the photo for the mailto fallback (server only). */
+  createPhotoShareLink?(photo: PhotoMeta): Promise<string | null>
   /** Adds the 20 sample candidates (+ ideas, sample resumes). Resolves how many were added. */
   loadSampleData?(): Promise<number>
   /** Removes every sample candidate. Resolves how many were removed. */

@@ -174,7 +174,7 @@ const ok = (cond, s) => {
   const t = await page.locator('[role=dialog][data-state=open]').last().innerText()
   ok(
     /צפת/.test(t) && /ויז׳ניץ/.test(t) && /ר׳ אברהם/.test(t),
-    'create: saved & opened detail with all fields',
+    'create: saved & opened detail with all fields' + (/צפת/.test(t) && /ויז׳ניץ/.test(t) && /ר׳ אברהם/.test(t) ? '' : ' :: ' + t.replace(/\n/g, ' | ').slice(0, 600)),
   )
   await axe('detail', '[role=dialog]')
 

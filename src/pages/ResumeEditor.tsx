@@ -269,7 +269,7 @@ export default function ResumeEditorPage() {
           subject: he.documents.send.filledSubject(values.name?.trim() ?? ''),
           body: he.documents.send.filledBody(user?.fullName ?? ''),
         }}
-        attachment={attachment}
+        attachments={attachment ? [attachment] : []}
         sendViaServer={server}
         buildMailto={async (v) => mailtoUrl(v.to, v.subject, v.body)}
       />

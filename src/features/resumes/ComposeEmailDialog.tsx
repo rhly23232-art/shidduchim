@@ -18,12 +18,19 @@ import { Input, Textarea } from '@/components/ui/input'
 import { Tooltip } from '@/components/ui/tooltip'
 import { hostErrorCode, hostMcp, isHosted, sendViaGmail } from '@/lib/hostBridge'
 import { he } from '@/lib/strings.he'
-import { errorMessage, formatBytes } from '@/lib/utils'
+import { cn, errorMessage, formatBytes } from '@/lib/utils'
+import { Checkbox } from '@/components/ui/checkbox'
 import { emailFormSchema, type EmailFormValues } from '@/lib/validators'
 
 export interface EmailAttachment {
+  /** Stable id ('resume', 'photo', 'document') */
+  id: string
   /** Shown in the dialog */
   name: string
+  /** The sender can leave it out (checkbox, on by default) */
+  optional?: boolean
+  /** Text of the manual-download button */
+  downloadLabel?: string
   size?: number
   /** Loads the bytes when sending through Gmail */
   load: () => Promise<{ blob: Blob; filename: string; mime: string }>
@@ -92,18 +99,22 @@ export interface ComposeEmailDialogProps {
   defaults: EmailFormValues
   defaultsKey?: string
   toLabel?: string
-  attachment: EmailAttachment | null
+  attachments: EmailAttachment[]
   noAttachmentText?: string
-  /** Server route (Supabase edge function); omitted → unavailable */
-  sendViaServer?: (values: EmailFormValues, idempotencyKey: string) => Promise<void>
+  /** Server route (Supabase edge function); omitted → unavailable. `included` = attachment ids */
+  sendViaServer?: (
+    values: EmailFormValues,
+    idempotencyKey: string,
+    included: string[],
+  ) => Promise<void>
   /** mailto: fallback outside claude.ai */
-  buildMailto?: (values: EmailFormValues) => Promise<string>
+  buildMailto?: (values: EmailFormValues, included: string[]) => Promise<string>
   /** Extra controls above the fields (e.g. choosing a candidate) */
   children?: ReactNode
 }
 
 /**
- * Compose + send an email with one attachment. Routes: the viewer's Gmail inside claude.ai,
+ * Compose + send an email with its attachments (e.g. resume + photo). Routes: the viewer's Gmail inside claude.ai,
  * the server (Resend) when configured, and always a manual path (copy text + save the file).
  */
 export function ComposeEmailDialog({
@@ -114,7 +125,7 @@ export function ComposeEmailDialog({
   defaults,
   defaultsKey,
   toLabel = he.email.to,
-  attachment,
+  attachments,
   noAttachmentText = he.email.noResume,
   sendViaServer,
   buildMailto,
@@ -124,6 +135,19 @@ export function ComposeEmailDialog({
   // One key per opening of the dialog: retries of the same message are never sent twice.
   const [idemKey, setIdemKey] = useState(() => crypto.randomUUID())
   const [route, setRoute] = useState<Route>(sendViaServer ? 'server' : 'none')
+  // optional attachments the sender switched off
+  const [excluded, setExcluded] = useState<Set<string>>(new Set())
+  const included = attachments.filter((a) => !excluded.has(a.id))
+  const toggle = (id: string, on: boolean) => {
+    setExcluded((prev) => {
+      const next = new Set(prev)
+      if (on) next.delete(id)
+      else next.add(id)
+      return next
+    })
+    // a different set of files is a different email: never reuse the previous key
+    setIdemKey(crypto.randomUUID())
+  }
   const hosted = isHosted()
   const form = useForm<EmailFormValues>({
     resolver: zodResolver(emailFormSchema),
@@ -136,6 +160,7 @@ export function ComposeEmailDialog({
     const to = form.getValues('to') || defaults.to
     form.reset({ ...defaults, to })
     setIdemKey(crypto.randomUUID())
+    setExcluded(new Set())
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on open / key change only
   }, [open, defaultsKey])
 
@@ -159,11 +184,15 @@ export function ComposeEmailDialog({
       if (route === 'gmail') {
         await sendViaGmail({
           ...values,
-          attachment: attachment ? await attachment.load() : undefined,
+          attachments: await Promise.all(included.map((a) => a.load())),
         })
         toast.success(he.email.gmailSent(values.to))
       } else if (sendViaServer) {
-        await sendViaServer(values, idemKey)
+        await sendViaServer(
+          values,
+          idemKey,
+          included.map((a) => a.id),
+        )
         toast.success(he.email.sent(values.to))
       }
       onOpenChange(false)
@@ -180,7 +209,10 @@ export function ComposeEmailDialog({
   const onMailto = form.handleSubmit(async (values) => {
     if (!buildMailto) return
     try {
-      window.location.href = await buildMailto(values)
+      window.location.href = await buildMailto(
+        values,
+        included.map((a) => a.id),
+      )
     } catch (err) {
       toast.error(he.email.sendFailed, { description: errorMessage(err) })
     }
@@ -224,23 +256,56 @@ export function ComposeEmailDialog({
               {(id, aria) => <Textarea id={id} {...aria} rows={8} {...form.register('body')} />}
             </Field>
 
-            <div className="flex items-center gap-3 rounded-md bg-secondary px-4 py-3 text-body">
-              <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-              {attachment ? (
-                <span className="min-w-0 truncate">
-                  <span className="text-muted-foreground">{he.email.attachment}: </span>
-                  <span dir="auto" className="font-medium">
-                    {attachment.name}
-                  </span>
-                  {attachment.size !== undefined && (
-                    <span className="tabular text-muted-foreground">
-                      {' · '}
-                      <span dir="ltr">{formatBytes(attachment.size)}</span>
-                    </span>
-                  )}
-                </span>
+            <div className="rounded-md bg-secondary px-4 py-3 text-body">
+              {attachments.length ? (
+                <ul className="space-y-2" aria-label={he.email.attachments}>
+                  {attachments.map((a) => {
+                    const on = !excluded.has(a.id)
+                    return (
+                      <li key={a.id} className="flex min-w-0 items-center gap-3">
+                        <Paperclip
+                          className={cn(
+                            'size-4 shrink-0',
+                            on ? 'text-muted-foreground' : 'text-muted-foreground/40',
+                          )}
+                          aria-hidden
+                        />
+                        <span
+                          className={cn(
+                            'min-w-0 flex-1 truncate',
+                            !on && 'line-through opacity-60',
+                          )}
+                        >
+                          <span className="text-muted-foreground">{he.email.attachment}: </span>
+                          <span dir="auto" className="font-medium">
+                            {a.name}
+                          </span>
+                          {a.size !== undefined && (
+                            <span className="tabular text-muted-foreground">
+                              {' · '}
+                              <span dir="ltr">{formatBytes(a.size)}</span>
+                            </span>
+                          )}
+                        </span>
+                        {a.optional && (
+                          <Checkbox
+                            checked={on}
+                            onChange={(v) => toggle(a.id, v)}
+                            label={he.email.attachPhoto}
+                            className="shrink-0 text-body-sm"
+                          >
+                            {he.email.attachPhoto}
+                          </Checkbox>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
               ) : (
-                <span className="text-muted-foreground">{noAttachmentText}</span>
+                <span className="flex items-center gap-3 text-muted-foreground">
+                  <Paperclip className="size-4 shrink-0" aria-hidden />
+                  {noAttachmentText}
+                </span>
               )}
             </div>
 
@@ -251,12 +316,12 @@ export function ComposeEmailDialog({
               <p className="mt-1 text-body-sm text-muted-foreground">{he.email.manualText}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <CopyButton text={`${subject}\n\n${body}`} label={he.email.copyAll} />
-                {attachment && (
-                  <Button size="sm" variant="ghost" onClick={attachment.download}>
+                {included.map((a) => (
+                  <Button key={a.id} size="sm" variant="ghost" onClick={a.download}>
                     <Download />
-                    {he.email.downloadForAttach}
+                    {a.downloadLabel ?? he.email.downloadForAttach}
                   </Button>
-                )}
+                ))}
                 {!hosted && buildMailto && (
                   <Button size="sm" variant="ghost" onClick={() => void onMailto()}>
                     <ExternalLink />

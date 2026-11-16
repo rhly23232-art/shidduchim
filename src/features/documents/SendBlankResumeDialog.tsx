@@ -50,7 +50,7 @@ export function SendBlankResumeDialog({
         body: t.body(c?.last_name ?? '', user?.fullName ?? ''),
       }}
       defaultsKey={candidateId ?? 'none'}
-      attachment={attachment}
+      attachments={attachment ? [attachment] : []}
       sendViaServer={server}
       buildMailto={async (v) => mailtoUrl(v.to, v.subject, v.body)}
     >

@@ -49,11 +49,21 @@ export async function sendViaServer(input: SendEmailInput) {
  * Fallback: mailto: cannot attach files, so a 7-day signed download link is appended.
  * Returns the mailto URL (opened by the caller).
  */
-export async function buildMailto(c: CandidateRow, to: string, subject: string, body: string) {
+export async function buildMailto(
+  c: CandidateRow,
+  to: string,
+  subject: string,
+  body: string,
+  withPhoto = false,
+) {
   let fullBody = body
   if (c.resume && dataApi.supportsShareLinks) {
     const link = await dataApi.createShareLink(c.resume)
-    if (link) fullBody = `${body}\n\n${he.email.linkLine(link)}`
+    if (link) fullBody = `${fullBody}\n\n${he.email.linkLine(link)}`
+  }
+  if (withPhoto && c.photo && dataApi.createPhotoShareLink) {
+    const link = await dataApi.createPhotoShareLink(c.photo)
+    if (link) fullBody = `${fullBody}\n\n${he.email.photoLinkLine(link)}`
   }
   const q = `subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(fullBody)}`
   return `mailto:${encodeURIComponent(to.trim())}?${q}`

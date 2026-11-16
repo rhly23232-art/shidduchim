@@ -68,26 +68,31 @@ export async function sendViaGmail(input: {
   to: string
   subject: string
   body: string
-  attachment?: { blob: Blob; filename: string; mime: string }
+  attachments?: { blob: Blob; filename: string; mime: string }[]
 }): Promise<void> {
   const mcp = await hostMcp()
   if (!mcp) throw { code: 'unavailable' } satisfies HostError
   const attachments: unknown[] = []
-  if (input.attachment) {
-    const { blob, filename, mime } = input.attachment
+  const files = input.attachments ?? []
+  if (files.length) {
     const listing = await mcp.listTools().catch(() => ({ fileArgs: false }))
-    const ext = filename.split('.').pop()?.toLowerCase() || 'pdf'
-    // Inline base64 is the format verified against Gmail; larger files use the platform's file route.
-    if (blob.size <= INLINE_LIMIT) {
-      attachments.push({ filename, mimeType: mime, content: toBase64(await blob.arrayBuffer()) })
-    } else if (listing.fileArgs) {
-      attachments.push({
-        filename,
-        mimeType: mime,
-        content: { $file: { data: blob, name: `resume.${ext}`, type: mime } },
-      })
-    } else {
-      throw { code: 'too_large' } satisfies HostError
+    // Inline base64 is the format verified against Gmail; it is used while the files fit
+    // together under the call limit. Anything larger goes through the platform's file route.
+    let inlineBudget = INLINE_LIMIT
+    for (const [i, { blob, filename, mime }] of files.entries()) {
+      const ext = filename.split('.').pop()?.toLowerCase() || 'bin'
+      if (blob.size <= inlineBudget) {
+        inlineBudget -= blob.size
+        attachments.push({ filename, mimeType: mime, content: toBase64(await blob.arrayBuffer()) })
+      } else if (listing.fileArgs) {
+        attachments.push({
+          filename,
+          mimeType: mime,
+          content: { $file: { data: blob, name: `file-${i + 1}.${ext}`, type: mime } },
+        })
+      } else {
+        throw { code: 'too_large' } satisfies HostError
+      }
     }
   }
   // No automatic retry: Gmail sends are not idempotent, a retry could send twice.

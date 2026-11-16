@@ -140,6 +140,45 @@ if (process.argv.includes('--mock')) {
     r.status === 200 && r.body.ok,
     'retry with the same key after a failure → 200 ' + JSON.stringify(r.body),
   )
+  // photo: attached only when asked for, next to the resume
+  const uid = auth.user!.id
+  const photoPath = `${uid}/${cid}/verify-photo.jpg`
+  const jpg = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4])], {
+    type: 'image/jpeg',
+  })
+  await sb.storage
+    .from('photos')
+    .upload(photoPath, jpg, { upsert: true, contentType: 'image/jpeg' })
+  await sb.from('photos').upsert(
+    {
+      candidate_id: cid,
+      storage_path: photoPath,
+      file_name: 'תמונה.jpg',
+      mime_type: 'image/jpeg',
+      size_bytes: jpg.size,
+    },
+    { onConflict: 'candidate_id' },
+  )
+  r = await call({
+    ...base,
+    candidateId: cid,
+    idempotencyKey: crypto.randomUUID(),
+    includePhoto: true,
+  })
+  s = await state()
+  const names = JSON.stringify(s.last.attachments)
+  ok(
+    r.status === 200 && names.includes('תמונה.jpg'),
+    'includePhoto → the photo reaches the provider ' + names,
+  )
+  r = await call({ ...base, candidateId: cid, idempotencyKey: crypto.randomUUID() })
+  s = await state()
+  ok(
+    r.status === 200 && !JSON.stringify(s.last.attachments).includes('.jpg'),
+    'without includePhoto → photo not attached',
+  )
+  await sb.from('photos').delete().eq('candidate_id', cid)
+  await sb.storage.from('photos').remove([photoPath])
   // keep sending until the hourly limit (EMAIL_LIMIT_HOUR) answers 429
   let limited = false
   for (let n = 0; n < 10 && !limited; n++) {

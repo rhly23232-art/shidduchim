@@ -24,6 +24,7 @@ export function useGeneratedAttachment(filename: string, build: () => Blob, deps
   const blob = useMemo(build, deps)
   const attachment = useMemo<EmailAttachment>(
     () => ({
+      id: 'document',
       name: filename,
       size: blob.size,
       load: async () => ({ blob, filename, mime: DOCX_MIME }),

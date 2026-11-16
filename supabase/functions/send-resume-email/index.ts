@@ -131,6 +131,8 @@ Deno.serve(async (req) => {
     body?: unknown
     attachment?: unknown
     idempotencyKey?: unknown
+    /** also attach the candidate's photo, when there is one */
+    includePhoto?: unknown
   }
   try {
     input = await req.json()
@@ -248,6 +250,29 @@ Deno.serve(async (req) => {
         content: toBase64(new Uint8Array(await file.arrayBuffer())),
       })
     }
+
+    if (input.includePhoto === true) {
+      const { data: photo } = await supabase
+        .from('photos')
+        .select('storage_path, file_name, size_bytes')
+        .eq('candidate_id', candidateId)
+        .maybeSingle()
+      if (photo) {
+        if ((resume?.size_bytes ?? 0) + photo.size_bytes > MAX_ATTACHMENT)
+          return json({ ok: false, error: 'הקבצים גדולים מדי לשליחה' }, 413)
+        const { data: file, error: dlErr } = await supabase.storage
+          .from('photos')
+          .download(photo.storage_path)
+        if (dlErr || !file) {
+          log('error', 'storage_error', { user: uid, step: 'photo_download' })
+          return json({ ok: false, error: 'לא ניתן לקרוא את התמונה' }, 500)
+        }
+        attachments.push({
+          filename: photo.file_name,
+          content: toBase64(new Uint8Array(await file.arrayBuffer())),
+        })
+      }
+    }
   }
 
   const recipient = to.trim()
@@ -319,5 +344,10 @@ Deno.serve(async (req) => {
       },
       502,
     )
-  return json({ ok: true, id: sent.id, attached: attachments.length > 0 })
+  return json({
+    ok: true,
+    id: sent.id,
+    attached: attachments.length > 0,
+    files: attachments.map((a) => a.filename),
+  })
 })

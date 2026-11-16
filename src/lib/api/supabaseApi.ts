@@ -727,6 +727,14 @@ export const supabaseData: DataApi = {
     await sb.storage.from(PHOTO_BUCKET).remove([photo.storage_path])
   },
 
+  async createPhotoShareLink(photo) {
+    const { data, error } = await requireSupabase()
+      .storage.from(PHOTO_BUCKET)
+      .createSignedUrl(photo.storage_path, 60 * 60 * 24 * 7, { download: photo.file_name })
+    if (error) throw error
+    return data.signedUrl
+  },
+
   async getPhotoBlob(photo) {
     const { data, error } = await requireSupabase()
       .storage.from(PHOTO_BUCKET)
