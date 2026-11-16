@@ -33,6 +33,7 @@ import { Tooltip } from '@/components/ui/tooltip'
 import { useAppActions } from '@/features/workspace/appActions'
 import { CandidatePicker } from '@/features/workspace/CandidatePicker'
 import { ResumeActions } from '@/features/resumes/ResumeActions'
+import { PhotoActions } from '@/features/photos/PhotoActions'
 import { relativeTime } from '@/lib/time'
 import { useCandidateIndex, useDeleteIdea, useIdeas, useSaveIdea } from '@/hooks/useWorkspace'
 import { he } from '@/lib/strings.he'
@@ -255,28 +256,27 @@ export default function IdeasPage() {
                     aria-label={he.ideas.resumesFor(i.title)}
                   >
                     {[m, f].filter(Boolean).map((c) => (
-                      <li key={c!.id} className="flex min-h-11 items-center gap-2 px-3 py-1.5">
-                        <button
-                          type="button"
-                          onClick={() => actions.openCandidate(c!.id)}
-                          className="min-w-0 truncate rounded-sm text-start text-body-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          {fullName(c!)}
-                        </button>
-                        {c!.resume ? (
-                          <span
-                            className="hidden min-w-0 flex-1 truncate text-caption text-muted-foreground sm:block"
-                            dir="auto"
-                            title={c!.resume.file_name}
+                      <li key={c!.id} className="flex flex-col gap-1 px-3 py-2">
+                        {/* line 1: who, and which resume is on file */}
+                        <div className="flex min-w-0 items-baseline gap-2">
+                          <button
+                            type="button"
+                            onClick={() => actions.openCandidate(c!.id)}
+                            className="shrink-0 rounded-sm text-start text-body-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
-                            {c!.resume.file_name}
+                            {fullName(c!)}
+                          </button>
+                          <span
+                            className="min-w-0 flex-1 truncate text-caption text-muted-foreground"
+                            dir="auto"
+                            title={c!.resume?.file_name}
+                          >
+                            {c!.resume ? c!.resume.file_name : he.ideas.noResume}
                           </span>
-                        ) : (
-                          <span className="flex-1 text-caption text-muted-foreground">
-                            {he.ideas.noResume}
-                          </span>
-                        )}
-                        <div className="ms-auto shrink-0">
+                        </div>
+                        {/* line 2: photo + resume actions */}
+                        <div className="flex flex-wrap items-center gap-1">
+                          <PhotoActions candidate={c!} variant="compact" />
                           <ResumeActions candidate={c!} variant="compact" />
                         </div>
                       </li>

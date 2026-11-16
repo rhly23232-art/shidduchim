@@ -49,7 +49,7 @@ const pdf = (name, text) => {
   ok((await row.innerText()).includes('אין רזומה'), `"${name}" starts without a resume`)
 
   // Upload
-  await row.locator('input[type=file]').setInputFiles(pdf('idea-a.pdf', 'first'))
+  await row.locator('input[type=file]:not([data-photo-input])').setInputFiles(pdf('idea-a.pdf', 'first'))
   await row.getByText('idea-a.pdf').waitFor({ timeout: 15000 })
   ok(true, 'upload from the idea card → file name shown in the card')
 
@@ -62,7 +62,7 @@ const pdf = (name, text) => {
   await detail.waitFor({ state: 'hidden' })
 
   // Replace (asks for confirmation)
-  await row.locator('input[type=file]').setInputFiles(pdf('idea-b.pdf', 'second'))
+  await row.locator('input[type=file]:not([data-photo-input])').setInputFiles(pdf('idea-b.pdf', 'second'))
   const confirm = page.getByRole('alertdialog')
   await confirm.waitFor()
   ok((await confirm.innerText()).includes('idea-b.pdf'), 'replace asks for confirmation naming the new file')

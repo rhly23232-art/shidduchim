@@ -52,7 +52,7 @@ npx supabase secrets set ALLOWED_ORIGINS=https://your-app-domain
    ```bash
    npx supabase db push
    ```
-   מוחלות 8 מיגרציות לפי סדר (ראו `docs/ARCHITECTURE.md`). כולן מוסיפות בלבד, ואינן מוחקות נתונים קיימים.
+   מוחלות 9 מיגרציות לפי סדר (ראו `docs/ARCHITECTURE.md`). כולן מוסיפות בלבד, ואינן מוחקות נתונים קיימים.
 3. **אימות בידוד:** מומלץ להריץ `npm run verify:rls` מול פרויקט staging זהה, ולא מול ייצור (הסקריפט יוצר חשבונות בדיקה).
 4. **Edge Function:**
    ```bash

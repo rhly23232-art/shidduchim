@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip } from '@/components/ui/tooltip'
 import { ResumeActions } from '@/features/resumes/ResumeActions'
+import { PhotoActions } from '@/features/photos/PhotoActions'
 import type { SortKey } from '@/lib/api'
 import { he } from '@/lib/strings.he'
 import type { CandidateRow } from '@/lib/types'
@@ -98,8 +99,13 @@ export const notesColumn = col.accessor('general_notes', {
 export const resumeColumn = col.display({
   id: 'resume',
   header: he.table.resume,
-  meta: { className: 'w-[8rem]' },
-  cell: ({ row }) => <ResumeActions candidate={row.original} variant="compact" />,
+  meta: { className: 'w-[13rem]' },
+  cell: ({ row }) => (
+    <div className="flex items-center gap-1">
+      <PhotoActions candidate={row.original} variant="compact" />
+      <ResumeActions candidate={row.original} variant="compact" />
+    </div>
+  ),
 })
 
 export const actionsColumn = col.display({

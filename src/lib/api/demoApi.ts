@@ -13,6 +13,7 @@ import type {
   CandidateRow,
   Idea,
   InLaw,
+  PhotoMeta,
   ResumeMeta,
   SaveCandidatePayload,
 } from '../types'
@@ -392,9 +393,14 @@ export const demoAuth: AuthApi = {
 
 /** Removes every stored item of a user: cards, resume files, ideas, history and its files. */
 async function wipeUserData(userId: string) {
-  for (const c of await getData(userId)) if (c.resume) await del(`file:${c.resume.id}`)
-  for (const e of (await get<JournalEntry[]>(`journal:${userId}`)) ?? [])
+  for (const c of await getData(userId)) {
+    if (c.resume) await del(`file:${c.resume.id}`)
+    if (c.photo) await del(`file:${c.photo.id}`)
+  }
+  for (const e of (await get<JournalEntry[]>(`journal:${userId}`)) ?? []) {
     if (e.data.file) await del(e.data.file.path)
+    if (e.data.photoFile) await del(e.data.photoFile.path)
+  }
   await setData(userId, [])
   await setWs(userId, { version: WS_VERSION, ideas: [] })
   await set(`journal:${userId}`, [])
@@ -560,6 +566,7 @@ export const demoData: DataApi = {
     const c = rows.find((r) => r.id === id)
     if (!c) throw new Error(he.detail.notFound)
     if (c.resume) await del(`file:${c.resume.id}`)
+    if (c.photo) await del(`file:${c.photo.id}`)
     const ws = await getWs(userId)
     ws.ideas = ws.ideas.map((d) => ({
       ...d,
@@ -635,6 +642,47 @@ export const demoData: DataApi = {
     return blob
   },
 
+  async uploadPhoto(target, jpeg, name, onProgress) {
+    const userId = await requireUserId()
+    const rows = await getData(userId)
+    const c = rows.find((r) => r.id === target.id)
+    if (!c) throw new Error(he.detail.notFound)
+    onProgress(40)
+    const meta: PhotoMeta = {
+      id: uid(),
+      candidate_id: c.id,
+      storage_path: `${userId}/${c.id}/${name}`,
+      file_name: name,
+      mime_type: 'image/jpeg',
+      size_bytes: jpeg.size,
+      uploaded_at: now(),
+    }
+    await set(`file:${meta.id}`, new Blob([await jpeg.arrayBuffer()], { type: 'image/jpeg' }))
+    if (c.photo) await del(`file:${c.photo.id}`)
+    c.photo = meta
+    c.updated_at = now()
+    await setData(userId, rows)
+    onProgress(100)
+    return meta
+  },
+
+  async deletePhoto(photo) {
+    const userId = await requireUserId()
+    const rows = await getData(userId)
+    const c = rows.find((r) => r.id === photo.candidate_id)
+    if (!c) throw new Error(he.detail.notFound)
+    await del(`file:${photo.id}`)
+    c.photo = null
+    await setData(userId, rows)
+  },
+
+  async getPhotoBlob(photo) {
+    await requireUserId()
+    const blob = await get<Blob>(`file:${photo.id}`)
+    if (!blob) throw new Error(he.photo.loadFailed)
+    return blob
+  },
+
   // ---------------- matchmaker workspace ----------------
 
   async loadSampleData() {
@@ -653,7 +701,10 @@ export const demoData: DataApi = {
     const userId = await requireUserId()
     const rows = await getData(userId)
     const samples = rows.filter((r) => r.is_sample)
-    for (const r of samples) if (r.resume) await del(`file:${r.resume.id}`)
+    for (const r of samples) {
+      if (r.resume) await del(`file:${r.resume.id}`)
+      if (r.photo) await del(`file:${r.photo.id}`)
+    }
     await setData(
       userId,
       rows.filter((r) => !r.is_sample),

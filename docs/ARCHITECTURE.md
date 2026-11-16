@@ -50,6 +50,7 @@
 | `20261114000000_concurrency` | `save_candidate` עם בדיקת `expected_updated_at` |
 | `20261115000000_account_deletion` | `delete_my_account()` ‏(SECURITY DEFINER, ‏authenticated בלבד) |
 | `20261116000000_manual_age` | גיל ללא תאריך לידה: `age_years` + `age_recorded_on`. הגיל ב-View מחושב מתאריך הלידה, ואם אין, מהגיל שהוזן ועוד השנים שעברו מאז |
+| `20261117000000_photos` | תמונת מועמד: טבלת `photos` (אחת למועמד), עמודות התמונה ב-View, ‏bucket פרטי `photos` (JPEG בלבד, עד 5MB) ומדיניות לפי בעלים |
 
 עקרונות:
 
@@ -66,6 +67,9 @@
 | mailto | גיבוי ידני | קישור הורדה חתום ל-7 ימים (mailto לא מצרף קבצים) |
 
 ## 5. קבצים
+
+תמונת מועמד (`lib/files/image.ts`): כל סוג תמונה (JPG, ‏PNG, ‏WEBP, ‏GIF, ‏BMP, ‏AVIF, ‏ICO, ‏HEIC מאייפון, ‏TIFF) מזוהה לפי תוכן הקובץ, מפוענח בדפדפן (HEIC ו-TIFF בספריות שנטענות רק בעת הצורך: heic2any, ‏utif2), מוקטן ל-1600px לכל היותר ונשמר כ-JPEG ללא מטא-דאטה (כולל מיקום GPS).
+
 
 `src/lib/files` כותב וקורא ZIP (‏DecompressionStream), ‏DOCX, ‏XLSX ו-CSV (כולל Windows-1255) בלי תלויות חיצוניות.
 תצוגת Word עוברת דרך mammoth ומנקה allow-list (`lib/sanitizeHtml.ts`): רק תגיות ותכונות מותרות, קישורים בטוחים, ותמונות רק כ-`data:image` רסטר.

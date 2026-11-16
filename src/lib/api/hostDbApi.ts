@@ -9,7 +9,7 @@
 import { effectiveAge } from '../age'
 import { edaMatches } from '../eda'
 import { he } from '../strings.he'
-import type { CandidateFull, CandidateRow, Idea, InLaw, ResumeMeta } from '../types'
+import type { CandidateFull, CandidateRow, Idea, InLaw, PhotoMeta, ResumeMeta } from '../types'
 import { hebrewCollator, normalizeSearch } from '../utils'
 import { sampleResumeBlob, seedIdeas, seedRows, type StoredCandidate } from './demoApi'
 import { ConflictError } from './errors'
@@ -368,12 +368,14 @@ export function createHostBackend(
   async function wipeWorkspace() {
     for (const c of await guard(() => readAll<StoredCandidate>(candidates))) {
       if (c.resume) await dropFile(c.resume.storage_path)
+      if (c.photo) await dropFile(c.photo.storage_path)
       await guard(() => candidates.doc(c.id).delete())
     }
     for (const i of await guard(() => readAll<{ id: string }>(ideas)))
       await guard(() => ideas.doc(i.id).delete())
     for (const e of await guard(() => readAll<JournalEntry>(journalColl))) {
       if (e.data.file) await dropFile(e.data.file.path)
+      if (e.data.photoFile) await dropFile(e.data.photoFile.path)
       await guard(() => journalColl.doc(e.id).delete())
     }
   }
@@ -480,6 +482,7 @@ export function createHostBackend(
       const c = snap.data() as StoredCandidate
       await guard(() => ref.delete())
       if (c.resume) await dropFile(c.resume.storage_path)
+      if (c.photo) await dropFile(c.photo.storage_path)
       // unlink ideas that pointed at this candidate
       for (const field of ['male_id', 'female_id'] as const) {
         const linked = await guard(() => ideas.where(field, '==', id).get())
@@ -529,6 +532,40 @@ export function createHostBackend(
       return readFile(resume)
     },
 
+    async uploadPhoto(target, jpeg, name, onProgress) {
+      onProgress(20)
+      const ref = candidates.doc(target.id)
+      const snap = await guard(() => ref.get())
+      if (!snap.exists) throw new Error(he.detail.notFound)
+      const { path } = await storeFile(jpeg, 'image/jpeg')
+      onProgress(85)
+      const meta: PhotoMeta = {
+        id: uid(),
+        candidate_id: target.id,
+        storage_path: path,
+        file_name: name,
+        mime_type: 'image/jpeg',
+        size_bytes: jpeg.size,
+        uploaded_at: now(),
+      }
+      const prev = (snap.data() as StoredCandidate).photo
+      await guard(() => ref.update({ photo: clean(meta), updated_at: now() }))
+      if (prev) await dropFile(prev.storage_path)
+      onProgress(100)
+      return meta
+    },
+
+    async deletePhoto(photo) {
+      await guard(() =>
+        candidates.doc(photo.candidate_id).update({ photo: null, updated_at: now() }),
+      )
+      await dropFile(photo.storage_path)
+    },
+
+    async getPhotoBlob(photo) {
+      return readFile(photo)
+    },
+
     async createShareLink() {
       return null
     },
@@ -570,6 +607,7 @@ export function createHostBackend(
       for (const r of rows) {
         await guard(() => candidates.doc(r.id).delete())
         if (r.resume) await dropFile(r.resume.storage_path)
+        if (r.photo) await dropFile(r.photo.storage_path)
       }
       const sampleIdeas = await guard(() => ideas.where('is_sample', '==', true).get())
       for (const d of sampleIdeas.docs) await guard(() => ideas.doc(d.id).delete())

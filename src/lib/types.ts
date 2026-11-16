@@ -72,6 +72,9 @@ export interface ResumeMeta {
   uploaded_at: string
 }
 
+/** The candidate's photo — always a JPEG made in the browser (see lib/files/image.ts). */
+export type PhotoMeta = ResumeMeta
+
 /** A row in the list (candidates_view): candidate + computed age + resume summary. */
 export interface CandidateRow extends CandidateInput {
   id: string
@@ -82,6 +85,8 @@ export interface CandidateRow extends CandidateInput {
   created_at: string
   updated_at: string
   resume: ResumeMeta | null
+  /** null / missing = no photo */
+  photo?: PhotoMeta | null
 }
 
 export interface InLaw extends InLawInput {

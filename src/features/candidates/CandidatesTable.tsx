@@ -23,6 +23,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ResumeActions } from '@/features/resumes/ResumeActions'
+import { PhotoActions } from '@/features/photos/PhotoActions'
 import { useIsMobile } from '@/hooks/useMediaQuery'
 import type { SortKey, SortState } from '@/lib/api'
 import { he, institutionLabel } from '@/lib/strings.he'
@@ -418,7 +419,10 @@ function CandidateCard({
         <p className="mt-2 line-clamp-2 text-body-sm text-muted-foreground">{r.general_notes}</p>
       )}
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
-        <ResumeActions candidate={r} variant="compact" />
+        <div className="flex items-center gap-1">
+          <PhotoActions candidate={r} variant="compact" />
+          <ResumeActions candidate={r} variant="compact" />
+        </div>
         <Button size="sm" onClick={() => onOpen(r)} aria-label={he.table.detailsAria(name)}>
           {he.table.details}
           <ChevronLeft />

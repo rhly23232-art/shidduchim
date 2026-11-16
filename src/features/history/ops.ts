@@ -23,13 +23,14 @@ export async function listTrash(): Promise<JournalEntry[]> {
 
 export async function purge(e: JournalEntry) {
   if (e.data.file) await dataApi.journal.dropFile(e.data.file.path).catch(() => undefined)
+  if (e.data.photoFile) await dataApi.journal.dropFile(e.data.photoFile.path).catch(() => undefined)
   await dataApi.journal.remove(e.id)
 }
 
 const ideaInput = ({ id: _i, created_at: _c, updated_at: _u, ...rest }: Idea): IdeaInput => rest
 
 /**
- * Brings a deleted candidate back: card, family, in-laws, the resume file and the links
+ * Brings a deleted candidate back: card, family, in-laws, the resume and photo files and the links
  * from ideas. Returns the new id.
  */
 export async function restoreCandidate(e: JournalEntry): Promise<string> {
@@ -44,6 +45,18 @@ export async function restoreCandidate(e: JournalEntry): Promise<string> {
         { id, owner_id: full.owner_id, resume: null },
         new File([blob], e.data.file.name, { type: e.data.file.mime }),
         e.data.file.mime,
+        () => undefined,
+      )
+  }
+  if (e.data.photoFile) {
+    const pf = e.data.photoFile
+    const blob = await dataApi.journal.getFile(pf.path, pf.mime)
+    const full = await rawDataApi.getCandidate(id)
+    if (full)
+      await rawDataApi.uploadPhoto(
+        { id, owner_id: full.owner_id, photo: null },
+        new Blob([blob], { type: 'image/jpeg' }),
+        pf.name,
         () => undefined,
       )
   }

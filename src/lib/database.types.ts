@@ -363,6 +363,51 @@ export type Database = {
         }
         Relationships: []
       }
+      photos: {
+        Row: {
+          candidate_id: string
+          file_name: string
+          id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          uploaded_at: string
+        }
+        Insert: {
+          candidate_id: string
+          file_name: string
+          id?: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          uploaded_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photos_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photos_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resumes: {
         Row: {
           candidate_id: string
@@ -439,6 +484,12 @@ export type Database = {
           last_name: string | null
           occupation: string | null
           owner_id: string | null
+          photo_file_name: string | null
+          photo_id: string | null
+          photo_mime_type: string | null
+          photo_size_bytes: number | null
+          photo_storage_path: string | null
+          photo_uploaded_at: string | null
           region: string | null
           resume_file_name: string | null
           resume_id: string | null

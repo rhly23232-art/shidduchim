@@ -12,6 +12,8 @@ const LAST_KEY = 'shidduchim-last-backup'
 interface BackupCandidate extends CandidateFull {
   /** path of the resume inside the zip */
   resume_file?: string
+  /** path of the photo inside the zip */
+  photo_file?: string
 }
 export interface Backup {
   format: typeof BACKUP_FORMAT
@@ -54,7 +56,7 @@ export function useLastBackup(): Date | null {
 const extOf = (name: string) =>
   (name.split('.').pop() ?? 'bin').toLowerCase().replace(/[^a-z0-9]/g, '')
 
-/** Full backup: every candidate (with family and in-laws), every idea and every resume file. */
+/** Full backup: every candidate (with family and in-laws), every idea, resume and photo. */
 export async function buildBackup(
   onProgress: (done: number, total: number) => void,
 ): Promise<Blob> {
@@ -78,6 +80,16 @@ export async function buildBackup(
           c.resume_file = path
         } catch {
           /* resume unreadable: keep the card */
+        }
+      }
+      if (full.photo) {
+        try {
+          const blob = await dataApi.getPhotoBlob(full.photo)
+          const path = `photos/${full.id}.jpg`
+          files.push({ name: path, data: new Uint8Array(await blob.arrayBuffer()) })
+          c.photo_file = path
+        } catch {
+          /* photo unreadable: keep the card */
         }
       }
       candidates.push(c)
@@ -166,6 +178,17 @@ export async function restoreBackup(
             { id, owner_id: full.owner_id, resume: null },
             new File([bytes as BlobPart], c.resume.file_name, { type: c.resume.mime_type }),
             c.resume.mime_type,
+            () => undefined,
+          )
+      }
+      if (c.photo && c.photo_file && files.has(c.photo_file)) {
+        const bytes = await files.get(c.photo_file)!()
+        const full = await rawDataApi.getCandidate(id)
+        if (full)
+          await rawDataApi.uploadPhoto(
+            { id, owner_id: full.owner_id, photo: null },
+            new Blob([bytes as BlobPart], { type: 'image/jpeg' }),
+            c.photo.file_name,
             () => undefined,
           )
       }

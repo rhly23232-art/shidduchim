@@ -29,6 +29,7 @@ import type {
 type ViewRow = Database['public']['Views']['candidates_view']['Row']
 
 const BUCKET = 'resumes'
+const PHOTO_BUCKET = 'photos'
 /** PostgREST returns at most 1000 rows per request. */
 const PAGE = 1000
 
@@ -90,6 +91,17 @@ function mapRow(r: ViewRow): CandidateRow {
           mime_type: r.resume_mime_type!,
           size_bytes: r.resume_size_bytes!,
           uploaded_at: r.resume_uploaded_at!,
+        }
+      : null,
+    photo: r.photo_id
+      ? {
+          id: r.photo_id,
+          candidate_id: r.id!,
+          storage_path: r.photo_storage_path!,
+          file_name: r.photo_file_name!,
+          mime_type: r.photo_mime_type!,
+          size_bytes: r.photo_size_bytes!,
+          uploaded_at: r.photo_uploaded_at!,
         }
       : null,
   }
@@ -268,10 +280,18 @@ async function removeAllFiles(uid: string) {
   const sb = requireSupabase()
   const { data: res, error } = await sb.from('resumes').select('storage_path')
   if (error) throw error
+  const { data: pics, error: pErr } = await sb.from('photos').select('storage_path')
+  if (pErr) throw pErr
   const journal = await supabaseJournal.list({ kinds: ['delete'], limit: 10_000 })
   const groups: [string, string[]][] = [
     [BUCKET, (res ?? []).map((r) => r.storage_path)],
-    [JOURNAL_BUCKET, journal.flatMap((e) => (e.data.file ? [e.data.file.path] : []))],
+    [PHOTO_BUCKET, (pics ?? []).map((r) => r.storage_path)],
+    [
+      JOURNAL_BUCKET,
+      journal.flatMap((e) =>
+        [e.data.file?.path, e.data.photoFile?.path].filter((p): p is string => !!p),
+      ),
+    ],
   ]
   for (const [bucket, paths] of groups) {
     const mine = paths.filter((p) => p.startsWith(`${uid}/`))
@@ -538,9 +558,15 @@ export const supabaseData: DataApi = {
       .select('storage_path')
       .eq('candidate_id', id)
       .maybeSingle()
+    const { data: photo } = await sb
+      .from('photos')
+      .select('storage_path')
+      .eq('candidate_id', id)
+      .maybeSingle()
     const { error } = await sb.from('candidates').delete().eq('id', id)
     if (error) throw error
     if (resume?.storage_path) await sb.storage.from(BUCKET).remove([resume.storage_path])
+    if (photo?.storage_path) await sb.storage.from(PHOTO_BUCKET).remove([photo.storage_path])
   },
 
   async uploadResume(target: UploadTarget, file: File, mime: string, onProgress) {
@@ -656,6 +682,56 @@ export const supabaseData: DataApi = {
       .storage.from(BUCKET)
       .download(resume.storage_path)
     if (error) throw error
+    return data
+  },
+
+  async uploadPhoto(target, jpeg, name, onProgress) {
+    const sb = requireSupabase()
+    const path = `${target.owner_id}/${target.id}/${storageFileName(name)}`
+    onProgress(30)
+    const up = await sb.storage
+      .from(PHOTO_BUCKET)
+      .upload(path, jpeg, { contentType: 'image/jpeg', upsert: false, cacheControl: '3600' })
+    if (up.error) throw new Error(he.photo.uploadFailed)
+    onProgress(80)
+    const { data, error } = await sb
+      .from('photos')
+      .upsert(
+        {
+          candidate_id: target.id,
+          storage_path: path,
+          file_name: name,
+          mime_type: 'image/jpeg',
+          size_bytes: jpeg.size,
+          uploaded_at: new Date().toISOString(),
+        },
+        { onConflict: 'candidate_id' },
+      )
+      .select()
+      .single()
+    if (error) {
+      await sb.storage.from(PHOTO_BUCKET).remove([path])
+      throw error
+    }
+    // the replaced file goes only after the new one is registered
+    if (target.photo && target.photo.storage_path !== path)
+      await sb.storage.from(PHOTO_BUCKET).remove([target.photo.storage_path])
+    onProgress(100)
+    return data
+  },
+
+  async deletePhoto(photo) {
+    const sb = requireSupabase()
+    const { error } = await sb.from('photos').delete().eq('id', photo.id)
+    if (error) throw error
+    await sb.storage.from(PHOTO_BUCKET).remove([photo.storage_path])
+  },
+
+  async getPhotoBlob(photo) {
+    const { data, error } = await requireSupabase()
+      .storage.from(PHOTO_BUCKET)
+      .download(photo.storage_path)
+    if (error) throw new Error(he.photo.loadFailed)
     return data
   },
 

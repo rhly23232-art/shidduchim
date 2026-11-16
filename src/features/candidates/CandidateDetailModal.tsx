@@ -18,6 +18,7 @@ import {
   EmailResumeButton,
   ResumeActions,
 } from '@/features/resumes/ResumeActions'
+import { PhotoActions } from '@/features/photos/PhotoActions'
 import { HistoryButton } from '@/features/history/HistoryDialog'
 import { useCandidateDetail } from '@/hooks/useCandidates'
 import { formatGregorian } from '@/lib/hebrewDate'
@@ -288,6 +289,8 @@ export function CandidateDetailModal({ id, preview, onClose, onEdit, onDelete }:
               <div className="mt-6 border-t border-border pt-5">
                 <h3 className="mb-3 text-h4 text-foreground">{he.resume.label}</h3>
                 <ResumeActions candidate={c} variant="full" />
+                <h3 className="mb-3 mt-5 text-h4 text-foreground">{he.photo.label}</h3>
+                <PhotoActions candidate={c} variant="full" />
               </div>
               <div className="mt-6 flex justify-end border-t border-border pt-4">
                 <HistoryButton candidate={full ?? null} />

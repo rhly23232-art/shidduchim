@@ -5,6 +5,7 @@ import type {
   CandidateFull,
   CandidateRow,
   TabKey,
+  PhotoMeta,
   ResumeMeta,
   SaveCandidatePayload,
 } from '../types'
@@ -89,6 +90,12 @@ export interface UploadTarget {
   resume: ResumeMeta | null
 }
 
+export interface PhotoTarget {
+  id: string
+  owner_id: string
+  photo?: PhotoMeta | null
+}
+
 export type JournalKind = 'create' | 'edit' | 'delete' | 'idea_delete' | 'restore'
 
 export interface FieldChange {
@@ -103,6 +110,8 @@ export interface JournalData {
   changes?: FieldChange[]
   /** Resume kept for a deleted candidate */
   file?: { path: string; name: string; mime: string; size: number }
+  /** Photo kept for a deleted candidate */
+  photoFile?: { path: string; name: string; mime: string; size: number }
   /** Ideas that pointed at a deleted candidate (relinked on restore) */
   ideaLinks?: { ideaId: string; field: 'male_id' | 'female_id' }[]
   /** Deleted idea */
@@ -173,6 +182,15 @@ export interface DataApi {
   sendResumeEmail(input: SendEmailInput): Promise<void>
   /** Reads the stored resume bytes (in-app viewer, Gmail attachment, downloads). */
   getResumeBlob(resume: ResumeMeta): Promise<Blob>
+  /** Stores the candidate's photo (a JPEG from normalizePhoto), replacing the previous one. */
+  uploadPhoto(
+    target: PhotoTarget,
+    jpeg: Blob,
+    name: string,
+    onProgress: (pct: number) => void,
+  ): Promise<PhotoMeta>
+  deletePhoto(photo: PhotoMeta): Promise<void>
+  getPhotoBlob(photo: PhotoMeta): Promise<Blob>
   /** Adds the 20 sample candidates (+ ideas, sample resumes). Resolves how many were added. */
   loadSampleData?(): Promise<number>
   /** Removes every sample candidate. Resolves how many were removed. */

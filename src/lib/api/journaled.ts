@@ -134,6 +134,7 @@ export function journaled(base: DataApi): DataApi {
           const snapshot = await target.getCandidate(id).catch(() => null)
           const entryId = crypto.randomUUID()
           let file: { path: string; name: string; mime: string; size: number } | undefined
+          let photoFile: typeof file
           let ideaLinks: { ideaId: string; field: 'male_id' | 'female_id' }[] = []
           if (snapshot) {
             // Never lose a resume silently: if its copy cannot be kept, the delete is cancelled.
@@ -159,6 +160,20 @@ export function journaled(base: DataApi): DataApi {
                 e,
               )
             })
+            // Same for the photo.
+            await (async () => {
+              const p = snapshot.photo
+              if (!p) return
+              const blob = await target.getPhotoBlob(p)
+              const path = await target.journal.putFile(entryId, blob, p.file_name, p.mime_type)
+              photoFile = { path, name: p.file_name, mime: p.mime_type, size: p.size_bytes }
+            })().catch((e) => {
+              if (file) void target.journal.dropFile(file.path).catch(() => undefined)
+              throw new JournalError(
+                'לא ניתן היה לשמור עותק של התמונה בסל המחזור, ולכן המחיקה בוטלה. נסו שוב.',
+                e,
+              )
+            })
             await safe(async () => {
               const ideas = await target.listIdeas()
               ideaLinks = ideas.flatMap((i) => [
@@ -175,7 +190,7 @@ export function journaled(base: DataApi): DataApi {
                 kind: 'delete',
                 candidate_id: id,
                 title: nameOf(snapshot),
-                data: { snapshot, file, ideaLinks },
+                data: { snapshot, file, photoFile, ideaLinks },
               }),
             )
         }

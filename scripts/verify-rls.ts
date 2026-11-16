@@ -105,6 +105,55 @@ const tooBig = await a.storage
 check('Bucket rejects file > 10MB', !!tooBig.error, tooBig.error?.message)
 await a.storage.from('resumes').remove([aPath])
 
+// Photos: table + private bucket (JPEG only, ≤ 5MB)
+const jpg = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10])], { type: 'image/jpeg' })
+const pPath = `${aId}/${targetId}/rls-photo.jpg`
+const pUp = await a.storage
+  .from('photos')
+  .upload(pPath, jpg, { upsert: true, contentType: 'image/jpeg' })
+check('A can upload a photo into own folder', !pUp.error, pUp.error?.message)
+const pRow = await a
+  .from('photos')
+  .upsert(
+    {
+      candidate_id: targetId,
+      storage_path: pPath,
+      file_name: 'rls-photo.jpg',
+      mime_type: 'image/jpeg',
+      size_bytes: jpg.size,
+    },
+    { onConflict: 'candidate_id' },
+  )
+  .select()
+  .single()
+check('A can register the photo', !pRow.error, pRow.error?.message)
+const viewA = await a.from('candidates_view').select('photo_id').eq('id', targetId).single()
+check('view shows A’s photo to A', viewA.data?.photo_id === pRow.data?.id)
+const pSeeB = await b.from('photos').select('id')
+check('B sees none of A’s photos', (pSeeB.data?.length ?? 0) === 0)
+const pDlB = await b.storage.from('photos').download(pPath)
+check('B cannot download A’s photo', !!pDlB.error)
+const pUpB = await b.storage
+  .from('photos')
+  .upload(`${bUid}/${targetId}/evil.jpg`, jpg, { contentType: 'image/jpeg' })
+check('B cannot upload a photo under A’s candidate', !!pUpB.error)
+const pRowB = await b.from('photos').insert({
+  candidate_id: targetId,
+  storage_path: `${bUid}/x.jpg`,
+  file_name: 'x.jpg',
+  mime_type: 'image/jpeg',
+  size_bytes: 6,
+})
+check('B cannot attach a photo row to A’s candidate', !!pRowB.error)
+const pPng = await a.storage
+  .from('photos')
+  .upload(`${aId}/${targetId}/x.png`, new Blob(['x'], { type: 'image/png' }), {
+    contentType: 'image/png',
+  })
+check('photos bucket accepts JPEG only', !!pPng.error, pPng.error?.message)
+await a.from('photos').delete().eq('candidate_id', targetId)
+await a.storage.from('photos').remove([pPath])
+
 // Ideas isolation
 const aIdeas = await a.from('ideas').select('id')
 check('A sees own ideas', (aIdeas.data?.length ?? 0) >= 3, `${aIdeas.data?.length} rows`)

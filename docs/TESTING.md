@@ -11,7 +11,7 @@
 | Edge Function | `npm run verify:email` | ‏16 בדיקות מול ספק מדומה מקומי: הגבלת קצב, idempotency, timeout, ניסיון חוזר, שגיאות |
 | E2E ‏(Playwright + axe-core) | `npm run test:e2e` | ‏11 סוויטות, כולל נגישות WCAG 2.1 AA |
 
-סוויטות E2E (`tests/e2e`): ‏`core`, ‏`documents`, ‏`import`, ‏`history`, ‏`concurrency`, ‏`support`, ‏`ideas-resume`, ‏`age`, ‏`move`, ‏`profile`, ‏`account` (האחרונה מוחקת נתונים, ולכן רצה אחרונה).
+סוויטות E2E (`tests/e2e`): ‏`core`, ‏`documents`, ‏`import`, ‏`history`, ‏`concurrency`, ‏`support`, ‏`ideas-resume`, ‏`age`, ‏`move`, ‏`profile`, ‏`photo`, ‏`account` (האחרונה מוחקת נתונים, ולכן רצה אחרונה).
 להרצת סוויטה אחת: `node tests/e2e/run.cjs account`.
 
 ## 2. הרצה מקומית

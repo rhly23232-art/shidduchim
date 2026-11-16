@@ -167,6 +167,71 @@ describe('history & recycle bin', () => {
   })
 })
 
+describe('candidate photo', () => {
+  const jpeg = (tag: string) =>
+    new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0]), tag], { type: 'image/jpeg' })
+
+  it('uploads, replaces and deletes the photo without touching the resume', async () => {
+    const id = await dataApi.saveCandidate(newCandidate('תמונה'))
+    const c = (await dataApi.getCandidate(id))!
+    const p1 = await dataApi.uploadPhoto({ ...c, photo: null }, jpeg('one'), 'a.jpg', () => {})
+    expect((await dataApi.getCandidate(id))?.photo?.file_name).toBe('a.jpg')
+    const row = (await dataApi.listCandidates(5000)).rows.find((r) => r.id === id)!
+    expect(row.photo?.id).toBe(p1.id)
+    const p2 = await dataApi.uploadPhoto({ ...c, photo: p1 }, jpeg('two'), 'b.jpg', () => {})
+    const now = (await dataApi.getCandidate(id))!
+    expect(now.photo?.id).toBe(p2.id)
+    expect((await (await dataApi.getPhotoBlob(p2)).text()).endsWith('two')).toBe(true)
+    await expect(dataApi.getPhotoBlob(p1)).rejects.toThrow() // old file is gone
+    // an ordinary card save keeps the photo
+    await dataApi.saveCandidate(payloadOf({ ...now, city: 'צפת' }, id, now.updated_at))
+    expect((await dataApi.getCandidate(id))?.photo?.id).toBe(p2.id)
+    await dataApi.deletePhoto(p2)
+    expect((await dataApi.getCandidate(id))?.photo ?? null).toBeNull()
+  })
+
+  it('keeps the photo in the recycle bin and brings it back on restore', async () => {
+    const id = await dataApi.saveCandidate(newCandidate('תמונהסל'))
+    const c = (await dataApi.getCandidate(id))!
+    await dataApi.uploadPhoto({ ...c, photo: null }, jpeg('kept'), 'kept.jpg', () => {})
+    await dataApi.deleteCandidate(id)
+    const entry = (await listTrash()).find((e) => e.candidate_id === id)!
+    expect(entry.data.photoFile?.name).toBe('kept.jpg')
+    const newId = await restoreCandidate(entry)
+    const back = (await dataApi.getCandidate(newId))!
+    expect(back.photo?.file_name).toBe('kept.jpg')
+    expect((await (await dataApi.getPhotoBlob(back.photo!)).text()).endsWith('kept')).toBe(true)
+  })
+
+  it('cancels a delete when the photo copy cannot be kept', async () => {
+    const id = await dataApi.saveCandidate(newCandidate('תמונההגנה'))
+    const c = (await dataApi.getCandidate(id))!
+    await dataApi.uploadPhoto({ ...c, photo: null }, jpeg('x'), 'x.jpg', () => {})
+    // no resume here, so the only file copied to the recycle bin is the photo
+    const spy = vi.spyOn(rawDataApi.journal, 'putFile').mockRejectedValue(new Error('storage down'))
+    await expect(dataApi.deleteCandidate(id)).rejects.toBeInstanceOf(JournalError)
+    spy.mockRestore()
+    expect((await dataApi.getCandidate(id))?.photo?.file_name).toBe('x.jpg')
+  })
+
+  it('backs up photos and restores them', async () => {
+    const id = await dataApi.saveCandidate(newCandidate('תמונהגיבוי'))
+    const c = (await dataApi.getCandidate(id))!
+    await dataApi.uploadPhoto({ ...c, photo: null }, jpeg('zip'), 'zip.jpg', () => {})
+    const parsed = await readBackup(await buildBackup(() => {}))
+    const inZip = parsed.backup.candidates.find((x) => x.id === id) as { photo_file?: string }
+    expect(inZip.photo_file).toBe(`photos/${id}.jpg`)
+    await dataApi.deleteCandidate(id)
+    const res = await restoreBackup(parsed, (await dataApi.listCandidates(5000)).rows, () => {})
+    expect(res.failed).toEqual([])
+    const back = (await dataApi.listCandidates(5000)).rows.find(
+      (r) => r.first_name === 'תמונהגיבוי',
+    )!
+    expect(back.photo?.file_name).toBe('zip.jpg')
+    expect((await (await dataApi.getPhotoBlob(back.photo!)).text()).endsWith('zip')).toBe(true)
+  })
+})
+
 describe('backup', () => {
   it('builds a full backup and restores only what is missing', async () => {
     const before = (await dataApi.listCandidates(5000)).rows

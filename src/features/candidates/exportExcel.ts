@@ -33,7 +33,7 @@ export async function exportCandidatesExcel(rows: CandidateRow[], scope: TabKey)
     he.detail.fields.height,
     he.detail.fields.appearance,
     he.detail.fields.status,
-    he.table.resume,
+    he.resume.label,
     he.table.notes,
   ]
   const sorted = [...rows].sort(
